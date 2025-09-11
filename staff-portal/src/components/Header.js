@@ -1,12 +1,10 @@
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import './Header.css';
 
-const Header = () => {
-  const { user, logout } = useAuth();
-
+const Header = ({ setAuth }) => {
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem("token");
+    setAuth(false);
   };
 
   return (
@@ -25,11 +23,11 @@ const Header = () => {
         <div className="header-right">
           <div className="staff-info">
             <div className="staff-details">
-              <span className="staff-name">{user?.firstName} {user?.lastName}</span>
-              <span className="staff-role">{user?.role} • {user?.department}</span>
+              <span className="staff-name">Staff User</span>
+              <span className="staff-role">Administrator • Operations</span>
             </div>
             <div className="staff-avatar">
-              {user?.avatar}
+              👤
             </div>
           </div>
           <button 

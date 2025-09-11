@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -15,38 +15,185 @@ import Settings from './pages/Settings';
 import './App.css';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const setAuth = (boolean) => {
+    setIsAuthenticated(boolean);
+  };
+
+  async function isAuth() {
+    try {
+      const response = await fetch("http://localhost:5000/auth/is-verify", {
+        method: "GET",
+        headers: { token: localStorage.token }
+      });
+
+      const parseRes = await response.json();
+      parseRes === true ? setIsAuthenticated(true) : setIsAuthenticated(false);
+    } catch (err) {
+      console.error(err.message);
+    }
+  }
+
+  useEffect(() => {
+    isAuth();
+  }, []);
+
   return (
-    <div className="App">
-      <AuthProvider>
-        <Router>
+    <Fragment>
+      <Router>
+        <div className="App">
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <div className="staff-portal">
-                  <Header />
-                  <div className="portal-content">
-                    <Sidebar />
-                    <main className="main-content">
-                      <Routes>
-                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/members" element={<Members />} />
-                        <Route path="/accounts" element={<Accounts />} />
-                        <Route path="/loans" element={<Loans />} />
-                        <Route path="/transactions" element={<Transactions />} />
-                        <Route path="/reports" element={<Reports />} />
-                        <Route path="/settings" element={<Settings />} />
-                      </Routes>
-                    </main>
+            <Route 
+              path="/login" 
+              element={
+                !isAuthenticated ? (
+                  <Login setAuth={setAuth} />
+                ) : (
+                  <Navigate to="/dashboard" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/" 
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/dashboard" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <Dashboard setAuth={setAuth} />
+                      </main>
+                    </div>
                   </div>
-                </div>
-              </ProtectedRoute>
-            } />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/members" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <Members setAuth={setAuth} />
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/accounts" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <Accounts setAuth={setAuth} />
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/loans" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <Loans setAuth={setAuth} />
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/transactions" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <Transactions setAuth={setAuth} />
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/reports" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <Reports setAuth={setAuth} />
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <Settings setAuth={setAuth} />
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
           </Routes>
-        </Router>
-      </AuthProvider>
-    </div>
+        </div>
+      </Router>
+    </Fragment>
   );
 }
 
