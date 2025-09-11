@@ -29,13 +29,13 @@ router.post('/register', validinfo, async (req, res) => {
         
         //4. enter the new user inside our db
         const newUser = await pool.query(
-            "INSERT INTO users (user_name, user_email, user_password) VALUES ($1, $2, $3) RETURNING *",
-            [name, email, bcryptPassword]
+            "INSERT INTO users (user_name, user_email, user_password, user_role) VALUES ($1, $2, $3, $4) RETURNING *",
+            [name, email, bcryptPassword, 'cashier'] // Default role is cashier
         );
 
         //5. generate jwt token
-        const token = jwtgenerator(newUser.rows[0].user_id);
-        return res.json({ token });
+        const token = jwtgenerator(newUser.rows[0].user_id, newUser.rows[0].user_role);
+        return res.json({ token, user: { id: newUser.rows[0].user_id, name: newUser.rows[0].user_name, email: newUser.rows[0].user_email, role: newUser.rows[0].user_role } });
 
     } catch (err) {
         console.error(err.message);
@@ -64,8 +64,16 @@ router.post('/login', validinfo, async (req, res) => {
         }
 
         //4. give them the jwt token
-        const token = jwtgenerator(user.rows[0].user_id);
-        return res.json({ token });
+        const token = jwtgenerator(user.rows[0].user_id, user.rows[0].user_role);
+        return res.json({ 
+            token, 
+            user: { 
+                id: user.rows[0].user_id, 
+                name: user.rows[0].user_name, 
+                email: user.rows[0].user_email, 
+                role: user.rows[0].user_role 
+            } 
+        });
 
     } catch (err) {
         console.error(err.message);
@@ -76,6 +84,28 @@ router.post('/login', validinfo, async (req, res) => {
 router.get('/is-verify', authorization, async (req, res) => {
     try {
         res.json(true);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// Get user profile with role information
+router.get('/profile', authorization, async (req, res) => {
+    try {
+        const userId = typeof req.user === 'object' ? req.user.id : req.user;
+        const user = await pool.query("SELECT user_id, user_name, user_email, user_role FROM users WHERE user_id = $1", [userId]);
+        
+        if (user.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        
+        res.json({
+            id: user.rows[0].user_id,
+            name: user.rows[0].user_name,
+            email: user.rows[0].user_email,
+            role: user.rows[0].user_role
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
