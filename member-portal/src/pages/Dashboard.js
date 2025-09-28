@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
+import Icon from '../components/Icon';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -22,10 +23,10 @@ const Dashboard = () => {
   };
 
   const quickActions = [
-    { icon: '💰', label: 'Add Money', color: 'success' },
-    { icon: '💳', label: 'Savings', color: 'info' },
-    { icon: '💸', label: 'Pay Bills', color: 'warning' },
-    { icon: '🕐', label: 'History', color: 'secondary' }
+    { icon: 'money', label: 'Add Money', color: 'success' },
+    { icon: 'savings', label: 'Savings', color: 'info' },
+    { icon: 'send', label: 'Pay Bills', color: 'warning' },
+    { icon: 'clock', label: 'History', color: 'secondary' }
   ];
 
   return (
@@ -57,7 +58,7 @@ const Dashboard = () => {
               {/* Savings Account */}
               <div className="account-card card">
                 <div className="account-header">
-                  <div className="account-icon savings">💰</div>
+                  <div className="account-icon savings"><Icon name="savings" size={24} color="var(--primary-blue)" /></div>
                   <div className="account-info">
                     <h3>Total Savings</h3>
                     <p className="account-number">{user?.accounts?.savings?.accountNumber}</p>
@@ -75,7 +76,7 @@ const Dashboard = () => {
               {/* Checking Account */}
               <div className="account-card card">
                 <div className="account-header">
-                  <div className="account-icon checking">💳</div>
+                  <div className="account-icon checking"><Icon name="creditCard" size={24} color="var(--primary-blue)" /></div>
                   <div className="account-info">
                     <h3>Checking</h3>
                     <p className="account-number">{user?.accounts?.checking?.accountNumber}</p>
@@ -119,11 +120,11 @@ const Dashboard = () => {
           {/* Quick Actions */}
           <div className="quick-actions-section">
             <div className="quick-actions-card card">
-              <h3>⚡ Quick Actions</h3>
+              <h3><Icon name="zap" size={20} /> Quick Actions</h3>
               <div className="quick-actions-grid">
                 {quickActions.map((action, index) => (
                   <button key={index} className={`quick-action-btn ${action.color}`}>
-                    <span className="action-icon">{action.icon}</span>
+                    <span className="action-icon"><Icon name={action.icon} size={20} /></span>
                     <span className="action-label">{action.label}</span>
                   </button>
                 ))}
@@ -134,7 +135,7 @@ const Dashboard = () => {
           {/* Recent Activity */}
           <div className="recent-activity-section">
             <div className="activity-header">
-              <h3>🕐 Recent Activity</h3>
+              <h3><Icon name="clock" size={20} /> Recent Activity</h3>
               <a href="#all" className="view-all-link">View All</a>
             </div>
             
@@ -142,8 +143,8 @@ const Dashboard = () => {
               {user?.recentTransactions?.slice(0, 4).map((transaction) => (
                 <div key={transaction.id} className="activity-item card">
                   <div className="activity-icon">
-                    {transaction.type === 'credit' ? '💰' : 
-                     transaction.type === 'transfer' ? '🔄' : '💸'}
+                    {transaction.type === 'credit' ? <Icon name="money" size={20} color="var(--accent-green)" /> : 
+                     transaction.type === 'transfer' ? <Icon name="transfer" size={20} color="var(--primary-blue)" /> : <Icon name="send" size={20} color="var(--accent-red)" />}
                   </div>
                   <div className="activity-info">
                     <h4>{transaction.description}</h4>

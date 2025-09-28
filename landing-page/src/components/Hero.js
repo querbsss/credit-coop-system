@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from './Icon';
 import './Hero.css';
 
 const Hero = () => {
@@ -29,9 +30,7 @@ const Hero = () => {
             <div className="hero-buttons">
               <a href="#membership" className="btn btn-primary btn-lg">
                 <span>Become a Member</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
+                <Icon name="arrowRight" size={16} />
               </a>
               <a href="#services" className="btn btn-secondary btn-lg">
                 Explore Services
@@ -40,15 +39,15 @@ const Hero = () => {
             
             <div className="hero-features">
               <div className="feature-item">
-                <div className="feature-icon">🔒</div>
+                <div className="feature-icon"><Icon name="shield" size={20} /></div>
                 <span>PDIC Insured</span>
               </div>
               <div className="feature-item">
-                <div className="feature-icon">⚡</div>
+                <div className="feature-icon"><Icon name="zap" size={20} /></div>
                 <span>Instant Processing</span>
               </div>
               <div className="feature-item">
-                <div className="feature-icon">📱</div>
+                <div className="feature-icon"><Icon name="smartphone" size={20} /></div>
                 <span>Digital Banking</span>
               </div>
             </div>
@@ -58,7 +57,7 @@ const Hero = () => {
             <div className="hero-cards">
               <div className="hero-card card-savings">
                 <div className="card-header">
-                  <div className="card-icon">💰</div>
+                  <div className="card-icon"><Icon name="savings" size={24} color="var(--primary-blue)" /></div>
                   <h4>Savings Account</h4>
                 </div>
                 <div className="card-amount">₱125,000.00</div>
@@ -67,7 +66,7 @@ const Hero = () => {
               
               <div className="hero-card card-loan">
                 <div className="card-header">
-                  <div className="card-icon">🏠</div>
+                  <div className="card-icon"><Icon name="home" size={24} color="var(--primary-blue)" /></div>
                   <h4>Home Loan</h4>
                 </div>
                 <div className="card-rate">3.5% APR</div>
@@ -76,7 +75,7 @@ const Hero = () => {
               
               <div className="hero-card card-investment">
                 <div className="card-header">
-                  <div className="card-icon">📈</div>
+                  <div className="card-icon"><Icon name="trendingUp" size={24} color="var(--primary-blue)" /></div>
                   <h4>Investment</h4>
                 </div>
                 <div className="card-amount">₱50,000.00</div>

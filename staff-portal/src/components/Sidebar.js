@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useUserRole } from '../hooks/useUserRole';
 import { getMenuItems } from '../utils/permissions';
+import Icon from './Icon';
 import './Sidebar.css';
 
 const Sidebar = () => {
@@ -38,7 +39,10 @@ const Sidebar = () => {
                     `nav-link ${isActive ? 'active' : ''}`
                   }
                 >
-                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-icon">
+                    {/* item.icon is expected to be an Icon name (e.g., 'barChart'). */}
+                    <Icon name={item.icon} size={20} />
+                  </span>
                   <div className="nav-content">
                     <span className="nav-label">{item.label}</span>
                     <span className="nav-description">{item.description}</span>

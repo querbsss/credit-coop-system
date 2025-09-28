@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '../components/Icon';
 
 const Accounts = () => {
   return (
@@ -9,14 +10,14 @@ const Accounts = () => {
           <p>Manage savings, checking, and loan accounts</p>
         </div>
         <button className="btn btn-primary">
-          <span>💰</span>
+          <Icon name="savings" size={16} />
           Create Account
         </button>
       </div>
       
       <div className="card">
         <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>💰</div>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}><Icon name="savings" size={64} color="var(--primary-blue)" /></div>
           <h3>Account Management</h3>
           <p>This section will contain account management features including:</p>
           <ul style={{ textAlign: 'left', display: 'inline-block', marginTop: '1rem' }}>

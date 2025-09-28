@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from './Icon';
 import './Contact.css';
 
 const Contact = () => {
@@ -44,7 +45,7 @@ const Contact = () => {
             <h3>Contact Information</h3>
             
             <div className="contact-item">
-              <span className="icon">📍</span>
+              <span className="icon"><Icon name="mapPin" size={20} color="var(--primary-blue)" /></span>
               <div>
                 <h4>Address</h4>
                 <p>123 Financial Street<br />Cooperative City, CC 12345</p>
@@ -52,7 +53,7 @@ const Contact = () => {
             </div>
 
             <div className="contact-item">
-              <span className="icon">📞</span>
+              <span className="icon"><Icon name="phone" size={20} color="var(--primary-blue)" /></span>
               <div>
                 <h4>Phone</h4>
                 <p>(555) 123-4567</p>
@@ -60,7 +61,7 @@ const Contact = () => {
             </div>
 
             <div className="contact-item">
-              <span className="icon">✉️</span>
+              <span className="icon"><Icon name="mail" size={20} color="var(--primary-blue)" /></span>
               <div>
                 <h4>Email</h4>
                 <p>info@creditcoop.com</p>
@@ -68,7 +69,7 @@ const Contact = () => {
             </div>
 
             <div className="contact-item">
-              <span className="icon">🕒</span>
+              <span className="icon"><Icon name="clock" size={20} color="var(--primary-blue)" /></span>
               <div>
                 <h4>Business Hours</h4>
                 <p>Monday - Friday: 9:00 AM - 6:00 PM<br />Saturday: 9:00 AM - 2:00 PM<br />Sunday: Closed</p>

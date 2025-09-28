@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from './Icon';
 import './Footer.css';
 
 const Footer = () => {
@@ -42,9 +43,9 @@ const Footer = () => {
           <div className="footer-section">
             <h4>Contact Info</h4>
             <div className="contact-info">
-              <p>📍 123 Financial Street<br />Cooperative City, CC 12345</p>
-              <p>📞 (555) 123-4567</p>
-              <p>✉️ info@creditcoop.com</p>
+              <p><Icon name="mapPin" size={16} /> 123 Financial Street<br />Cooperative City, CC 12345</p>
+              <p><Icon name="phone" size={16} /> (555) 123-4567</p>
+              <p><Icon name="mail" size={16} /> info@creditcoop.com</p>
             </div>
           </div>
         </div>

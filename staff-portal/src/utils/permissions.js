@@ -6,19 +6,19 @@ export const PERMISSIONS = {
     menuItems: [
       {
         path: '/dashboard',
-        icon: '📊',
+        icon: 'barChart',
         label: 'Dashboard',
         description: 'Admin Overview'
       },
       {
         path: '/members',
-        icon: '👥',
+        icon: 'users',
         label: 'Members',
         description: 'Member Management'
       },
       {
         path: '/reports',
-        icon: '📈',
+        icon: 'trendingUp',
         label: 'Reports', 
         description: 'System Reports'
       }
@@ -31,37 +31,37 @@ export const PERMISSIONS = {
     menuItems: [
       {
         path: '/dashboard',
-        icon: '📊',
+        icon: 'barChart',
         label: 'Dashboard',
         description: 'Manager Overview'
       },
       {
         path: '/members',
-        icon: '👥',
+        icon: 'users',
         label: 'Members',
         description: 'Member Management'
       },
       {
         path: '/accounts',
-        icon: '💰',
+        icon: 'savings',
         label: 'Accounts',
         description: 'Account Management'
       },
       {
         path: '/loans',
-        icon: '🏦',
+        icon: 'home',
         label: 'Loans',
         description: 'Loan Management'
       },
       {
         path: '/transactions',
-        icon: '💳',
+        icon: 'creditCard',
         label: 'Transactions',
         description: 'Transaction History'
       },
       {
         path: '/reports',
-        icon: '📈',
+        icon: 'trendingUp',
         label: 'Reports',
         description: 'Financial Reports'
       }
@@ -74,19 +74,19 @@ export const PERMISSIONS = {
     menuItems: [
       {
         path: '/dashboard',
-        icon: '📊',
+        icon: 'barChart',
         label: 'Dashboard',
         description: 'Loan Officer View'
       },
       {
         path: '/loan-applications',
-        icon: '📋',
+        icon: 'fileText',
         label: 'Loan Applications',
         description: 'Review Applications'
       },
       {
         path: '/loans-verified',
-        icon: '✅',
+        icon: 'shield',
         label: 'Loans Verified',
         description: 'Manage Approved Loans'
       }
@@ -99,25 +99,25 @@ export const PERMISSIONS = {
     menuItems: [
       {
         path: '/dashboard',
-        icon: '📊',
+        icon: 'barChart',
         label: 'Dashboard',
         description: 'Cashier Overview'
       },
       {
         path: '/members',
-        icon: '👥',
+        icon: 'users',
         label: 'Members',
         description: 'Member Lookup'
       },
       {
         path: '/accounts',
-        icon: '💰',
+        icon: 'savings',
         label: 'Accounts',
         description: 'Account Services'
       },
       {
         path: '/transactions',
-        icon: '💳',
+        icon: 'creditCard',
         label: 'Transactions',
         description: 'Process Transactions'
       }
@@ -130,25 +130,25 @@ export const PERMISSIONS = {
     menuItems: [
       {
         path: '/dashboard',
-        icon: '📊',
+        icon: 'barChart',
         label: 'Dashboard',
         description: 'System Overview'
       },
       {
         path: '/members',
-        icon: '👥',
+        icon: 'users',
         label: 'User Management',
         description: 'Staff & Members'
       },
       {
         path: '/reports',
-        icon: '📈',
+        icon: 'trendingUp',
         label: 'System Reports',
         description: 'Usage & Performance'
       },
       {
         path: '/settings',
-        icon: '⚙️',
+        icon: 'settings',
         label: 'Settings',
         description: 'System Configuration'
       }

@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '../components/Icon';
 import './Dashboard.css';
 
 const Dashboard = ({ setAuth, userRole }) => {
@@ -46,7 +47,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '2,547',
       change: '+127',
       changeType: 'positive',
-      icon: '👥',
+      icon: 'users',
       color: 'blue'
     },
     {
@@ -54,7 +55,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱45.2M',
       change: '+₱2.1M',
       changeType: 'positive',
-      icon: '💰',
+      icon: 'savings',
       color: 'green'
     },
     {
@@ -62,7 +63,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱28.7M',
       change: '+₱890K',
       changeType: 'positive',
-      icon: '🏦',
+      icon: 'home',
       color: 'purple'
     },
     {
@@ -70,7 +71,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '23',
       change: '-5',
       changeType: 'negative',
-      icon: '📋',
+      icon: 'fileText',
       color: 'orange'
     }
   ];
@@ -165,7 +166,7 @@ const Dashboard = ({ setAuth, userRole }) => {
         {metrics.map((metric, index) => (
           <div key={index} className={`metric-card card ${metric.color}`}>
             <div className="metric-icon">
-              {metric.icon}
+              <Icon name={metric.icon} size={24} />
             </div>
             <div className="metric-content">
               <h3 className="metric-value">{metric.value}</h3>

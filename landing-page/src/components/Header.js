@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Icon from './Icon';
 import './Header.css';
 
 const Header = () => {
@@ -40,7 +41,7 @@ const Header = () => {
             
             <div className="nav-actions">
               <a href="/member-portal" className="btn-login">
-                <span className="login-icon">👤</span>
+                <Icon name="user" size={16} />
                 Member Login
               </a>
               <a href="#membership" className="btn btn-primary btn-join">
