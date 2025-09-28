@@ -33,6 +33,10 @@ const Login = ({ setAuth }) => {
       
       if (response.ok) {
         localStorage.setItem("token", parseRes.token);
+        // Store user info including role
+        if (parseRes.user) {
+          localStorage.setItem("userInfo", JSON.stringify(parseRes.user));
+        }
         setAuth(true);
       } else {
         setError(parseRes.error || 'Login failed');

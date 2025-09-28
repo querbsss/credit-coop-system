@@ -5,10 +5,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
+import RoleBasedDashboard from './pages/RoleBasedDashboard';
 import Members from './pages/Members';
 import Accounts from './pages/Accounts';
 import Loans from './pages/Loans';
+import LoanApplications from './pages/LoanApplications';
+import LoansVerified from './pages/LoansVerified';
 import Transactions from './pages/Transactions';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
@@ -73,7 +75,7 @@ function App() {
                     <div className="portal-content">
                       <Sidebar />
                       <main className="main-content">
-                        <Dashboard setAuth={setAuth} />
+                        <RoleBasedDashboard setAuth={setAuth} />
                       </main>
                     </div>
                   </div>
@@ -91,7 +93,9 @@ function App() {
                     <div className="portal-content">
                       <Sidebar />
                       <main className="main-content">
-                        <Members setAuth={setAuth} />
+                        <ProtectedRoute requiredRoute="/members">
+                          <Members setAuth={setAuth} />
+                        </ProtectedRoute>
                       </main>
                     </div>
                   </div>
@@ -109,7 +113,9 @@ function App() {
                     <div className="portal-content">
                       <Sidebar />
                       <main className="main-content">
-                        <Accounts setAuth={setAuth} />
+                        <ProtectedRoute requiredRoute="/accounts">
+                          <Accounts setAuth={setAuth} />
+                        </ProtectedRoute>
                       </main>
                     </div>
                   </div>
@@ -127,7 +133,9 @@ function App() {
                     <div className="portal-content">
                       <Sidebar />
                       <main className="main-content">
-                        <Loans setAuth={setAuth} />
+                        <ProtectedRoute requiredRoute="/loans">
+                          <Loans setAuth={setAuth} />
+                        </ProtectedRoute>
                       </main>
                     </div>
                   </div>
@@ -145,7 +153,9 @@ function App() {
                     <div className="portal-content">
                       <Sidebar />
                       <main className="main-content">
-                        <Transactions setAuth={setAuth} />
+                        <ProtectedRoute requiredRoute="/transactions">
+                          <Transactions setAuth={setAuth} />
+                        </ProtectedRoute>
                       </main>
                     </div>
                   </div>
@@ -163,7 +173,9 @@ function App() {
                     <div className="portal-content">
                       <Sidebar />
                       <main className="main-content">
-                        <Reports setAuth={setAuth} />
+                        <ProtectedRoute requiredRoute="/reports">
+                          <Reports setAuth={setAuth} />
+                        </ProtectedRoute>
                       </main>
                     </div>
                   </div>
@@ -181,7 +193,49 @@ function App() {
                     <div className="portal-content">
                       <Sidebar />
                       <main className="main-content">
-                        <Settings setAuth={setAuth} />
+                        <ProtectedRoute requiredRoute="/settings">
+                          <Settings setAuth={setAuth} />
+                        </ProtectedRoute>
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/loan-applications" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <ProtectedRoute requiredRoute="/loan-applications">
+                          <LoanApplications setAuth={setAuth} />
+                        </ProtectedRoute>
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/loans-verified" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <ProtectedRoute requiredRoute="/loans-verified">
+                          <LoansVerified setAuth={setAuth} />
+                        </ProtectedRoute>
                       </main>
                     </div>
                   </div>
