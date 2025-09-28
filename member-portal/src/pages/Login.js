@@ -7,7 +7,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    memberNumber: '',
+    email: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ const Login = () => {
     setError('');
 
     try {
-      await login(formData.memberNumber, formData.password);
+  await login(formData.email, formData.password);
       // Redirect to dashboard after successful login
       navigate('/dashboard');
     } catch (err) {
@@ -60,14 +60,14 @@ const Login = () => {
             )}
 
             <div className="form-group">
-              <label htmlFor="memberNumber">Member Number</label>
+              <label htmlFor="email">Email</label>
               <input
-                type="text"
-                id="memberNumber"
-                name="memberNumber"
-                value={formData.memberNumber}
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter your member number"
+                placeholder="Enter your email"
                 required
               />
             </div>

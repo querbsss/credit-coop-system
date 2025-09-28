@@ -387,6 +387,33 @@
   text-align: center;
 }
 
+/* Inline form styles for modal */
+.form-grid {
+  display: grid;
+  gap: 1rem;
+}
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.form-row label {
+  font-size: 0.9rem;
+  color: var(--gray-700);
+}
+.form-row input,
+.form-row select {
+  padding: 10px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  outline: none;
+}
+.form-row input:focus,
+.form-row select:focus {
+  border-color: var(--primary-purple);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
 /* Mobile Styles */
 @media (max-width: 768px) {
   .dashboard-main {

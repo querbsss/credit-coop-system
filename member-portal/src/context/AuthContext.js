@@ -20,16 +20,28 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('memberPortalToken');
         if (token) {
           // Verify token with server
-          const response = await fetch('http://localhost:5001/auth/is-verify', {
+          const url = '/auth/is-verify';
+          const response = await fetch(url, {
             headers: {
-              'token': token
+              'Authorization': `Bearer ${token}`,
+              'token': token // backward compatibility
             }
           });
           
           if (response.ok) {
-            // Token is valid, fetch user data from server
-            // You can add a user info endpoint here
-            setUser({ authenticated: true });
+            // Token is valid, fetch user dashboard summary
+            const sumRes = await fetch('/dashboard/summary', {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'token': token
+              }
+            });
+            if (sumRes.ok) {
+              const sumData = await sumRes.json();
+              setUser(sumData.user || { authenticated: true });
+            } else {
+              setUser({ authenticated: true });
+            }
           } else {
             // Token is invalid, clear it
             localStorage.removeItem('memberPortalToken');
@@ -47,15 +59,34 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (memberNumber, password) => {
+  const refreshUserSummary = async () => {
+    const token = localStorage.getItem('memberPortalToken');
+    if (!token) return null;
     try {
-      const response = await fetch('http://localhost:5001/auth/login', {
+      const res = await fetch('/dashboard/summary', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user || null);
+        return data.user || null;
+      }
+    } catch (e) {
+      console.error('Failed to refresh summary', e);
+    }
+    return null;
+  };
+
+  const login = async (email, password) => {
+    try {
+      const apiUrl = '/auth/login';
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          memberNumber: memberNumber,
+          email: email,
           password: password
         })
       });
@@ -65,13 +96,27 @@ export const AuthProvider = ({ children }) => {
         throw new Error(errorText || 'Login failed');
       }
 
-      const data = await response.json();
+  const data = await response.json();
       
       // Store the JWT token
       localStorage.setItem('memberPortalToken', data.token);
       
-      // Set user as authenticated
-      setUser({ authenticated: true, ...data.user });
+      // Hydrate dashboard summary immediately after login
+      try {
+        const sumRes = await fetch('/dashboard/summary', {
+          headers: {
+            'Authorization': `Bearer ${data.token}`,
+          }
+        });
+        if (sumRes.ok) {
+          const sumData = await sumRes.json();
+          setUser(sumData.user || { authenticated: true });
+        } else {
+          setUser({ authenticated: true, ...data.user });
+        }
+      } catch {
+        setUser({ authenticated: true, ...data.user });
+      }
       
       return data.user;
     } catch (error) {
@@ -88,7 +133,8 @@ export const AuthProvider = ({ children }) => {
     user,
     login,
     logout,
-    loading
+    loading,
+    refreshUserSummary
   };
 
   return (
