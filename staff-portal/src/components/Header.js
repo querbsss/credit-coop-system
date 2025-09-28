@@ -1,12 +1,61 @@
-import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
 import './Header.css';
 
-const Header = () => {
-  const { user, logout } = useAuth();
+const Header = ({ setAuth }) => {
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/auth/profile", {
+          method: "GET",
+          headers: { 
+            "Content-Type": "application/json",
+            "token": localStorage.token 
+          }
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUserInfo(userData);
+        } else {
+          console.error('Failed to fetch user info');
+        }
+      } catch (err) {
+        console.error("Error fetching user info:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (localStorage.token) {
+      fetchUserInfo();
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem("token");
+    localStorage.removeItem("userInfo");
+    setAuth(false);
+  };
+
+  const getRoleDisplayName = (role) => {
+    const roleMap = {
+      'admin': 'Administrator',
+      'manager': 'Manager',
+      'loan_officer': 'Loan Officer',
+      'cashier': 'Cashier',
+      'it_admin': 'IT Administrator'
+    };
+    return roleMap[role] || 'Staff';
+  };
+
+  const getUserInitials = (name) => {
+    if (!name) return '👤';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
   return (
@@ -24,12 +73,29 @@ const Header = () => {
 
         <div className="header-right">
           <div className="staff-info">
-            <div className="staff-details">
-              <span className="staff-name">{user?.firstName} {user?.lastName}</span>
-              <span className="staff-role">{user?.role} • {user?.department}</span>
-            </div>
+            {loading ? (
+              <div className="staff-details">
+                <span className="staff-name">Loading...</span>
+                <span className="staff-role">Please wait</span>
+              </div>
+            ) : userInfo ? (
+              <div className="staff-details">
+                <span className="staff-name">{userInfo.name}</span>
+                <span className="staff-role">
+                  {getRoleDisplayName(userInfo.role)} • 
+                  <span className={`role-badge-header role-${userInfo.role}`}>
+                    {userInfo.role.replace('_', ' ').toUpperCase()}
+                  </span>
+                </span>
+              </div>
+            ) : (
+              <div className="staff-details">
+                <span className="staff-name">Staff User</span>
+                <span className="staff-role">Unknown Role</span>
+              </div>
+            )}
             <div className="staff-avatar">
-              {user?.avatar}
+              {userInfo ? getUserInitials(userInfo.name) : '👤'}
             </div>
           </div>
           <button 

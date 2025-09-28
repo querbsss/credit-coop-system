@@ -1,58 +1,34 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useUserRole } from '../hooks/useUserRole';
+import { getMenuItems } from '../utils/permissions';
 import './Sidebar.css';
 
 const Sidebar = () => {
-  const menuItems = [
-    {
-      path: '/dashboard',
-      icon: '📊',
-      label: 'Dashboard',
-      description: 'Overview & Analytics'
-    },
-    {
-      path: '/members',
-      icon: '👥',
-      label: 'Members',
-      description: 'Member Management'
-    },
-    {
-      path: '/accounts',
-      icon: '💰',
-      label: 'Accounts',
-      description: 'Account Management'
-    },
-    {
-      path: '/loans',
-      icon: '🏦',
-      label: 'Loans',
-      description: 'Loan Processing'
-    },
-    {
-      path: '/transactions',
-      icon: '💳',
-      label: 'Transactions',
-      description: 'Transaction History'
-    },
-    {
-      path: '/reports',
-      icon: '📈',
-      label: 'Reports',
-      description: 'Financial Reports'
-    },
-    {
-      path: '/settings',
-      icon: '⚙️',
-      label: 'Settings',
-      description: 'System Settings'
-    }
-  ];
+  const { userRole, loading } = useUserRole();
+
+  // Get menu items based on user role
+  const menuItems = userRole ? getMenuItems(userRole) : [];
+
+  if (loading) {
+    return (
+      <aside className="sidebar">
+        <div className="sidebar-loading">
+          <div className="spinner"></div>
+          <p>Loading menu...</p>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside className="sidebar">
       <nav className="sidebar-nav">
         <div className="nav-section">
           <h3 className="nav-title">Main Menu</h3>
+          <div className="user-role-indicator">
+            <span className="role-badge">{userRole?.replace('_', ' ').toUpperCase()}</span>
+          </div>
           <ul className="nav-list">
             {menuItems.map((item) => (
               <li key={item.path} className="nav-item">

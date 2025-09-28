@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 const Login = () => {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     memberNumber: '',
     password: ''
@@ -26,6 +28,8 @@ const Login = () => {
 
     try {
       await login(formData.memberNumber, formData.password);
+      // Redirect to dashboard after successful login
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -95,12 +99,6 @@ const Login = () => {
               <a href="#contact" className="text-primary">Need help?</a>
             </div>
           </form>
-
-          <div className="demo-credentials">
-            <h4>Demo Credentials</h4>
-            <p><strong>Member Number:</strong> CU001234</p>
-            <p><strong>Password:</strong> password123</p>
-          </div>
         </div>
 
         <div className="login-footer">

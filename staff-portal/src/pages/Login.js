@@ -1,43 +1,53 @@
-import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React, { Fragment, useState } from 'react';
 import './Login.css';
 
-const Login = () => {
-  const { user, login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+const Login = ({ setAuth }) => {
+  const [inputs, setInputs] = useState({
+    email: "",
+    password: ""
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { email, password } = inputs;
 
-  // Redirect if already logged in
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
+  const onChange = e => {
+    setInputs({ ...inputs, [e.target.name]: e.target.value });
+    setError('');
   }
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    setError('');
-  };
-
-  const handleSubmit = async (e) => {
+  const onSubmitForm = async e => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
-    const result = await login(formData.email, formData.password);
     
-    if (!result.success) {
-      setError(result.error);
+    try {
+      const body = { email, password };
+      const response = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const parseRes = await response.json();
+      
+      if (response.ok) {
+        localStorage.setItem("token", parseRes.token);
+        // Store user info including role
+        if (parseRes.user) {
+          localStorage.setItem("userInfo", JSON.stringify(parseRes.user));
+        }
+        setAuth(true);
+      } else {
+        setError(parseRes.error || 'Login failed');
+      }
+    } catch (err) {
+      console.error(err.message);
+      setError('Network error. Please try again.');
     }
     
     setLoading(false);
-  };
+  }
 
   return (
     <div className="login-container">
@@ -52,7 +62,7 @@ const Login = () => {
           </div>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={onSubmitForm}>
           <h2>Staff Login</h2>
           <p className="login-description">Access the Credit Cooperative management system</p>
 
@@ -68,8 +78,8 @@ const Login = () => {
               type="email"
               id="email"
               name="email"
-              value={formData.email}
-              onChange={handleChange}
+              value={email}
+              onChange={onChange}
               className="form-control"
               placeholder="Enter your email address"
               required
@@ -82,8 +92,8 @@ const Login = () => {
               type="password"
               id="password"
               name="password"
-              value={formData.password}
-              onChange={handleChange}
+              value={password}
+              onChange={onChange}
               className="form-control"
               placeholder="Enter your password"
               required
@@ -98,11 +108,6 @@ const Login = () => {
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
 
-          <div className="demo-credentials">
-            <h4>Demo Credentials:</h4>
-            <p><strong>Email:</strong> staff@creditcoop.ph</p>
-            <p><strong>Password:</strong> staff123</p>
-          </div>
         </form>
       </div>
     </div>

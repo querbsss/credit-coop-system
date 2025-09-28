@@ -1,7 +1,44 @@
 import React from 'react';
 import './Dashboard.css';
 
-const Dashboard = () => {
+const Dashboard = ({ setAuth, userRole }) => {
+  // Get role-specific title and description
+  const getRoleInfo = (role) => {
+    switch (role) {
+      case 'admin':
+        return {
+          title: 'Administrator Dashboard',
+          description: 'Manage members and system reports across the credit cooperative'
+        };
+      case 'manager':
+        return {
+          title: 'Manager Dashboard',
+          description: 'Oversee operations and monitor performance across all departments'
+        };
+      case 'loan_officer':
+        return {
+          title: 'Loan Officer Dashboard',
+          description: 'Process loan applications and manage member credit assessments'
+        };
+      case 'cashier':
+        return {
+          title: 'Cashier Dashboard',
+          description: 'Process transactions and provide member account services'
+        };
+      case 'it_admin':
+        return {
+          title: 'IT Administrator Dashboard',
+          description: 'Monitor system performance and manage technical infrastructure'
+        };
+      default:
+        return {
+          title: 'Dashboard Overview',
+          description: 'Monitor key metrics and recent activities across the credit cooperative'
+        };
+    }
+  };
+
+  const roleInfo = getRoleInfo(userRole);
   // Mock data for dashboard metrics
   const metrics = [
     {
@@ -105,13 +142,25 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>Dashboard Overview</h1>
-        <p>Monitor key metrics and recent activities</p>
+    <div className="dashboard-page">
+      <div className="page-header">
+        <div className="page-title">
+          <h1>{roleInfo.title}</h1>
+          <p>{roleInfo.description}</p>
+        </div>
+        <div className="page-actions">
+          <button className="btn btn-secondary">
+            <span>📊</span>
+            Export Report
+          </button>
+          <button className="btn btn-primary">
+            <span>📈</span>
+            Generate Analytics
+          </button>
+        </div>
       </div>
 
-      {/* Key Metrics */}
+      {/* Key Metrics Cards */}
       <div className="metrics-grid">
         {metrics.map((metric, index) => (
           <div key={index} className={`metric-card card ${metric.color}`}>
@@ -125,72 +174,109 @@ const Dashboard = () => {
                 {metric.change} this month
               </span>
             </div>
+            <div className="metric-arrow">
+              {metric.changeType === 'positive' ? '↗️' : '↘️'}
+            </div>
           </div>
         ))}
       </div>
 
       <div className="dashboard-content">
-        {/* Recent Transactions */}
+        {/* Recent Transactions Section */}
         <div className="dashboard-section">
           <div className="section-header">
             <h2>Recent Transactions</h2>
-            <button className="btn btn-secondary btn-sm">View All</button>
+            <button className="btn btn-secondary btn-sm">
+              <span>👁️</span>
+              View All
+            </button>
           </div>
           <div className="card">
-            <div className="transactions-list">
-              {recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="transaction-item">
-                  <div className="transaction-info">
-                    <div className="transaction-main">
-                      <span className="transaction-member">{transaction.member}</span>
-                      <span className="transaction-id">#{transaction.id}</span>
-                    </div>
-                    <div className="transaction-details">
-                      <span className="transaction-type">{transaction.type}</span>
-                      <span className="transaction-account">{transaction.account}</span>
-                    </div>
-                  </div>
-                  <div className="transaction-right">
-                    <div className="transaction-amount">{transaction.amount}</div>
-                    <div className="transaction-meta">
-                      <span className="transaction-time">{transaction.time}</span>
-                      <span className={`status-badge status-${transaction.status}`}>
-                        {transaction.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="table-container">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentTransactions.map((transaction) => (
+                    <tr key={transaction.id}>
+                      <td>
+                        <div className="member-info">
+                          <div className="member-avatar">
+                            {transaction.member.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <div>
+                            <div className="member-name">{transaction.member}</div>
+                            <div className="text-muted transaction-id">#{transaction.id}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`type-badge type-${transaction.type.toLowerCase().replace(' ', '-')}`}>
+                          {transaction.type}
+                        </span>
+                      </td>
+                      <td className="font-weight-bold">{transaction.amount}</td>
+                      <td>
+                        <span className={`status-badge status-${transaction.status}`}>
+                          {transaction.status}
+                        </span>
+                      </td>
+                      <td className="text-muted">{transaction.time}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
-        {/* Pending Approvals */}
+        {/* Pending Approvals Section */}
         <div className="dashboard-section">
           <div className="section-header">
             <h2>Pending Approvals</h2>
-            <button className="btn btn-warning btn-sm">Review All</button>
+            <button className="btn btn-warning btn-sm">
+              <span>⏳</span>
+              Review All
+            </button>
           </div>
           <div className="card">
-            <div className="approvals-list">
+            <div className="approvals-container">
               {pendingApprovals.map((approval) => (
                 <div key={approval.id} className="approval-item">
                   <div className="approval-info">
-                    <div className="approval-main">
+                    <div className="approval-header">
                       <span className="approval-type">{approval.type}</span>
                       <span className={`priority-badge priority-${approval.priority}`}>
-                        {approval.priority}
+                        {approval.priority} priority
                       </span>
                     </div>
                     <div className="approval-details">
-                      <span className="approval-member">{approval.member}</span>
-                      <span className="approval-amount">{approval.amount}</span>
+                      <div className="approval-member">
+                        <div className="member-avatar small">
+                          {approval.member.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <span>{approval.member}</span>
+                      </div>
+                      <div className="approval-amount">{approval.amount}</div>
                     </div>
                     <div className="approval-time">Submitted {approval.submitted}</div>
                   </div>
                   <div className="approval-actions">
-                    <button className="btn btn-success btn-sm">Approve</button>
-                    <button className="btn btn-danger btn-sm">Reject</button>
+                    <button className="btn btn-success btn-sm">
+                      <span>✅</span>
+                      Approve
+                    </button>
+                    <button className="btn btn-danger btn-sm">
+                      <span>❌</span>
+                      Reject
+                    </button>
                   </div>
                 </div>
               ))}

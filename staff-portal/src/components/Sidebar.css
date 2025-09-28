@@ -97,6 +97,49 @@
   color: var(--primary-purple-light);
 }
 
+/* Role indicator styles */
+.user-role-indicator {
+  margin: 0 1.5rem 1rem;
+  text-align: center;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: var(--gradient-primary);
+  color: var(--white);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+/* Sidebar loading state */
+.sidebar-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  padding: 2rem;
+}
+
+.sidebar-loading .spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--gray-200);
+  border-top: 3px solid var(--primary-purple);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.sidebar-loading p {
+  color: var(--gray-600);
+  font-size: 0.9rem;
+}
+
 /* Scrollbar styling */
 .sidebar::-webkit-scrollbar {
   width: 6px;

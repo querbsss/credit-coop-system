@@ -121,6 +121,43 @@
   transform: translateY(-1px);
 }
 
+/* Role badge styling in header */
+.role-badge-header {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-left: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.role-admin {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
+}
+
+.role-manager {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+}
+
+.role-loan_officer {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
+}
+
+.role-cashier {
+  background: rgba(59, 130, 246, 0.2);
+  color: #bfdbfe;
+}
+
+.role-it_admin {
+  background: rgba(168, 85, 247, 0.2);
+  color: #e9d5ff;
+}
+
 @media (max-width: 768px) {
   .header-content {
     padding: 0 1rem;
