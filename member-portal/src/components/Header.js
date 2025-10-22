@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
@@ -28,10 +29,11 @@ const Header = () => {
 
           <div className="header-right">
             <nav className={`nav ${mobileMenuOpen ? 'nav-open' : ''}`}>
-              <a href="#dashboard" className="nav-link">Dashboard</a>
-              <a href="#accounts" className="nav-link">Accounts</a>
-              <a href="#loans" className="nav-link">Loans</a>
-              <a href="#profile" className="nav-link">Profile</a>
+              <Link to="/dashboard" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+              <a href="#accounts" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Accounts</a>
+              <Link to="/loans" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Loans</Link>
+              <Link to="/payment-dues" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Payment Dues</Link>
+              <a href="#profile" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Profile</a>
               <button onClick={handleLogout} className="btn btn-secondary btn-sm">
                 Logout
               </button>
