@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import Dashboard from './Dashboard';
+import CashierDashboard from './CashierDashboard';
 
 const RoleBasedDashboard = ({ setAuth }) => {
     const [userRole, setUserRole] = useState(null);
@@ -65,8 +66,12 @@ const RoleBasedDashboard = ({ setAuth }) => {
         return <Navigate to="/login" replace />;
     }
 
-    // Use the modern Dashboard component for all roles
-    // The sidebar and permissions will handle role-based access control
+    // Render specialized dashboard for cashier role
+    if (userRole === 'cashier') {
+        return <CashierDashboard setAuth={setAuth} />;
+    }
+
+    // Default dashboard for other roles
     return <Dashboard setAuth={setAuth} userRole={userRole} />;
 };
 

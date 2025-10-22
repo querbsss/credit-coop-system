@@ -1,4 +1,20 @@
 -- Migration script to add role-based authentication support
+
+-- Payment references table to store member-submitted payment proofs for cashier confirmation
+CREATE TABLE IF NOT EXISTS payment_references (
+    id SERIAL PRIMARY KEY,
+    member_id INTEGER NULL,
+    member_name VARCHAR(255) NULL,
+    image_path TEXT NOT NULL,
+    amount NUMERIC(12,2) NULL,
+    reference_text VARCHAR(255) NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending', -- pending | confirmed | rejected
+    confirmed_by INTEGER NULL,
+    confirmed_by_name VARCHAR(255) NULL,
+    confirmed_notes TEXT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    confirmed_at TIMESTAMP NULL
+);
 -- Run this in your PostgreSQL database (slz_coop_staff)
 
 -- Add role and created_at columns to users table if they don't exist

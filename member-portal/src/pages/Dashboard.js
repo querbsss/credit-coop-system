@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
@@ -24,8 +26,9 @@ const Dashboard = () => {
   const quickActions = [
     { icon: '💰', label: 'Add Money', color: 'success' },
     { icon: '💳', label: 'Savings', color: 'info' },
-    { icon: '💸', label: 'Pay Bills', color: 'warning' },
-    { icon: '🕐', label: 'History', color: 'secondary' }
+    { icon: '💸', label: 'Payment', color: 'warning', onClick: () => navigate('/payment') },
+    { icon: '📋', label: 'Payment Dues', color: 'danger', onClick: () => navigate('/payment-dues') },
+    { icon: '🕐', label: 'History', color: 'secondary', onClick: () => navigate('/history') }
   ];
 
   return (
@@ -107,7 +110,7 @@ const Dashboard = () => {
                 <span className="balance-label">Current balance</span>
               </div>
               <div className="loan-action">
-                <button className="btn btn-primary btn-lg">
+                <button className="btn btn-primary btn-lg" onClick={() => navigate('/loans')}>
                   🏷️ Need funds?<br />
                   <span>Apply for a loan now!</span><br />
                   <small>Starting from ₱500,000</small>
@@ -122,7 +125,7 @@ const Dashboard = () => {
               <h3>⚡ Quick Actions</h3>
               <div className="quick-actions-grid">
                 {quickActions.map((action, index) => (
-                  <button key={index} className={`quick-action-btn ${action.color}`}>
+                  <button key={index} className={`quick-action-btn ${action.color}`} onClick={action.onClick}>
                     <span className="action-icon">{action.icon}</span>
                     <span className="action-label">{action.label}</span>
                   </button>

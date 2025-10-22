@@ -27,7 +27,7 @@ export const PERMISSIONS = {
 
   // Manager permissions - access to most features except IT functions
   manager: {
-    allowedRoutes: ['/dashboard', '/members', '/accounts', '/loans', '/transactions', '/reports'],
+    allowedRoutes: ['/dashboard', '/members', '/accounts', '/loans', '/transactions', '/reports', '/loan-approval'],
     menuItems: [
       {
         path: '/dashboard',
@@ -54,6 +54,12 @@ export const PERMISSIONS = {
         description: 'Loan Management'
       },
       {
+        path: '/loan-approval',
+        icon: '✅',
+        label: 'Loan Approval',
+        description: 'Approve/Reject Loans'
+      },
+      {
         path: '/transactions',
         icon: '💳',
         label: 'Transactions',
@@ -70,7 +76,7 @@ export const PERMISSIONS = {
 
   // Loan Officer permissions - focused only on loan applications and verification
   loan_officer: {
-    allowedRoutes: ['/dashboard', '/loan-applications', '/loans-verified'],
+    allowedRoutes: ['/dashboard', '/loan-applications', '/loans-verified', '/loan-review'],
     menuItems: [
       {
         path: '/dashboard',
@@ -82,7 +88,13 @@ export const PERMISSIONS = {
         path: '/loan-applications',
         icon: '📋',
         label: 'Loan Applications',
-        description: 'Review Applications'
+        description: 'View All Applications'
+      },
+      {
+        path: '/loan-review',
+        icon: '🔍',
+        label: 'Loan Review',
+        description: 'Review & Process Applications'
       },
       {
         path: '/loans-verified',
@@ -95,7 +107,7 @@ export const PERMISSIONS = {
 
   // Cashier permissions - transactions and basic member info
   cashier: {
-    allowedRoutes: ['/dashboard', '/members', '/accounts', '/transactions'],
+    allowedRoutes: ['/dashboard', '/members', '/accounts', '/transactions', '/create-invoice'],
     menuItems: [
       {
         path: '/dashboard',
@@ -121,12 +133,19 @@ export const PERMISSIONS = {
         label: 'Transactions',
         description: 'Process Transactions'
       }
+      ,
+      {
+        path: '/create-invoice',
+        icon: '🧾',
+        label: 'Create Invoice',
+        description: 'Issue and print invoices'
+      }
     ]
   },
 
   // IT Admin permissions - system management and settings
   it_admin: {
-    allowedRoutes: ['/dashboard', '/members', '/reports', '/settings'],
+    allowedRoutes: ['/dashboard', '/members', '/reports', '/settings', '/user-management'],
     menuItems: [
       {
         path: '/dashboard',
@@ -151,6 +170,13 @@ export const PERMISSIONS = {
         icon: '⚙️',
         label: 'Settings',
         description: 'System Configuration'
+      }
+      ,
+      {
+        path: '/user-management',
+        icon: '🛂',
+        label: 'User Management',
+        description: 'Create Member Accounts'
       }
     ]
   }

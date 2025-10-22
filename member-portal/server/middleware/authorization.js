@@ -8,7 +8,9 @@ module.exports = function(req, res, next) {
             return res.status(403).send("Authorization denied");
     }
     try {
-        const payload = jwt.verify(jwtToken, process.env.jwtSecret);
+        // Use environment variable or fallback to a default secret
+        const jwtSecret = process.env.jwtSecret || 'default_jwt_secret_for_development_only_change_in_production';
+        const payload = jwt.verify(jwtToken, jwtSecret);
         req.user = payload.user;
         next();
     } catch (err) {

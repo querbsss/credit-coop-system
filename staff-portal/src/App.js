@@ -11,10 +11,14 @@ import Accounts from './pages/Accounts';
 import Loans from './pages/Loans';
 import LoanApplications from './pages/LoanApplications';
 import LoansVerified from './pages/LoansVerified';
+import LoanReview from './pages/LoanReview';
+import LoanApproval from './pages/LoanApproval';
 import Transactions from './pages/Transactions';
+import CreateInvoice from './pages/CreateInvoice';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import './App.css';
+import UserManagement from './components/UserManagement';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -165,6 +169,26 @@ function App() {
               } 
             />
             <Route 
+              path="/create-invoice" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <ProtectedRoute requiredRoute="/create-invoice">
+                          <CreateInvoice />
+                        </ProtectedRoute>
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
               path="/reports" 
               element={
                 isAuthenticated ? (
@@ -205,6 +229,26 @@ function App() {
               } 
             />
             <Route 
+              path="/user-management" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <ProtectedRoute requiredRoute="/user-management">
+                          <UserManagement />
+                        </ProtectedRoute>
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
               path="/loan-applications" 
               element={
                 isAuthenticated ? (
@@ -235,6 +279,46 @@ function App() {
                       <main className="main-content">
                         <ProtectedRoute requiredRoute="/loans-verified">
                           <LoansVerified setAuth={setAuth} />
+                        </ProtectedRoute>
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/loan-review" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <ProtectedRoute requiredRoute="/loan-review">
+                          <LoanReview setAuth={setAuth} />
+                        </ProtectedRoute>
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/loan-approval" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <ProtectedRoute requiredRoute="/loan-approval">
+                          <LoanApproval setAuth={setAuth} />
                         </ProtectedRoute>
                       </main>
                     </div>

@@ -7,30 +7,10 @@ const authorization = require('../middleware/authorization');
 
 router.post('/register', validation, async (req, res) => {
     try {
-
-        // 1. Get user input
-        const { name, email, password } = req.body;
-
-        // 2. Validate user input
-
-        const user = await pool.query("SELECT * FROM users WHERE user_email = $1", [email]);
-
-        if (user.rows.length !== 0){
-            res.status(400).send("User already exists");
-        }
-
-        // 3. bcrypt the password
-
-        const saltRounds = 10;
-        const salt = await bcrypt.genSalt(saltRounds);
-        const bcryptPassword = await bcrypt.hash(password, salt);
-        
-        // 4. Save user to database
-        const newUser = await pool.query("INSERT INTO users (user_name, user_email, user_password) VALUES ($1, $2, $3) RETURNING *", [name, email, bcryptPassword]);
-
-        // 5. Generate JWT token
-        const token = jwtGenerator(newUser.rows[0].user_id);
-        res.json({ token });
+        // Member registration is disabled - accounts are created by IT Admin
+        return res.status(403).json({ 
+            message: "Member registration is disabled. Please contact your IT Administrator to create your account." 
+        });
     } catch (err){
         console.error(err.message);
         res.status(500).send('Server Error');
@@ -48,17 +28,17 @@ router.post('/login', validation, async (req, res) => {
             return res.status(400).send("Member number/email and password are required");
         }
 
-        // 3. Check if user exists in database (check both email and member number fields)
+        // 3. Check if user exists in member_users table (check both email and member number fields)
         let user;
         if (email) {
-            user = await pool.query("SELECT * FROM users WHERE user_email = $1", [email]);
+            user = await pool.query("SELECT * FROM member_users WHERE user_email = $1 AND is_active = true", [email]);
         } else {
-            // Assuming you have a member_number field, if not, we'll use email field
-            user = await pool.query("SELECT * FROM users WHERE user_email = $1", [memberNumber]);
+            // Check by member number
+            user = await pool.query("SELECT * FROM member_users WHERE member_number = $1 AND is_active = true", [memberNumber]);
         }
 
         if (user.rows.length === 0){
-            return res.status(400).send("User does not exist");
+            return res.status(400).send("User does not exist or account is inactive");
         }
 
         // 4. Check if password is correct

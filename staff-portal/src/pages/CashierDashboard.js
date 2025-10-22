@@ -9,6 +9,9 @@ const CashierDashboard = ({ setAuth }) => {
         pendingTransactions: 0,
         activeMembers: 0
     });
+    const [pendingPayments, setPendingPayments] = useState([]);
+    const [loadingPayments, setLoadingPayments] = useState(false);
+    const [paymentsError, setPaymentsError] = useState('');
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -32,6 +35,80 @@ const CashierDashboard = ({ setAuth }) => {
 
         fetchUserInfo();
     }, []);
+
+    useEffect(() => {
+        const fetchPendingPayments = async () => {
+            try {
+                setLoadingPayments(true);
+                setPaymentsError('');
+                const response = await fetch('http://localhost:5000/api/payments/reference?status=pending', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'token': localStorage.token
+                    }
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    setPendingPayments(data.payments || []);
+                    setStats((s) => ({ ...s, pendingTransactions: (data.payments || []).length }));
+                } else {
+                    setPaymentsError(data.message || 'Failed to load pending payments');
+                }
+            } catch (err) {
+                setPaymentsError('Network error loading pending payments');
+            } finally {
+                setLoadingPayments(false);
+            }
+        };
+
+        fetchPendingPayments();
+        const interval = setInterval(fetchPendingPayments, 10000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const confirmPayment = async (paymentId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/payments/reference/${paymentId}/confirm`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'token': localStorage.token
+                },
+                body: JSON.stringify({ cashier_id: userInfo?.user_id, cashier_name: userInfo?.name })
+            });
+            const data = await response.json();
+            if (response.ok && data.success) {
+                setPendingPayments((list) => list.filter(p => p.id !== paymentId));
+                setStats((s) => ({ ...s, pendingTransactions: Math.max(0, s.pendingTransactions - 1) }));
+            } else {
+                alert(data.message || 'Failed to confirm payment');
+            }
+        } catch (err) {
+            alert('Network error confirming payment');
+        }
+    };
+
+    const rejectPayment = async (paymentId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/payments/reference/${paymentId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'token': localStorage.token
+                },
+                body: JSON.stringify({ cashier_id: userInfo?.user_id, cashier_name: userInfo?.name, reason: 'Invalid reference' })
+            });
+            const data = await response.json();
+            if (response.ok && data.success) {
+                setPendingPayments((list) => list.filter(p => p.id !== paymentId));
+                setStats((s) => ({ ...s, pendingTransactions: Math.max(0, s.pendingTransactions - 1) }));
+            } else {
+                alert(data.message || 'Failed to reject payment');
+            }
+        } catch (err) {
+            alert('Network error rejecting payment');
+        }
+    };
 
     return (
         <div className="dashboard-container">
@@ -97,6 +174,34 @@ const CashierDashboard = ({ setAuth }) => {
                             Account Inquiry
                         </button>
                     </div>
+                </div>
+
+                <div className="dashboard-section">
+                    <h2>Pending Payment References</h2>
+                    {loadingPayments ? (
+                        <p>Loading pending payments...</p>
+                    ) : paymentsError ? (
+                        <p className="error-text">{paymentsError}</p>
+                    ) : pendingPayments.length === 0 ? (
+                        <p>No pending payment references.</p>
+                    ) : (
+                        <div className="activity-list">
+                            {pendingPayments.map((p) => (
+                                <div key={p.id} className="activity-item">
+                                    <span className="activity-desc">
+                                        Ref #{p.id} {p.member_name ? `- ${p.member_name}` : ''} {p.amount ? `- ₱${Number(p.amount).toLocaleString()}` : ''}
+                                    </span>
+                                    <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                                        {p.image_path ? (
+                                            <a className="action-btn info" href={`http://localhost:5001/${p.image_path}`} target="_blank" rel="noreferrer">View Image</a>
+                                        ) : null}
+                                        <button className="action-btn success" onClick={() => confirmPayment(p.id)}>Confirm</button>
+                                        <button className="action-btn warning" onClick={() => rejectPayment(p.id)}>Reject</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div className="dashboard-section">

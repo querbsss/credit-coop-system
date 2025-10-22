@@ -3,7 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import LoanApplication from './pages/LoanApplication';
+import Payment from './pages/Payment';
+import PaymentDues from './pages/PaymentDues';
+import PaymentHistory from './pages/PaymentHistory';
 import './App.css';
+// removed toastify
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -57,6 +62,38 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      <Route 
+        path="/loans" 
+        element={
+          <ProtectedRoute>
+            <LoanApplication />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/payment" 
+        element={
+          <ProtectedRoute>
+            <Payment />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/payment-dues" 
+        element={
+          <ProtectedRoute>
+            <PaymentDues />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/history" 
+        element={
+          <ProtectedRoute>
+            <PaymentHistory />
+          </ProtectedRoute>
+        } 
+      />
       <Route path="/" element={<Navigate to="/dashboard" />} />
     </Routes>
   );
@@ -68,6 +105,7 @@ function App() {
       <Router>
         <div className="App">
           <AppRoutes />
+          {/* Toasts removed */}
         </div>
       </Router>
     </AuthProvider>
