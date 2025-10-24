@@ -1,79 +1,121 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// removed toastify
 import Header from '../components/Header';
 import './Payment.css';
 
 const Payment = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('gcash');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
-  const fileInputRef = useRef(null);
+  const [checkoutUrl, setCheckoutUrl] = useState(null);
   const navigate = useNavigate();
 
-  const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  const PAYMONGO_SECRET_KEY = process.env.REACT_APP_PAYMONGO_SECRET_KEY;
 
-    const isImage = file.type.startsWith('image/');
-    if (!isImage) {
-      setSubmitStatus({ type: 'error', message: 'Please upload an image file.' });
+  // Create PayMongo Payment Intent
+  const createPaymentIntent = async () => {
+    if (!amount || parseFloat(amount) <= 0) {
+      setSubmitStatus({ type: 'error', message: 'Please enter a valid amount.' });
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setSubmitStatus({ type: 'error', message: 'Image must be under 10MB.' });
-      return;
-    }
-
-    setSelectedFile(file);
-    setSubmitStatus(null);
-
-    const reader = new FileReader();
-    reader.onload = (e) => setPreviewUrl(e.target.result);
-    reader.readAsDataURL(file);
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedFile) {
-      setSubmitStatus({ type: 'error', message: 'Please select an image to upload.' });
-      return;
-    }
-
-    setIsSubmitting(true);
+    setIsProcessing(true);
     setSubmitStatus(null);
 
     try {
-      const formData = new FormData();
-      formData.append('reference_image', selectedFile);
+      // Convert amount to cents (PayMongo expects amounts in centavos)
+      const amountInCents = Math.round(parseFloat(amount) * 100);
 
-      const res = await fetch('http://localhost:5001/api/payment/reference-upload', {
+      const paymentIntentData = {
+        data: {
+          type: 'payment_intent',
+          attributes: {
+            amount: amountInCents,
+            currency: 'PHP',
+            description: description || 'Credit Cooperative Payment',
+            payment_method_allowed: [paymentMethod],
+            capture_type: 'automatic',
+            statement_descriptor: 'Credit Coop Payment'
+          }
+        }
+      };
+
+      const response = await fetch('https://api.paymongo.com/v1/payment_intents', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${btoa(PAYMONGO_SECRET_KEY + ':')}`
         },
-        body: formData
+        body: JSON.stringify(paymentIntentData)
       });
-      const data = await res.json();
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Upload failed');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.errors?.[0]?.detail || 'Failed to create payment intent');
       }
 
-      // Show toast notice before leaving page
-      setSubmitStatus({ type: 'pending', message: 'Waiting for confirmation' });
-      setSelectedFile(null);
-      setPreviewUrl(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      // Navigate away shortly after showing the notice
+      // Create Checkout Session
+      await createCheckoutSession(data.data.id, amountInCents);
+    } catch (error) {
+      setSubmitStatus({ type: 'error', message: error.message || 'Payment creation failed.' });
+      setIsProcessing(false);
+    }
+  };
+
+  // Create PayMongo Checkout Session
+  const createCheckoutSession = async (paymentIntentId, amountInCents) => {
+    try {
+      const checkoutData = {
+        data: {
+          type: 'checkout_session',
+          attributes: {
+            payment_intent_id: paymentIntentId,
+            success_url: `${window.location.origin}/payment-success`,
+            cancel_url: `${window.location.origin}/payment`,
+            line_items: [
+              {
+                name: description || 'Credit Cooperative Payment',
+                amount: amountInCents,
+                currency: 'PHP',
+                quantity: 1
+              }
+            ],
+            payment_method_types: [paymentMethod],
+            description: description || 'Payment to Credit Cooperative'
+          }
+        }
+      };
+
+      const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${btoa(PAYMONGO_SECRET_KEY + ':')}`
+        },
+        body: JSON.stringify(checkoutData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.errors?.[0]?.detail || 'Failed to create checkout session');
+      }
+
+      setCheckoutUrl(data.data.attributes.checkout_url);
+      setSubmitStatus({ type: 'success', message: 'Payment session created! Redirecting...' });
+      
+      // Redirect to PayMongo checkout page
       setTimeout(() => {
-        navigate('/dashboard', { replace: true });
+        window.location.href = data.data.attributes.checkout_url;
       }, 1500);
-    } catch (err) {
-      setSubmitStatus({ type: 'error', message: err.message || 'Upload failed.' });
+
+    } catch (error) {
+      setSubmitStatus({ type: 'error', message: error.message || 'Checkout creation failed.' });
     } finally {
-      setIsSubmitting(false);
+      setIsProcessing(false);
     }
   };
 
@@ -84,74 +126,100 @@ const Payment = () => {
         <div className="container">
           <div className="page-header">
             <h1>💳 Make a Payment</h1>
-            <p>Scan the QR code to pay, then upload a photo of the reference number.</p>
+            <p>Secure payment processing powered by PayMongo</p>
           </div>
 
-          <div className="grid grid-2">
+          <div className="grid grid-1">
             <div className="card">
-              <h2>Scan to Pay</h2>
-              <div className="qr-wrapper">
-                <img src="/qr-code.png" alt="Payment QR" className="qr-image" />
-                <p className="qr-help">Open your Gcash app and scan the QR code above.</p>
-              </div>
-            </div>
-
-            <div className="card">
-              <h2>Upload Reference Photo</h2>
-              <div className="upload-area">
+              <h2>Payment Details</h2>
+              
+              <div className="form-group">
+                <label htmlFor="amount">Amount (PHP)</label>
                 <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="file-input"
-                  id="payment-ref-upload"
+                  type="number"
+                  id="amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  min="1"
+                  step="0.01"
+                  className="form-input"
                 />
-                <label htmlFor="payment-ref-upload" className="upload-label">
-                  {selectedFile ? (
-                    <div className="file-selected">
-                      <div className="file-icon">📷</div>
-                      <div className="file-info">
-                        <p className="file-name">{selectedFile.name}</p>
-                        <p className="file-size">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                      </div>
-                      <button
-                        className="btn-remove"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setSelectedFile(null);
-                          setPreviewUrl(null);
-                          if (fileInputRef.current) fileInputRef.current.value = '';
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="upload-placeholder">
-                      <div className="upload-icon">⬆️</div>
-                      <h3>Choose Image</h3>
-                      <p>Upload a clear photo showing the payment reference number</p>
-                      <p className="upload-hint">JPEG/PNG up to 10MB</p>
-                    </div>
-                  )}
-                </label>
               </div>
 
-              {previewUrl && (
-                <div className="file-preview">
-                  <h3>Preview:</h3>
-                  <img src={previewUrl} alt="Preview" className="preview-image" />
-                </div>
-              )}
+              <div className="form-group">
+                <label htmlFor="description">Description (Optional)</label>
+                <input
+                  type="text"
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Payment description"
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="payment-method">Payment Method</label>
+                <select
+                  id="payment-method"
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="form-select"
+                >
+                  <option value="gcash">GCash</option>
+                  <option value="grab_pay">GrabPay</option>
+                  <option value="paymaya">Maya</option>
+                  <option value="card">Credit/Debit Card</option>
+                </select>
+              </div>
+
+              <div className="payment-method-info">
+                {paymentMethod === 'gcash' && (
+                  <div className="method-info">
+                    <div className="method-icon">📱</div>
+                    <div>
+                      <h4>GCash</h4>
+                      <p>Pay securely using your GCash wallet</p>
+                    </div>
+                  </div>
+                )}
+                {paymentMethod === 'grab_pay' && (
+                  <div className="method-info">
+                    <div className="method-icon">🚗</div>
+                    <div>
+                      <h4>GrabPay</h4>
+                      <p>Pay using your GrabPay wallet</p>
+                    </div>
+                  </div>
+                )}
+                {paymentMethod === 'paymaya' && (
+                  <div className="method-info">
+                    <div className="method-icon">💰</div>
+                    <div>
+                      <h4>Maya</h4>
+                      <p>Pay using your Maya wallet</p>
+                    </div>
+                  </div>
+                )}
+                {paymentMethod === 'card' && (
+                  <div className="method-info">
+                    <div className="method-icon">💳</div>
+                    <div>
+                      <h4>Credit/Debit Card</h4>
+                      <p>Pay using Visa, Mastercard, or JCB</p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className="submit-section">
                 <button
-                  onClick={handleSubmit}
-                  disabled={!selectedFile || isSubmitting}
-                  className={`btn btn-primary btn-lg ${isSubmitting ? 'loading' : ''}`}
+                  onClick={createPaymentIntent}
+                  disabled={!amount || parseFloat(amount) <= 0 || isProcessing}
+                  className={`btn btn-primary btn-lg ${isProcessing ? 'loading' : ''}`}
                 >
-                  {isSubmitting ? 'Uploading...' : 'Submit Reference Photo'}
+                  {isProcessing ? 'Processing...' : `Pay ₱${amount || '0.00'}`}
                 </button>
               </div>
 
@@ -160,6 +228,14 @@ const Payment = () => {
                   {submitStatus.type === 'error' ? '❌' : submitStatus.type === 'success' ? '✅' : '⏳'} {submitStatus.message}
                 </div>
               )}
+
+              <div className="payment-security">
+                <div className="security-badges">
+                  <span className="security-badge">🔒 SSL Secured</span>
+                  <span className="security-badge">🛡️ PayMongo Protected</span>
+                  <span className="security-badge">✅ PCI Compliant</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
