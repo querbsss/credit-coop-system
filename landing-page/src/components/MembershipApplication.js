@@ -3,37 +3,185 @@ import './MembershipApplication.css';
 
 const MembershipApplication = () => {
   const [formData, setFormData] = useState({
-    firstName: '',
+    // Basic membership information
+    numberOfShares: '',
+    amountSubscribe: '',
+    date: '',
+    membershipType: '',
+    applicantsMembershipNumber: '',
+    
+    // Personal information
     lastName: '',
-    email: '',
-    phone: '',
+    firstName: '',
+    middleName: '',
+    suffix: '',
     address: '',
-    city: '',
-    state: '',
-    zipCode: '',
+    contactNumber: '',
+    typeOfAddress: '',
+    occupiedSince: '',
+    emailAddress: '',
+    dateOfBirth: '',
+    placeOfBirth: '',
+    religion: '',
+    age: '',
+    gender: '',
+    civilStatus: '',
+    highestEducationalAttainment: '',
+    
+    // Family information
+    spouseFullName: '',
+    fathersFullName: '',
+    mothersMaidenName: '',
+    numberOfDependents: '',
+    
+    // Professional information
     occupation: '',
-    employer: '',
     annualIncome: '',
-    accountType: '',
-    initialDeposit: '',
+    taxIdentificationNumber: '',
+    identificationType: '',
+    identificationNumber: '',
+    employmentChoice: '', // sole trader or employed
+    
+    // If self employed
+    businessType: '',
+    businessAddress: '',
+    
+    // If employed
+    employerTradeName: '',
+    employerTinNumber: '',
+    employerPhoneNumber: '',
+    dateHiredFrom: '',
+    dateHiredTo: '',
+    employmentOccupation: '',
+    employmentOccupationStatus: '',
+    annualMonthlyIndicator: '',
+    employmentIndustry: '',
+    
+    // Social and reference
+    facebookAccount: '',
+    referencePerson: '',
+    referenceAddress: '',
+    referenceContactNumber: '',
+    
+    // File upload
+    profileImage: null,
+    
+    // Agreements
     agreeToTerms: false,
     agreeToPrivacy: false
   });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked, files } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : type === 'file' ? files[0] : value
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Membership application submitted:', formData);
-    alert('Thank you for your membership application! We\'ll review it and contact you within 2-3 business days.');
-    // Reset form or redirect
+    
+    try {
+      // Create FormData to handle file upload
+      const formDataToSubmit = new FormData();
+      
+      // Append all form fields to FormData
+      Object.keys(formData).forEach(key => {
+        if (key === 'profileImage' && formData[key]) {
+          formDataToSubmit.append('profileImage', formData[key]);
+        } else if (formData[key] !== null && formData[key] !== '') {
+          formDataToSubmit.append(key, formData[key]);
+        }
+      });
+
+      // Submit to backend API
+      const response = await fetch('http://localhost:3004/api/membership-application', {
+        method: 'POST',
+        body: formDataToSubmit
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('Thank you for your membership application! We\'ll review it and contact you within 2-3 business days.');
+        
+        // Reset form
+        setFormData({
+          // Basic membership information
+          numberOfShares: '',
+          amountSubscribe: '',
+          date: '',
+          membershipType: '',
+          applicantsMembershipNumber: '',
+          
+          // Personal information
+          lastName: '',
+          firstName: '',
+          middleName: '',
+          suffix: '',
+          address: '',
+          contactNumber: '',
+          typeOfAddress: '',
+          occupiedSince: '',
+          emailAddress: '',
+          dateOfBirth: '',
+          placeOfBirth: '',
+          religion: '',
+          age: '',
+          gender: '',
+          civilStatus: '',
+          highestEducationalAttainment: '',
+          
+          // Family information
+          spouseFullName: '',
+          fathersFullName: '',
+          mothersMaidenName: '',
+          numberOfDependents: '',
+          
+          // Professional information
+          occupation: '',
+          annualIncome: '',
+          taxIdentificationNumber: '',
+          identificationType: '',
+          identificationNumber: '',
+          employmentChoice: '',
+          
+          // If self employed
+          businessType: '',
+          businessAddress: '',
+          
+          // If employed
+          employerTradeName: '',
+          employerTinNumber: '',
+          employerPhoneNumber: '',
+          dateHiredFrom: '',
+          dateHiredTo: '',
+          employmentOccupation: '',
+          employmentOccupationStatus: '',
+          annualMonthlyIndicator: '',
+          employmentIndustry: '',
+          
+          // Social and reference
+          facebookAccount: '',
+          referencePerson: '',
+          referenceAddress: '',
+          referenceContactNumber: '',
+          
+          // File upload
+          profileImage: null,
+          
+          // Agreements
+          agreeToTerms: false,
+          agreeToPrivacy: false
+        });
+      } else {
+        alert('Error submitting application: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Error submitting application. Please try again.');
+    }
   };
 
   return (
@@ -82,193 +230,615 @@ const MembershipApplication = () => {
           </div>
 
           <form className="application-form" onSubmit={handleSubmit}>
-            <h3>Membership Application</h3>
+            <h3>Member Application</h3>
             
-            <div className="form-row">
-              <div className="form-group">
-                <label>First Name *</label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                />
+            {/* Basic Membership Information */}
+            <div className="form-section">
+              <h4>Membership Information</h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Number of Shares *</label>
+                  <input
+                    type="number"
+                    name="numberOfShares"
+                    value={formData.numberOfShares}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Amount Subscribe *</label>
+                  <input
+                    type="number"
+                    name="amountSubscribe"
+                    value={formData.amountSubscribe}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Date *</label>
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
               </div>
-              <div className="form-group">
-                <label>Last Name *</label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Email Address *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Phone Number *</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Address *</label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>City *</label>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>State *</label>
-                <input
-                  type="text"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Zip Code *</label>
-                <input
-                  type="text"
-                  name="zipCode"
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  required
-                />
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Membership Type *</label>
+                  <select
+                    name="membershipType"
+                    value={formData.membershipType}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Membership Type</option>
+                    <option value="regular">Regular</option>
+                    <option value="associate">Associate</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Applicant's Membership Number</label>
+                  <input
+                    type="text"
+                    name="applicantsMembershipNumber"
+                    value={formData.applicantsMembershipNumber}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Occupation</label>
-                <input
-                  type="text"
-                  name="occupation"
-                  value={formData.occupation}
-                  onChange={handleChange}
-                />
+            {/* Personal Information */}
+            <div className="form-section">
+              <h4>Personal Information</h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Last Name *</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>First Name *</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Middle Name</label>
+                  <input
+                    type="text"
+                    name="middleName"
+                    value={formData.middleName}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Suffix</label>
+                  <input
+                    type="text"
+                    name="suffix"
+                    value={formData.suffix}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
-              <div className="form-group">
-                <label>Employer</label>
-                <input
-                  type="text"
-                  name="employer"
-                  value={formData.employer}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
 
-            <div className="form-row">
               <div className="form-group">
-                <label>Annual Income</label>
+                <label>Address *</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Contact Number *</label>
+                  <input
+                    type="tel"
+                    name="contactNumber"
+                    value={formData.contactNumber}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Type of Address *</label>
+                  <select
+                    name="typeOfAddress"
+                    value={formData.typeOfAddress}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Type</option>
+                    <option value="house owner">House Owner</option>
+                    <option value="lessee">Lessee</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Occupied Since (DD-MM-YYYY) *</label>
+                  <input
+                    type="date"
+                    name="occupiedSince"
+                    value={formData.occupiedSince}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Email Address *</label>
+                  <input
+                    type="email"
+                    name="emailAddress"
+                    value={formData.emailAddress}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Date of Birth *</label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Place of Birth *</label>
+                  <input
+                    type="text"
+                    name="placeOfBirth"
+                    value={formData.placeOfBirth}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Religion</label>
+                  <input
+                    type="text"
+                    name="religion"
+                    value={formData.religion}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Age *</label>
+                  <input
+                    type="number"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Gender *</label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Civil Status *</label>
+                  <select
+                    name="civilStatus"
+                    value={formData.civilStatus}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Status</option>
+                    <option value="single">Single</option>
+                    <option value="married">Married</option>
+                    <option value="divorced">Divorced</option>
+                    <option value="widowed">Widowed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Highest Educational Attainment *</label>
                 <select
-                  name="annualIncome"
-                  value={formData.annualIncome}
+                  name="highestEducationalAttainment"
+                  value={formData.highestEducationalAttainment}
                   onChange={handleChange}
+                  required
                 >
-                  <option value="">Select Income Range</option>
-                  <option value="under-1.4m">Under ₱1.4M</option>
-                  <option value="1.4m-2.8m">₱1.4M - ₱2.8M</option>
-                  <option value="2.8m-4.2m">₱2.8M - ₱4.2M</option>
-                  <option value="4.2m-5.6m">₱4.2M - ₱5.6M</option>
-                  <option value="over-5.6m">Over ₱5.6M</option>
+                  <option value="">Select Education Level</option>
+                  <option value="elementary">Elementary</option>
+                  <option value="high school">High School</option>
+                  <option value="college">College</option>
+                  <option value="graduate">Graduate</option>
+                  <option value="post-graduate">Post Graduate</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label>Account Type *</label>
-                <select
-                  name="accountType"
-                  value={formData.accountType}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select Account Type</option>
-                  <option value="regular-savings">Regular Savings</option>
-                  <option value="checking">Checking Account</option>
-                  <option value="both">Savings & Checking</option>
-                </select>
+            </div>
+
+            {/* Family Information */}
+            <div className="form-section">
+              <h4>Family Information</h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Spouse Full Name</label>
+                  <input
+                    type="text"
+                    name="spouseFullName"
+                    value={formData.spouseFullName}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Father's Full Name</label>
+                  <input
+                    type="text"
+                    name="fathersFullName"
+                    value={formData.fathersFullName}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Mother's Maiden Name</label>
+                  <input
+                    type="text"
+                    name="mothersMaidenName"
+                    value={formData.mothersMaidenName}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Number of Dependents</label>
+                  <input
+                    type="number"
+                    name="numberOfDependents"
+                    value={formData.numberOfDependents}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Initial Deposit Amount *</label>
-              <select
-                name="initialDeposit"
-                value={formData.initialDeposit}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select Initial Deposit</option>
-                <option value="1400">₱1,400 (Minimum)</option>
-                <option value="5600">₱5,600</option>
-                <option value="14000">₱14,000</option>
-                <option value="28000">₱28,000</option>
-                <option value="56000">₱56,000</option>
-                <option value="other">Other Amount</option>
-              </select>
+            {/* Professional Information */}
+            <div className="form-section">
+              <h4>Professional Information</h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Occupation *</label>
+                  <input
+                    type="text"
+                    name="occupation"
+                    value={formData.occupation}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Annual Income *</label>
+                  <input
+                    type="number"
+                    name="annualIncome"
+                    value={formData.annualIncome}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Tax Identification Number</label>
+                  <input
+                    type="text"
+                    name="taxIdentificationNumber"
+                    value={formData.taxIdentificationNumber}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Identification Type *</label>
+                  <select
+                    name="identificationType"
+                    value={formData.identificationType}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select ID Type</option>
+                    <option value="drivers license">Driver's License</option>
+                    <option value="passport">Passport</option>
+                    <option value="national id">National ID</option>
+                    <option value="voters id">Voter's ID</option>
+                    <option value="tin id">TIN ID</option>
+                    <option value="sss id">SSS ID</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Identification Number *</label>
+                  <input
+                    type="text"
+                    name="identificationNumber"
+                    value={formData.identificationNumber}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Employment Choice *</label>
+                <select
+                  name="employmentChoice"
+                  value={formData.employmentChoice}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select Employment Type</option>
+                  <option value="sole trader">Sole Trader</option>
+                  <option value="employed">Employed</option>
+                </select>
+              </div>
+
+              {/* Self Employed Section */}
+              {formData.employmentChoice === 'sole trader' && (
+                <div className="conditional-section">
+                  <h5>Self Employed Information</h5>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Business Type *</label>
+                      <input
+                        type="text"
+                        name="businessType"
+                        value={formData.businessType}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Business Address *</label>
+                      <input
+                        type="text"
+                        name="businessAddress"
+                        value={formData.businessAddress}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Employed Section */}
+              {formData.employmentChoice === 'employed' && (
+                <div className="conditional-section">
+                  <h5>Employment Information</h5>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Employer Trade Name *</label>
+                      <input
+                        type="text"
+                        name="employerTradeName"
+                        value={formData.employerTradeName}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Employer TIN Number</label>
+                      <input
+                        type="text"
+                        name="employerTinNumber"
+                        value={formData.employerTinNumber}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Employer Phone Number</label>
+                      <input
+                        type="tel"
+                        name="employerPhoneNumber"
+                        value={formData.employerPhoneNumber}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Date Hired From</label>
+                      <input
+                        type="date"
+                        name="dateHiredFrom"
+                        value={formData.dateHiredFrom}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Date Hired To</label>
+                      <input
+                        type="date"
+                        name="dateHiredTo"
+                        value={formData.dateHiredTo}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Employment Occupation</label>
+                      <input
+                        type="text"
+                        name="employmentOccupation"
+                        value={formData.employmentOccupation}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Employment Occupation Status</label>
+                      <select
+                        name="employmentOccupationStatus"
+                        value={formData.employmentOccupationStatus}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select Status</option>
+                        <option value="permanent">Permanent</option>
+                        <option value="contractual">Contractual</option>
+                        <option value="probationary">Probationary</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Annual/Monthly Indicator</label>
+                      <select
+                        name="annualMonthlyIndicator"
+                        value={formData.annualMonthlyIndicator}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select Indicator</option>
+                        <option value="annual">Annual</option>
+                        <option value="monthly">Monthly</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Employment Industry</label>
+                      <input
+                        type="text"
+                        name="employmentIndustry"
+                        value={formData.employmentIndustry}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="form-group checkbox-group">
-              <label>
+            {/* Social and Reference Information */}
+            <div className="form-section">
+              <h4>Social and Reference Information</h4>
+              <div className="form-group">
+                <label>Facebook Account</label>
                 <input
-                  type="checkbox"
-                  name="agreeToTerms"
-                  checked={formData.agreeToTerms}
+                  type="text"
+                  name="facebookAccount"
+                  value={formData.facebookAccount}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Reference Person *</label>
+                  <input
+                    type="text"
+                    name="referencePerson"
+                    value={formData.referencePerson}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Reference Address *</label>
+                  <input
+                    type="text"
+                    name="referenceAddress"
+                    value={formData.referenceAddress}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Reference Contact Number *</label>
+                  <input
+                    type="tel"
+                    name="referenceContactNumber"
+                    value={formData.referenceContactNumber}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Image Upload */}
+            <div className="form-section">
+              <h4>Profile Image</h4>
+              <div className="form-group">
+                <label>Upload Profile Image *</label>
+                <input
+                  type="file"
+                  name="profileImage"
+                  accept="image/*"
                   onChange={handleChange}
                   required
                 />
-                I agree to the Terms and Conditions and Membership Agreement *
-              </label>
+                <small>Please upload a clear photo of yourself (JPG, PNG, max 5MB)</small>
+              </div>
             </div>
 
-            <div className="form-group checkbox-group">
-              <label>
-                <input
-                  type="checkbox"
-                  name="agreeToPrivacy"
-                  checked={formData.agreeToPrivacy}
-                  onChange={handleChange}
-                  required
-                />
-                I agree to the Privacy Policy and consent to data processing *
-              </label>
+            {/* Agreements */}
+            <div className="form-section">
+              <div className="form-group checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="agreeToTerms"
+                    checked={formData.agreeToTerms}
+                    onChange={handleChange}
+                    required
+                  />
+                  I agree to the Terms and Conditions and Membership Agreement *
+                </label>
+              </div>
+
+              <div className="form-group checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="agreeToPrivacy"
+                    checked={formData.agreeToPrivacy}
+                    onChange={handleChange}
+                    required
+                  />
+                  I agree to the Privacy Policy and consent to data processing *
+                </label>
+              </div>
             </div>
 
             <button type="submit" className="btn btn-primary submit-btn">

@@ -162,6 +162,80 @@
   line-height: 1.4;
 }
 
+/* Form Sections */
+.form-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 1.5rem;
+}
+
+.form-section h4 {
+  color: var(--primary-purple);
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-section h4::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: var(--gradient-primary);
+  border-radius: 2px;
+}
+
+.conditional-section {
+  background: var(--gray-50);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  margin-top: 1rem;
+  border-left: 4px solid var(--primary-purple-light);
+}
+
+.conditional-section h5 {
+  color: var(--primary-purple);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.form-group input[type="file"] {
+  padding: 0.5rem;
+  border: 2px dashed var(--gray-300);
+  background: var(--gray-50);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-group input[type="file"]:hover {
+  border-color: var(--primary-purple-light);
+  background: var(--white);
+}
+
+.form-group small {
+  color: var(--gray-500);
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+/* Special form row layouts */
+.form-row.four-cols {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+.form-row.three-cols {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
 /* Mobile Styles */
 @media (max-width: 768px) {
   .membership-application {
@@ -181,13 +255,11 @@
     padding: 2rem 1.5rem;
   }
 
-  .form-row {
+  .form-row,
+  .form-row.three-cols,
+  .form-row.four-cols {
     grid-template-columns: 1fr;
     gap: 0;
-  }
-
-  .form-row.three-cols {
-    grid-template-columns: 1fr;
   }
 
   .benefit-item {
@@ -196,5 +268,14 @@
 
   .benefit-icon {
     font-size: 1.5rem;
+  }
+
+  .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .conditional-section {
+    padding: 1rem;
   }
 }

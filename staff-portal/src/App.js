@@ -19,6 +19,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import './App.css';
 import UserManagement from './components/UserManagement';
+import MembershipApplications from './components/MembershipApplications';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -239,6 +240,26 @@ function App() {
                       <main className="main-content">
                         <ProtectedRoute requiredRoute="/user-management">
                           <UserManagement />
+                        </ProtectedRoute>
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/membership-applications" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <ProtectedRoute requiredRoute="/membership-applications">
+                          <MembershipApplications />
                         </ProtectedRoute>
                       </main>
                     </div>
