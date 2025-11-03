@@ -1,0 +1,440 @@
+.dashboard {
+  min-height: 100vh;
+  background: var(--gradient-background);
+}
+
+.dashboard-main {
+  padding: 2rem 0;
+}
+
+/* Welcome Section */
+.welcome-section {
+  margin-bottom: 2rem;
+}
+
+.welcome-card {
+  background: var(--primary-purple) !important;
+  color: var(--white) !important;
+  padding: 2rem;
+  border: none;
+}
+
+.welcome-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.welcome-text {
+  color: white !important;
+  background: none !important;
+}
+
+.welcome-text * {
+  color: white !important;
+  background: none !important;
+  text-decoration: none !important;
+  text-shadow: none !important;
+}
+
+.welcome-text h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white !important;
+  text-shadow: none !important;
+  background: none !important;
+  text-decoration: none !important;
+}
+
+.member-avatar {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-circle-lg {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--primary-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Account Cards */
+.accounts-section {
+  margin-bottom: 2rem;
+}
+
+.account-card {
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.account-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.account-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.account-icon.savings {
+  background: #dcfce7;
+}
+
+.account-icon.checking {
+  background: #dbeafe;
+}
+
+.account-info {
+  flex: 1;
+}
+
+.account-info h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 0.25rem;
+}
+
+.account-number {
+  font-size: 0.9rem;
+  color: var(--gray-700);
+  margin: 0;
+  font-weight: 500;
+}
+
+.account-action .btn-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--gray-100);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.account-action .btn-icon:hover {
+  background: var(--primary-purple);
+  color: var(--white);
+}
+
+.account-balance {
+  display: flex;
+  flex-direction: column;
+}
+
+.balance-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--success-green);
+  margin-bottom: 0.25rem;
+}
+
+.balance-label {
+  font-size: 0.9rem;
+  color: var(--gray-700);
+  font-weight: 500;
+}
+
+/* Loan Section */
+.loan-section {
+  margin-bottom: 2rem;
+}
+
+.loan-card {
+  padding: 1.5rem;
+}
+
+.loan-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.loan-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--border-radius);
+  background: #fef3c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.loan-info h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 0.25rem;
+}
+
+.loan-info p {
+  font-size: 0.9rem;
+  color: var(--gray-700);
+  margin: 0;
+  font-weight: 500;
+}
+
+.loan-action {
+  margin-top: 1.5rem;
+}
+
+.loan-action .btn {
+  width: 100%;
+  background: var(--gradient-primary);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.loan-action .btn span {
+  font-weight: 600;
+}
+
+.loan-action .btn small {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+/* Quick Actions */
+.quick-actions-section {
+  margin-bottom: 2rem;
+}
+
+.quick-actions-card {
+  padding: 1.5rem;
+}
+
+.quick-actions-card h3 {
+  color: var(--gray-800);
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.quick-action-btn {
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quick-action-btn:hover {
+  border-color: var(--primary-purple);
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.quick-action-btn.success:hover {
+  border-color: var(--success-green);
+}
+
+.quick-action-btn.info:hover {
+  border-color: var(--info-blue);
+}
+
+.quick-action-btn.warning:hover {
+  border-color: var(--warning-orange);
+}
+
+.action-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-action-btn.success .action-icon {
+  background: #dcfce7;
+}
+
+.quick-action-btn.info .action-icon {
+  background: #dbeafe;
+}
+
+.quick-action-btn.warning .action-icon {
+  background: #fef3c7;
+}
+
+.quick-action-btn.secondary .action-icon {
+  background: #f1f5f9;
+}
+
+.action-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+/* Recent Activity */
+.recent-activity-section {
+  margin-bottom: 2rem;
+}
+
+.activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.activity-header h3 {
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.view-all-link {
+  color: var(--primary-purple);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.view-all-link:hover {
+  text-decoration: underline;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.activity-item {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius);
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.activity-info {
+  flex: 1;
+}
+
+.activity-info h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 0.25rem;
+}
+
+.activity-info p {
+  font-size: 0.85rem;
+  color: var(--gray-700);
+  margin: 0;
+  font-weight: 500;
+}
+
+.activity-amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.activity-amount.credit {
+  color: var(--success-green);
+}
+
+.activity-amount.debit,
+.activity-amount.transfer {
+  color: var(--error-red);
+}
+
+.add-transaction {
+  text-align: center;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .dashboard-main {
+    padding: 1rem 0;
+  }
+  
+  .welcome-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .welcome-text h1 {
+    font-size: 1.5rem;
+  }
+  
+  .account-header {
+    gap: 0.75rem;
+  }
+  
+  .account-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .balance-amount {
+    font-size: 1.5rem;
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .activity-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .activity-item {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+  
+  .activity-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+}
