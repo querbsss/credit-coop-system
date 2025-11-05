@@ -2,8 +2,8 @@ services:
   # Database
   - type: pserv
     name: credit-coop-database
-    databaseName: credit_coop_db
-    user: credit_coop_user
+    databaseName: slz_coop_staff
+    user: postgres
     region: oregon
 
   # Backend API Service
