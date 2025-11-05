@@ -55,7 +55,6 @@ services:
   - type: web
     name: credit-coop-member-portal
     env: static
-    plan: free
     buildCommand: cd member-portal && npm install && npm run build
     envVars:
       - key: REACT_APP_API_URL
@@ -65,7 +64,6 @@ services:
   - type: web
     name: credit-coop-staff-portal
     env: static
-    plan: free
     buildCommand: cd staff-portal && npm install && npm run build
     envVars:
       - key: REACT_APP_API_URL
