@@ -77,8 +77,10 @@ services:
           property: connectionString
 
   # Member Portal Frontend (Static Site)
-  - type: static
+  - type: web
     name: credit-coop-member-portal
+    env: static
+    region: singapore
     buildCommand: cd member-portal && npm install && npm run build
     staticPublishPath: ./member-portal/build
     envVars:
@@ -86,8 +88,10 @@ services:
         value: https://credit-coop-member-backend.onrender.com
 
   # Staff Portal Frontend (Static Site)
-  - type: static
+  - type: web
     name: credit-coop-staff-portal
+    env: static
+    region: singapore
     buildCommand: cd staff-portal && npm install && npm run build
     staticPublishPath: ./staff-portal/build
     envVars:
