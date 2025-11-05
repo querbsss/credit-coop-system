@@ -1,10 +1,4 @@
 services:
-  # Database
-  - type: pserv
-    name: credit-coop-database
-    plan: free
-    region: singapore
-
   # Backend API Service
   - type: web
     name: credit-coop-backend
@@ -16,10 +10,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: credit-coop-database
-          property: connectionString
 
   # Landing Page (React + Express)
   - type: web
@@ -32,10 +22,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: credit-coop-database
-          property: connectionString
 
   # Member Portal Backend
   - type: web
@@ -48,10 +34,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: credit-coop-database
-          property: connectionString
       - key: JWT_SECRET
         generateValue: true
 
@@ -66,10 +48,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: credit-coop-database
-          property: connectionString
       - key: JWT_SECRET
         generateValue: true
 
