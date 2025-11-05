@@ -41,6 +41,8 @@ UPDATE users SET user_role = 'cashier' WHERE user_role IS NULL OR user_role = ''
 -- Check the results
 SELECT user_name, user_email, user_role, created_at FROM users ORDER BY created_at DESC;
 
+
 INSERT INTO users (user_name, user_email, user_password, user_role) 
 VALUES 
 ('Credit Investigator', 'creditinvestigator@creditcoop.com', '$2b$12$U3vHfNU1h22OG8nAqLqwoOx.BRAVAZ2XTJber9do/eJWPvWx4GZKq', 'credit_investigator')
+

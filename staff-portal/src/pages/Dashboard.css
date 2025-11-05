@@ -1404,3 +1404,343 @@
   --card-shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.15);
   --gradient-primary: linear-gradient(135deg, #7c3aed, #a78bfa);
 }
+
+/* Modal Styles for Report */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+.report-modal {
+  width: 1000px;
+  max-width: 95vw;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--gray-200);
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+  padding: 2rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  border-radius: 0 0 12px 12px;
+}
+
+/* Report Specific Styles */
+.report-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.report-date {
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--gray-600);
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--gray-50);
+  border-radius: 8px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.summary-section {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.summary-section h3 {
+  margin: 0 0 1rem 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summary-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--gray-50);
+  border-radius: 6px;
+}
+
+.stat-label {
+  color: var(--gray-600);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.stat-value.success {
+  color: var(--success-green);
+}
+
+.stat-value.info {
+  color: var(--info-blue);
+}
+
+.loan-profit-section {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.loan-profit-section h3 {
+  margin: 0 0 1.5rem 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.profit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.profit-card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.profit-card h4 {
+  margin: 0 0 1rem 0;
+  color: var(--primary-purple);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.profit-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profit-details span {
+  font-size: 0.9rem;
+  color: var(--gray-600);
+}
+
+.profit-earned {
+  font-weight: 600;
+  color: var(--success-green) !important;
+}
+
+.interest-rate {
+  font-size: 0.8rem !important;
+  color: var(--gray-500) !important;
+  background: var(--white);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.member-preview {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.member-preview h3 {
+  margin: 0 0 1rem 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.member-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--gray-50);
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+}
+
+.member-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.member-info strong {
+  color: var(--gray-800);
+  font-size: 1rem;
+}
+
+.member-balances {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: right;
+}
+
+.member-balances span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+/* Action Button Disabled State */
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.action-btn:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design for Modal */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95vw;
+    height: 95vh;
+    margin: 0;
+  }
+  
+  .report-modal {
+    width: 100%;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .profit-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .modal-header {
+    padding: 1rem;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  .modal-footer {
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .modal-footer .btn {
+    flex: 1;
+    min-width: 120px;
+  }
+}

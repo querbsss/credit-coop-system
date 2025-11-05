@@ -5,10 +5,10 @@
   text-align: center;
 }
 .membership-applications-container {
-  padding: 1rem;
-  max-width: 100%;
+  padding: 1.5rem;
+  max-width: 1600px;
   margin: 0 auto;
-  width: 100%;
+  width: 95%;
 }
 
 .header {
@@ -46,19 +46,20 @@
 .applications-table table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 1200px;
   background: white;
   border-radius: 8px;
   overflow: hidden;
 }
 
 /* Define specific column widths */
-.applications-table th:nth-child(1) { width: 8%; }  /* Application ID */
+.applications-table th:nth-child(1) { width: 10%; }  /* Application ID */
 .applications-table th:nth-child(2) { width: 15%; } /* Full Name */
-.applications-table th:nth-child(3) { width: 18%; } /* Email */
-.applications-table th:nth-child(4) { width: 8%; } /* Membership Type */
-.applications-table th:nth-child(5) { width: 12%; } /* Amount Subscribe */
-.applications-table th:nth-child(6) { width: 10%; } /* Status */
-.applications-table th:nth-child(7) { width: 10%; } /* Actions */
+.applications-table th:nth-child(3) { width: 20%; } /* Email */
+.applications-table th:nth-child(4) { width: 10%; } /* Membership Type */
+.applications-table th:nth-child(5) { width: 15%; } /* Amount Subscribe */
+.applications-table th:nth-child(6) { width: 15%; } /* Status */
+.applications-table th:nth-child(7) { width: 15%; } /* Actions */
 
 .applications-table th {
   background: #f7fafc;
@@ -71,13 +72,9 @@
 }
 
 .applications-table td {
-  padding: 0.75rem;
+  padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
-  color: #1e293b;
-  font-size: 0.875rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #2d3748;
 }
 
 .applications-table tr:hover {
@@ -192,21 +189,20 @@
 
 .applications-table .action-buttons {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.5rem;
   align-items: center;
-  justify-content: flex-start;
-  white-space: nowrap;
+  justify-content: flex-end;
 }
 
 .applications-table .action-buttons button {
-  padding: 0.4rem 0.75rem;
-  font-size: 0.75rem;
-  display: inline-flex;
+  min-width: 36px;
+  height: 36px;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  min-width: auto;
-  height: auto;
+  border-radius: 8px;
 }
 
 .loading {
