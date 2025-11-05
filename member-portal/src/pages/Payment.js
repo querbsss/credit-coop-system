@@ -2,26 +2,87 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import gcashIcon from '../assets/icons/payment/gcash-svgrepo-com.svg';
+import grabIcon from '../assets/icons/payment/grab-logo-svgrepo-com.svg';
+import creditCardIcon from '../assets/icons/payment/credit-card-alt-1-svgrepo-com.svg';
 import './Payment.css';
 
 const Payment = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  // State management
   const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('gcash');
   const [isProcessing, setIsProcessing] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [checkoutUrl, setCheckoutUrl] = useState(null);
-  const navigate = useNavigate();
 
-  // PayMongo API key should be stored in environment variables
-// Add REACT_APP_PAYMONGO_SECRET_KEY to your .env file
+  // Constants
+  const PAYMONGO_SECRET_KEY = 'sk_test_8kAzk7uz9eFZCXzMRAM7jVpH';
 
+  // Load user's payment amount
   useEffect(() => {
     if (user && user.loan && user.loan.monthly_payment) {
       const monthlyPaymentNum = Number(user.loan.monthly_payment);
       setAmount(monthlyPaymentNum.toFixed(2));
     }
   }, [user]);
+
+  // Create checkout session with PayMongo
+  const createCheckoutSession = async (paymentIntentId, amountInCents) => {
+    try {
+      const checkoutData = {
+        data: {
+          type: 'checkout_session',
+          attributes: {
+            payment_intent_id: paymentIntentId,
+            success_url: `${window.location.origin}/payment-success`,
+            cancel_url: `${window.location.origin}/payment`,
+            line_items: [
+              {
+                name: description || 'Credit Cooperative Payment',
+                amount: amountInCents,
+                currency: 'PHP',
+                quantity: 1
+              }
+            ],
+            payment_method_types: [paymentMethod],
+            description: description || 'Payment to Credit Cooperative'
+          }
+        }
+      };
+
+      const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${btoa(PAYMONGO_SECRET_KEY + ':')}`
+        },
+        body: JSON.stringify(checkoutData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.errors?.[0]?.detail || 'Failed to create checkout session');
+      }
+
+      // Show success message and redirect to checkout
+      setSubmitStatus({ type: 'success', message: 'Payment session created! Redirecting...' });
+      setCheckoutUrl(data.data.attributes.checkout_url);
+      
+      // Redirect to PayMongo checkout page after a short delay
+      setTimeout(() => {
+        window.location.href = data.data.attributes.checkout_url;
+      }, 1500);
+
+    } catch (error) {
+      setSubmitStatus({ type: 'error', message: error.message || 'Checkout creation failed.' });
+      throw error;
+    }
+  };
 
   // Create PayMongo Payment Intent
   const createPaymentIntent = async () => {
@@ -32,7 +93,6 @@ const Payment = () => {
 
     setIsProcessing(true);
     setSubmitStatus(null);
-
     try {
       // Convert amount to cents (PayMongo expects amounts in centavos)
       const amountInCents = Math.round(parseFloat(amount) * 100);
@@ -43,7 +103,7 @@ const Payment = () => {
           attributes: {
             amount: amountInCents,
             currency: 'PHP',
-            description: 'Credit Cooperative Payment',
+            description: description || 'Credit Cooperative Payment',
             payment_method_allowed: [paymentMethod],
             capture_type: 'automatic',
             statement_descriptor: 'Credit Coop Payment'
@@ -55,7 +115,7 @@ const Payment = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(process.env.REACT_APP_PAYMONGO_SECRET_KEY + ':')}`
+          'Authorization': `Basic ${btoa(PAYMONGO_SECRET_KEY + ':')}`
         },
         body: JSON.stringify(paymentIntentData)
       });
@@ -70,63 +130,11 @@ const Payment = () => {
       await createCheckoutSession(data.data.id, amountInCents);
     } catch (error) {
       setSubmitStatus({ type: 'error', message: error.message || 'Payment creation failed.' });
-      setIsProcessing(false);
-    }
-  };
-
-  // Create PayMongo Checkout Session
-  const createCheckoutSession = async (paymentIntentId, amountInCents) => {
-    try {
-      const checkoutData = {
-        data: {
-          type: 'checkout_session',
-          attributes: {
-            payment_intent_id: paymentIntentId,
-            success_url: `${window.location.origin}/payment-success`,
-            cancel_url: `${window.location.origin}/payment`,
-            line_items: [
-              {
-                name: 'Credit Cooperative Payment',
-                amount: amountInCents,
-                currency: 'PHP',
-                quantity: 1
-              }
-            ],
-            payment_method_types: [paymentMethod],
-            description: 'Payment to Credit Cooperative'
-          }
-        }
-      };
-
-      const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(process.env.REACT_APP_PAYMONGO_SECRET_KEY + ':')}`
-        },
-        body: JSON.stringify(checkoutData)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.errors?.[0]?.detail || 'Failed to create checkout session');
-      }
-
-      setCheckoutUrl(data.data.attributes.checkout_url);
-      setSubmitStatus({ type: 'success', message: 'Payment session created! Redirecting...' });
-      
-      // Redirect to PayMongo checkout page
-      setTimeout(() => {
-        window.location.href = data.data.attributes.checkout_url;
-      }, 1500);
-
-    } catch (error) {
-      setSubmitStatus({ type: 'error', message: error.message || 'Checkout creation failed.' });
     } finally {
       setIsProcessing(false);
     }
   };
+
 
   return (
     <div className="payment-page">
@@ -134,7 +142,7 @@ const Payment = () => {
       <main className="payment-main">
         <div className="container">
           <div className="page-header">
-            <h1>💳 Make a Payment</h1>
+            <h1> Make a Payment</h1>
             <p>Secure payment processing powered by PayMongo</p>
           </div>
 
@@ -174,7 +182,9 @@ const Payment = () => {
               <div className="payment-method-info">
                 {paymentMethod === 'gcash' && (
                   <div className="method-info">
-                    <div className="method-icon">📱</div>
+                    <div className="method-icon">
+                      <img src={gcashIcon} alt="GCash" className="payment-method-svg-icon" />
+                    </div>
                     <div>
                       <h4>GCash</h4>
                       <p>Pay securely using your GCash wallet</p>
@@ -183,7 +193,9 @@ const Payment = () => {
                 )}
                 {paymentMethod === 'grab_pay' && (
                   <div className="method-info">
-                    <div className="method-icon">🚗</div>
+                    <div className="method-icon">
+                      <img src={grabIcon} alt="GrabPay" className="payment-method-svg-icon" />
+                    </div>
                     <div>
                       <h4>GrabPay</h4>
                       <p>Pay using your GrabPay wallet</p>
@@ -201,7 +213,9 @@ const Payment = () => {
                 )}
                 {paymentMethod === 'card' && (
                   <div className="method-info">
-                    <div className="method-icon">💳</div>
+                    <div className="method-icon">
+                      <img src={creditCardIcon} alt="Credit/Debit Card" className="payment-method-svg-icon" />
+                    </div>
                     <div>
                       <h4>Credit/Debit Card</h4>
                       <p>Pay using Visa, Mastercard, or JCB</p>
@@ -242,5 +256,3 @@ const Payment = () => {
 };
 
 export default Payment;
-
-

@@ -92,11 +92,103 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('memberPortalToken');
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      const token = localStorage.getItem('memberPortalToken');
+      const response = await fetch('http://localhost:5001/auth/profile/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': token
+        },
+        body: JSON.stringify(profileData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+
+      const updatedUser = await response.json();
+      setUser(prev => ({ ...prev, ...updatedUser }));
+      return updatedUser;
+    } catch (error) {
+      throw new Error(error.message || 'Profile update failed');
+    }
+  };
+
+  const updatePassword = async (currentPassword, newPassword) => {
+    try {
+      const token = localStorage.getItem('memberPortalToken');
+      const response = await fetch('http://localhost:5001/auth/password/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': token
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const contentType = response.headers.get('content-type');
+      if (!response.ok) {
+        if (contentType && contentType.includes('application/json')) {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to update password');
+        } else {
+          const text = await response.text();
+          throw new Error(text || 'Failed to update password');
+        }
+      }
+
+      if (contentType && contentType.includes('application/json')) {
+        await response.json(); // Parse if JSON
+      }
+      
+      return true;
+    } catch (error) {
+      throw new Error(error.message || 'Password update failed');
+    }
+  };
+
+  const fetchMembershipData = async () => {
+    try {
+      const token = localStorage.getItem('memberPortalToken');
+      console.log('Fetching membership data with token:', token);
+      const response = await fetch('http://localhost:5001/auth/membership-data', {
+        headers: {
+          'token': token
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Membership data fetch failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        });
+        throw new Error(`Failed to fetch membership data: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Membership data received:', data);
+      return data;
+    } catch (error) {
+      console.error('Membership data fetch error:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     login,
     logout,
-    loading
+    loading,
+    updateProfile,
+    updatePassword,
+    fetchMembershipData
   };
 
   return (

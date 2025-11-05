@@ -1,7 +1,157 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 
 const Dashboard = ({ setAuth, userRole }) => {
+  const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
+  const [totalMembersCount, setTotalMembersCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Function to fetch total members count
+  const fetchTotalMembers = async () => {
+    try {
+      console.log('Fetching total members count...');
+      
+      // Try the new member-count endpoint first
+      const countResponse = await fetch('http://localhost:5000/api/user-management/member-count', {
+        headers: {
+          'token': localStorage.token
+        }
+      });
+
+      console.log('Member count response status:', countResponse.status);
+      
+      if (countResponse.ok) {
+        const countData = await countResponse.json();
+        console.log('Member count API Response:', countData);
+        setTotalMembersCount(countData.count || 0);
+        return;
+      }
+      
+      // Fallback to the members endpoint
+      const response = await fetch('http://localhost:5000/api/user-management/members?limit=1', {
+        headers: {
+          'token': localStorage.token
+        }
+      });
+
+      console.log('Members response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Members API Response:', data);
+        setTotalMembersCount(data.pagination?.totalMembers || 0);
+      } else {
+        console.error('Failed to fetch total members count', response.status);
+        console.log('Response details:', await response.text());
+        
+        // Try the test endpoint as fallback
+        try {
+          const testResponse = await fetch('http://localhost:5000/api/user-management/test-db', {
+            headers: {
+              'token': localStorage.token
+            }
+          });
+          
+          if (testResponse.ok) {
+            const testData = await testResponse.json();
+            console.log('Test DB Response:', testData);
+            setTotalMembersCount(testData.record_count || 0);
+          } else {
+            setTotalMembersCount(0);
+          }
+        } catch (testErr) {
+          console.error('Test endpoint also failed:', testErr);
+          setTotalMembersCount(0);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching total members:', err);
+      setTotalMembersCount(0);
+    }
+  };
+
+  // Function to fetch pending applications count
+  const fetchPendingApplications = async () => {
+    try {
+      console.log('Fetching pending applications count...');
+      const response = await fetch('http://localhost:5000/api/membership-applications/count?status=pending', {
+        headers: {
+          'token': localStorage.token
+        }
+      });
+
+      console.log('Response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API Response:', data);
+        setPendingApplicationsCount(data.count || 0);
+      } else {
+        console.error('Failed to fetch pending applications count', response.status);
+        // Try to fetch all applications count if pending fails
+        const fallbackResponse = await fetch('http://localhost:5000/api/membership-applications/count', {
+          headers: {
+            'token': localStorage.token
+          }
+        });
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          setPendingApplicationsCount(fallbackData.count || 0);
+        } else {
+          setPendingApplicationsCount(0); // Set to 0 instead of 23 to show real data
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching pending applications:', err);
+      // Set to 0 to indicate no data available
+      setPendingApplicationsCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch pending applications count from the database
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchPendingApplications(),
+        fetchTotalMembers()
+      ]);
+      setLoading(false);
+    };
+
+    fetchData();
+    
+    // Set up auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchPendingApplications();
+      fetchTotalMembers();
+    }, 30000);
+
+    // Listen for custom events from membership applications
+    const handleApplicationUpdate = () => {
+      console.log('Membership application updated, refreshing dashboard...');
+      fetchPendingApplications();
+    };
+
+    // Listen for member account updates
+    const handleMemberUpdate = () => {
+      console.log('Member account updated, refreshing dashboard...');
+      fetchTotalMembers();
+    };
+
+    window.addEventListener('membershipApplicationUpdated', handleApplicationUpdate);
+    window.addEventListener('memberAccountUpdated', handleMemberUpdate);
+
+    // Cleanup interval and event listener on component unmount
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('membershipApplicationUpdated', handleApplicationUpdate);
+      window.removeEventListener('memberAccountUpdated', handleMemberUpdate);
+    };
+  }, []);
   // Get role-specific title and description
   const getRoleInfo = (role) => {
     switch (role) {
@@ -39,13 +189,14 @@ const Dashboard = ({ setAuth, userRole }) => {
   };
 
   const roleInfo = getRoleInfo(userRole);
-  // Mock data for dashboard metrics
+  
+  // Mock data for dashboard metrics (with real pending applications count and total members)
   const metrics = [
     {
       title: 'Total Members',
-      value: '2,547',
-      change: '+127',
-      changeType: 'positive',
+      value: loading ? '...' : totalMembersCount.toString(),
+      change: loading ? '...' : (totalMembersCount > 0 ? `${totalMembersCount} registered` : 'No members'),
+      changeType: totalMembersCount > 1000 ? 'positive' : totalMembersCount > 0 ? 'neutral' : 'warning',
       icon: '👥',
       color: 'blue'
     },
@@ -67,9 +218,9 @@ const Dashboard = ({ setAuth, userRole }) => {
     },
     {
       title: 'Pending Applications',
-      value: '23',
-      change: '-5',
-      changeType: 'negative',
+      value: loading ? '...' : pendingApplicationsCount.toString(),
+      change: loading ? '...' : (pendingApplicationsCount > 0 ? `${pendingApplicationsCount} pending` : 'No pending'),
+      changeType: pendingApplicationsCount > 20 ? 'warning' : pendingApplicationsCount > 0 ? 'neutral' : 'positive',
       icon: '📋',
       color: 'orange'
     }
@@ -149,6 +300,13 @@ const Dashboard = ({ setAuth, userRole }) => {
           <p>{roleInfo.description}</p>
         </div>
         <div className="page-actions">
+          <button className="btn btn-secondary" onClick={() => {
+            fetchPendingApplications();
+            fetchTotalMembers();
+          }}>
+            <span>🔄</span>
+            Refresh Data
+          </button>
           <button className="btn btn-secondary">
             <span>📊</span>
             Export Report
@@ -163,7 +321,12 @@ const Dashboard = ({ setAuth, userRole }) => {
       {/* Key Metrics Cards */}
       <div className="metrics-grid">
         {metrics.map((metric, index) => (
-          <div key={index} className={`metric-card card ${metric.color}`}>
+          <div 
+            key={index} 
+            className={`metric-card card ${metric.color} ${metric.title === 'Pending Applications' || metric.title === 'Total Members' ? 'clickable' : ''}`}
+            onClick={metric.title === 'Pending Applications' ? fetchPendingApplications : metric.title === 'Total Members' ? fetchTotalMembers : undefined}
+            title={metric.title === 'Pending Applications' ? 'Click to refresh applications' : metric.title === 'Total Members' ? 'Click to refresh member count' : undefined}
+          >
             <div className="metric-icon">
               {metric.icon}
             </div>
@@ -175,7 +338,7 @@ const Dashboard = ({ setAuth, userRole }) => {
               </span>
             </div>
             <div className="metric-arrow">
-              {metric.changeType === 'positive' ? '↗️' : '↘️'}
+              {metric.changeType === 'positive' ? '↗️' : metric.changeType === 'warning' ? '⚠️' : metric.changeType === 'neutral' ? '➡️' : '↘️'}
             </div>
           </div>
         ))}

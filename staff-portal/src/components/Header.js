@@ -63,7 +63,7 @@ const Header = ({ setAuth }) => {
       <div className="header-content">
         <div className="header-left">
           <div className="logo-section">
-            <div className="logo-icon">⚛️</div>
+            <img src="/logo192.png" alt="CreditCoop Logo" className="logo-image" />
             <div className="logo-text">
               <h1>CreditCoop</h1>
               <span className="logo-subtitle">Staff Portal</span>

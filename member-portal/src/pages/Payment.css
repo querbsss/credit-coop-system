@@ -9,6 +9,12 @@
   gap: 12px;
 }
 
+.payment-method-svg-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
 .qr-image {
   width: 280px;
   height: 280px;

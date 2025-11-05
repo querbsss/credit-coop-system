@@ -18,6 +18,9 @@ app.use('/dashboard', require('./routes/dashboardauth'));
 //loan review routes
 app.use('/api/loan-review', require('./routes/loanReview'));
 
+// membership applications routes
+app.use('/api/membership-applications', require('./routes/memberApplications'));
+
 // payment reference routes
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/user-management', require('./routes/userManagement'));

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
+import pesoIcon from '../assets/icons/payment_dues/peso-svgrepo-com.svg';
+import dashboardIcon from '../assets/icons/payment_dues/dashboard-4-svgrepo-com.svg';
 import './PaymentDues.css';
 
 const PaymentDues = () => {
@@ -126,7 +128,7 @@ const PaymentDues = () => {
       <main className="payment-dues-main">
         <div className="container">
           <div className="page-header">
-            <h1>💳 Payment Dues</h1>
+            <h1> Payment Dues</h1>
             <p>View and manage your payment obligations</p>
           </div>
 
@@ -248,14 +250,18 @@ const PaymentDues = () => {
                   className="quick-action-btn primary"
                   onClick={() => navigate('/payment')}
                 >
-                  <span className="action-icon">💳</span>
+                  <span className="action-icon">
+                    <img src={pesoIcon} alt="Payment" className="quick-action-svg-icon" />
+                  </span>
                   <span className="action-label">Make Payment</span>
                 </button>
                 <button 
                   className="quick-action-btn secondary"
                   onClick={() => navigate('/dashboard')}
                 >
-                  <span className="action-icon">📊</span>
+                  <span className="action-icon">
+                    <img src={dashboardIcon} alt="Dashboard" className="quick-action-svg-icon" />
+                  </span>
                   <span className="action-label">View Dashboard</span>
                 </button>
               </div>

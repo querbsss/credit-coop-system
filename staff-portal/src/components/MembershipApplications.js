@@ -5,6 +5,7 @@ import './MembershipApplications.css';
 const MembershipApplications = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState('all');
@@ -19,30 +20,75 @@ const MembershipApplications = () => {
   };
 
   useEffect(() => {
-    fetchApplications();
-  }, []);
+    let isMounted = true;
+
+    const fetchData = async () => {
+      if (!isMounted) return;
+      
+      try {
+        await fetchApplications();
+        console.log('Applications fetched successfully');
+      } catch (error) {
+        console.error('Error in fetch cycle:', error);
+      }
+    };
+
+    // Initial fetch
+    fetchData();
+
+    // Set up polling every 5 seconds
+    const pollingInterval = setInterval(fetchData, 5000);
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      clearInterval(pollingInterval);
+    };
+  }, []); // Empty dependency array means this runs once on mount
 
   const fetchApplications = async () => {
+    // If it's the first load, we'll show the full loading screen
+    // For subsequent refreshes, we'll just show a subtle indicator
+    const isInitialLoad = loading;
+    if (!isInitialLoad) setRefreshing(true);
+
     try {
-      const response = await fetch('http://localhost:3002/api/membership-applications');
+      const response = await fetch('http://localhost:5000/api/membership-applications', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': localStorage.getItem('token') // Add authentication token
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch applications');
+      }
+
       const result = await response.json();
       
       if (result.success) {
-        setApplications(result.applications);
+        setApplications(result.applications || []);
+      } else {
+        console.error('API Error:', result.message || 'Unknown error');
+        setApplications([]);
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
+      setApplications([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   const updateApplicationStatus = async (applicationId, status, reviewNotes = '', membershipNum = '') => {
     try {
-      const response = await fetch(`http://localhost:3002/api/membership-applications/${applicationId}/status`, {
+      const response = await fetch(`http://localhost:5000/api/membership-applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'token': localStorage.token
         },
         body: JSON.stringify({ status, reviewNotes, membershipNumber: membershipNum }),
       });
@@ -54,6 +100,11 @@ const MembershipApplications = () => {
         setShowModal(false);
         setSelectedApplication(null);
         setMembershipNumber(''); // Reset membership number
+        
+        // Trigger dashboard refresh by dispatching a custom event
+        window.dispatchEvent(new CustomEvent('membershipApplicationUpdated'));
+      } else {
+        console.error('Failed to update application status:', result.message);
       }
     } catch (error) {
       console.error('Error updating application status:', error);
@@ -93,7 +144,19 @@ const MembershipApplications = () => {
   return (
     <div className="membership-applications-container">
       <div className="header">
-        <h2>Membership Applications</h2>
+        <div className="header-title">
+          <h2>Membership Applications</h2>
+          {refreshing && (
+            <span className="refresh-indicator" style={{ 
+              marginLeft: '10px',
+              fontSize: '14px',
+              color: '#666',
+              display: 'inline-block'
+            }}>
+              ↻ Refreshing...
+            </span>
+          )}
+        </div>
         <div className="filters">
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="all">All Applications</option>
@@ -138,23 +201,22 @@ const MembershipApplications = () => {
                 </td>
                 <td>{getStatusBadge(app.status)}</td>
                 <td>{new Date(app.created_at).toLocaleDateString()}</td>
-                <td>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <td className="actions-cell">
+                  <div className="action-buttons">
+                    {app.status === 'pending' && (
+                      <button
+                        className="btn btn-warning"
+                        onClick={() => updateApplicationStatus(app.application_id, 'under_review', 'Application under review')}
+                      >
+                        Review Application
+                      </button>
+                    )}
                     <button 
                       className="btn btn-primary"
                       onClick={() => handleViewApplication(app)}
                     >
                       View Details
                     </button>
-                    {/* Show Review button for managers and forwarded_to_manager status */}
-                    {userRole === 'manager' && app.status === 'forwarded_to_manager' && (
-                      <button
-                        className="btn btn-success"
-                        onClick={() => handleViewApplication(app)}
-                      >
-                        Review
-                      </button>
-                    )}
                   </div>
                 </td>
               </tr>

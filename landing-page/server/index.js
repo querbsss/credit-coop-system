@@ -10,7 +10,7 @@ const { Pool } = require('pg');
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3004;
 
 // Database connection
 const pool = new Pool({
@@ -22,7 +22,12 @@ const pool = new Pool({
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3004', 'http://localhost:5000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'token']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -49,6 +54,7 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   },
   fileFilter: (req, file, cb) => {
+
     // Accept both profileImage and idDocument fields, but only image files
     if ((file.fieldname === 'profileImage' || file.fieldname === 'idDocument') && file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -73,6 +79,7 @@ app.post('/api/membership-application', upload.fields([
   console.log('Received membership application submission');
   console.log('Request body:', req.body);
   console.log('Request files:', req.files);
+  console.log('Request file:', req.file);
   
   try {
     const {

@@ -33,7 +33,7 @@ export const PERMISSIONS = {
 
   // Manager permissions - access to most features except IT functions
   manager: {
-    allowedRoutes: ['/dashboard', '/members', '/accounts', '/loans', '/transactions', '/reports', '/loan-approval', '/membership-applications'],
+    allowedRoutes: ['/dashboard', '/members', '/transactions', '/reports', '/loan-approval', '/membership-applications'],
     menuItems: [
       {
         path: '/dashboard',
@@ -52,18 +52,6 @@ export const PERMISSIONS = {
         icon: '📝',
         label: 'Applications',
         description: 'Membership Applications'
-      },
-      {
-        path: '/accounts',
-        icon: '💰',
-        label: 'Accounts',
-        description: 'Account Management'
-      },
-      {
-        path: '/loans',
-        icon: '🏦',
-        label: 'Loans',
-        description: 'Loan Management'
       },
       {
         path: '/loan-approval',
@@ -157,7 +145,7 @@ export const PERMISSIONS = {
 
   // IT Admin permissions - system management and settings
   it_admin: {
-    allowedRoutes: ['/dashboard', '/members', '/reports', '/settings', '/user-management', '/import', '/membership-applications'],
+    allowedRoutes: ['/dashboard', '/members', '/user-management', '/import', '/membership-applications'],
     menuItems: [
       {
         path: '/dashboard',
@@ -166,7 +154,7 @@ export const PERMISSIONS = {
         description: 'System Overview'
       },
       {
-        path: '/members',
+        path: '/user-management',
         icon: '👥',
         label: 'User Management',
         description: 'Staff & Members'
@@ -176,24 +164,6 @@ export const PERMISSIONS = {
         icon: '📝',
         label: 'Applications',
         description: 'Membership Applications'
-      },
-      {
-        path: '/reports',
-        icon: '📈',
-        label: 'System Reports',
-        description: 'Usage & Performance'
-      },
-      {
-        path: '/settings',
-        icon: '⚙️',
-        label: 'Settings',
-        description: 'System Configuration'
-      },
-      {
-        path: '/user-management',
-        icon: '🛂',
-        label: 'User Management',
-        description: 'Create Member Accounts'
       },
       {
         path: '/import',

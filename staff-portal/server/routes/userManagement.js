@@ -32,6 +32,39 @@ async function ensureMemberUsersSchema() {
             await membersPool.query(`CREATE INDEX idx_member_users_email ON member_users(user_email)`);
             await membersPool.query(`CREATE INDEX idx_member_users_member_number ON member_users(member_number)`);
             await membersPool.query(`CREATE INDEX idx_member_users_active ON member_users(is_active)`);
+        } else {
+            // Check if all required columns exist, if not add them
+            const columnCheck = await membersPool.query(`
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'member_users' AND column_name IN ('created_at', 'updated_at', 'is_active')
+            `);
+            
+            const existingColumns = columnCheck.rows.map(row => row.column_name);
+            console.log('Existing columns:', existingColumns);
+            
+            if (!existingColumns.includes('created_at')) {
+                console.log('Adding created_at column...');
+                await membersPool.query(`
+                    ALTER TABLE member_users 
+                    ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                `);
+            }
+            
+            if (!existingColumns.includes('updated_at')) {
+                console.log('Adding updated_at column...');
+                await membersPool.query(`
+                    ALTER TABLE member_users 
+                    ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                `);
+            }
+            
+            if (!existingColumns.includes('is_active')) {
+                console.log('Adding is_active column...');
+                await membersPool.query(`
+                    ALTER TABLE member_users 
+                    ADD COLUMN is_active BOOLEAN DEFAULT TRUE
+                `);
+            }
         }
     } catch (e) {
         console.error('Error ensuring member_users schema', e);
@@ -39,6 +72,71 @@ async function ensureMemberUsersSchema() {
 }
 
 ensureMemberUsersSchema();
+
+// Test endpoint to check database connection and table
+router.get('/test-db', async (req, res) => {
+    try {
+        // Test database connection
+        const testQuery = await membersPool.query('SELECT NOW()');
+        console.log('Database connection successful:', testQuery.rows[0]);
+        
+        // Check if table exists
+        const tableExists = await membersPool.query(`
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_name = 'member_users'
+        `);
+        
+        // Get table schema
+        const tableSchema = await membersPool.query(`
+            SELECT column_name, data_type, is_nullable
+            FROM information_schema.columns 
+            WHERE table_name = 'member_users'
+            ORDER BY ordinal_position
+        `);
+        
+        // Count existing records
+        const recordCount = await membersPool.query('SELECT COUNT(*) FROM member_users');
+        
+        res.json({
+            success: true,
+            database_connected: true,
+            current_time: testQuery.rows[0].now,
+            table_exists: tableExists.rows.length > 0,
+            table_schema: tableSchema.rows,
+            record_count: parseInt(recordCount.rows[0].count)
+        });
+        
+    } catch (err) {
+        console.error('Database test error:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+});
+
+// Get member count - accessible to all authenticated users for dashboard
+router.get('/member-count', staffAuthorize, async (req, res) => {
+    try {
+        const countResult = await membersPool.query('SELECT COUNT(*) FROM member_users WHERE is_active = true');
+        const totalCount = parseInt(countResult.rows[0].count);
+        
+        console.log(`Member count endpoint called - Total active members: ${totalCount}`);
+        
+        res.json({
+            success: true,
+            count: totalCount,
+            active_members: totalCount
+        });
+    } catch (err) {
+        console.error('Error fetching member count:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch member count',
+            error: err.message 
+        });
+    }
+});
 
 // IT Admin: Get all members with pagination and search
 router.get('/members', staffAuthorize, async (req, res) => {
@@ -70,6 +168,19 @@ router.get('/members', staffAuthorize, async (req, res) => {
         const countResult = await membersPool.query(countQuery, queryParams);
         const total = parseInt(countResult.rows[0].count);
         
+        // Debug: Check table schema
+        try {
+            const schemaCheck = await membersPool.query(`
+                SELECT column_name, data_type 
+                FROM information_schema.columns 
+                WHERE table_name = 'member_users' 
+                ORDER BY column_name
+            `);
+            console.log('member_users table schema:', schemaCheck.rows);
+        } catch (schemaErr) {
+            console.error('Error checking schema:', schemaErr);
+        }
+        
         // Get members with pagination
         const membersQuery = `
             SELECT user_id, user_name, user_email, member_number, created_at, updated_at, is_active
@@ -79,7 +190,19 @@ router.get('/members', staffAuthorize, async (req, res) => {
             LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
         `;
         
+        // Debugging: Log the query and parameters before execution
+        console.log('Executing query:', membersQuery);
+        console.log('Query parameters:', [...queryParams, limit, offset]);
+        
         const membersResult = await membersPool.query(membersQuery, [...queryParams, limit, offset]);
+        
+        // Debug: Also check total count in table
+        const totalCountCheck = await membersPool.query('SELECT COUNT(*) as total FROM member_users');
+        console.log('Total records in member_users table:', totalCountCheck.rows[0].total);
+        
+        // Debug: Show all records for debugging
+        const allRecords = await membersPool.query('SELECT user_id, user_name, member_number FROM member_users ORDER BY created_at DESC');
+        console.log('All records in table:', allRecords.rows);
         
         return res.json({
             success: true,
@@ -125,6 +248,8 @@ router.get('/members/:id', staffAuthorize, async (req, res) => {
 
 // IT Admin: Create member account
 router.post('/members', staffAuthorize, async (req, res) => {
+    const client = await membersPool.connect();
+    
     try {
         // Only allow it_admin role
         const role = req.user?.role;
@@ -132,8 +257,18 @@ router.post('/members', staffAuthorize, async (req, res) => {
             return res.status(403).json({ success: false, message: 'Forbidden' });
         }
 
+        console.log('Creating member with data:', req.body);
+        console.log('Database config:', {
+            database: membersPool.options.database,
+            host: membersPool.options.host,
+            user: membersPool.options.user
+        });
+
+        await client.query('BEGIN');
+
         const { member_number, default_password, member_name, user_email } = req.body;
         if (!member_number || !default_password || !user_email) {
+            await client.query('ROLLBACK');
             return res.status(400).json({ 
                 success: false, 
                 message: 'member_number, user_email, and default_password are required' 
@@ -145,26 +280,54 @@ router.post('/members', staffAuthorize, async (req, res) => {
         const salt = await bcrypt.genSalt(saltRounds);
         const hash = await bcrypt.hash(default_password, salt);
 
+        console.log('Password hashed successfully');
+
         // Check duplicates
-        const existing = await membersPool.query(
+        const existing = await client.query(
             `SELECT user_id FROM member_users WHERE member_number = $1 OR user_email = $2`,
             [member_number, user_email]
         );
+        
+        console.log('Duplicate check result:', existing.rows.length);
+        
         if (existing.rows.length > 0) {
+            await client.query('ROLLBACK');
             return res.status(409).json({ success: false, message: 'Member account already exists with this member number or email' });
         }
 
         // Use provided member_name or default to member_number if null/empty
         const finalMemberName = member_name || `Member ${member_number}`;
 
-        const insert = await membersPool.query(
+        console.log('Inserting member:', {
+            finalMemberName,
+            user_email,
+            member_number,
+            passwordLength: hash.length
+        });
+
+        const insert = await client.query(
             `INSERT INTO member_users (user_name, user_email, user_password, member_number) 
              VALUES ($1, $2, $3, $4) RETURNING user_id, member_number, user_name, user_email, created_at, is_active`,
             [finalMemberName, user_email, hash, member_number]
         );
 
+        console.log('Insert successful, returning:', insert.rows[0]);
+
+        // Explicitly commit the transaction
+        await client.query('COMMIT');
+        console.log('Transaction committed successfully');
+
+        // Double-check that the record was saved
+        const verifyInsert = await client.query(
+            `SELECT user_id, user_name, user_email, member_number FROM member_users WHERE user_id = $1`,
+            [insert.rows[0].user_id]
+        );
+        
+        console.log('Verification query result:', verifyInsert.rows);
+
         return res.json({ success: true, member: insert.rows[0] });
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error('Error creating member account:', err);
         
         // Provide more specific error messages
@@ -182,6 +345,8 @@ router.post('/members', staffAuthorize, async (req, res) => {
         }
         
         return res.status(500).json({ success: false, message: 'Failed to create member account' });
+    } finally {
+        client.release();
     }
 });
 
@@ -348,6 +513,6 @@ router.patch('/members/:id/toggle-status', staffAuthorize, async (req, res) => {
     }
 });
 
+
+
 module.exports = router;
-
-

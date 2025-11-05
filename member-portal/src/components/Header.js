@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import userIcon from '../assets/icons/user/user.svg';
 import './Header.css';
 
 const Header = () => {
@@ -30,10 +31,9 @@ const Header = () => {
           <div className="header-right">
             <nav className={`nav ${mobileMenuOpen ? 'nav-open' : ''}`}>
               <Link to="/dashboard" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-              <a href="#accounts" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Accounts</a>
               <Link to="/loans" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Loans</Link>
               <Link to="/payment-dues" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Payment Dues</Link>
-              <a href="#profile" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Profile</a>
+              <Link to="/profile" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
               <button onClick={handleLogout} className="btn btn-secondary btn-sm">
                 Logout
               </button>
@@ -41,7 +41,7 @@ const Header = () => {
 
             <div className="user-avatar">
               <div className="avatar-circle">
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
+                <img src={userIcon} alt="User" className="user-icon" />
               </div>
             </div>
 

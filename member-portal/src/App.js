@@ -7,6 +7,7 @@ import LoanApplication from './pages/LoanApplication';
 import Payment from './pages/Payment';
 import PaymentDues from './pages/PaymentDues';
 import PaymentHistory from './pages/PaymentHistory';
+import Profile from './pages/Profile';
 import './App.css';
 // removed toastify
 
@@ -91,6 +92,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <PaymentHistory />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         } 
       />

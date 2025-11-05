@@ -327,6 +327,14 @@
 
 .action-icon {
   font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-action-svg-icon {
+  width: 32px;
+  height: 32px;
 }
 
 .action-label {

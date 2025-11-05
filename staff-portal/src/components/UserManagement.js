@@ -120,6 +120,11 @@ const UserManagement = () => {
                 setEditingMember(null);
                 resetForm();
                 loadMembers(currentPage, searchTerm, statusFilter);
+                
+                // Dispatch custom event to notify dashboard of member count change
+                if (!editingMember) {
+                    window.dispatchEvent(new CustomEvent('memberAccountUpdated'));
+                }
             } else {
                 setError(data.message || `Failed to ${editingMember ? 'update' : 'create'} member`);
             }

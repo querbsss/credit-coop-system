@@ -421,7 +421,7 @@ const LoanApplication = () => {
         <div className="container">
           {/* Page Header */}
           <div className="page-header">
-            <h1>🏦 Loan Application</h1>
+            <h1>Loan Application</h1>
             <p>Complete the loan application form below</p>
             
             {/* Progress Indicator */}
