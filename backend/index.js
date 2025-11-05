@@ -15,24 +15,24 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Middleware
+// Middleware - FIXED TYPO
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
+    origin: process.env.NODE_ENV === 'production'
     ? [
         'https://credit-coop-landing.onrender.com',
-        'https://credit-coop-member-portal.onrender.com', 
+        'https://credit-coop-member-portal.onrender.com',
         'https://credit-coop-staff-portal.onrender.com'
-      ]
+    ]
     : [
         'http://localhost:3000',
         'http://localhost:3001', 
         'http://localhost:3002',
         'http://localhost:3003',
         'http://localhost:3004'
-      ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'token']
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'token']
 }));
 
 app.use(express.json());
