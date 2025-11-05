@@ -79,7 +79,6 @@ services:
     env: static
     region: singapore
     buildCommand: cd member-portal && npm install && npm run build
-    publishPath: ./member-portal/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://credit-coop-member-backend.onrender.com
@@ -90,7 +89,6 @@ services:
     env: static
     region: singapore
     buildCommand: cd staff-portal && npm install && npm run build
-    publishPath: ./staff-portal/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://credit-coop-staff-backend.onrender.com
