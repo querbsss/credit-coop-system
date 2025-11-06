@@ -68,16 +68,16 @@ const upload = multer({
 // Serve uploaded files
 app.use('/uploads', express.static(uploadsDir));
 
-// Serve static files from React build
-app.use(express.static(path.join(__dirname, '../build')));
-
-// Routes
-
+// API Routes (define BEFORE static files)
 // Submit membership application
 app.post('/api/membership-application', upload.fields([
   { name: 'profileImage', maxCount: 1 },
   { name: 'idDocument', maxCount: 1 }
 ]), async (req, res) => {
+  console.log('=== MEMBERSHIP APPLICATION ENDPOINT HIT ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Headers:', req.headers);
   console.log('Received membership application submission');
   console.log('Request body:', req.body);
   console.log('Request files:', req.files);
@@ -331,6 +331,9 @@ app.get('/test-table', async (req, res) => {
     });
   }
 });
+
+// Serve static files from React build (AFTER API routes)
+app.use(express.static(path.join(__dirname, '../build')));
 
 // Catch-all handler: send back React's index.html file for any non-API routes
 app.get('*', (req, res) => {
