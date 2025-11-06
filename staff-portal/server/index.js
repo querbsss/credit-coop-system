@@ -23,6 +23,11 @@ app.use(cors({
 
 //ROUTES
 
+// Test route first - simple route without dependencies
+app.get('/test', (req, res) => {
+  res.json({ message: 'Test route working' });
+});
+
 //register and login routes
 console.log('Registering auth routes...');
 try {
@@ -32,6 +37,15 @@ try {
 } catch (error) {
   console.error('Error loading auth routes:', error.message);
   console.error('Stack trace:', error.stack);
+  
+  // Temporary simple auth routes as fallback
+  app.post('/auth/login', (req, res) => {
+    res.status(500).json({ error: 'Auth system temporarily unavailable', details: error.message });
+  });
+  
+  app.get('/auth/is-verify', (req, res) => {
+    res.status(500).json({ error: 'Auth system temporarily unavailable', details: error.message });
+  });
 }
 
 //dashboard route
