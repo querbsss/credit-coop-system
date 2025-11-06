@@ -9,7 +9,8 @@ module.exports = async (req, res, next) => {
             return res.status(403).json("Not authorized");
         }
 
-        const jwtSecret = process.env.jwt_secret || 'default_jwt_secret_for_development_only_change_in_production';
+        // Try multiple environment variable names for JWT secret
+        const jwtSecret = process.env.JWT_SECRET || process.env.jwt_secret || 'default_jwt_secret_for_development_only_change_in_production';
         const payload = jwt.verify(jwtToken, jwtSecret);
         req.user = payload.user;
         next();

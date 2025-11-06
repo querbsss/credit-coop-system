@@ -19,10 +19,11 @@ app.use(cors({
 //ROUTES
 
 //register and login routes
-
+console.log('Registering auth routes...');
 app.use('/auth', require('./routes/coopauth'));
 
 //dashboard route
+console.log('Registering dashboard routes...');
 app.use('/dashboard', require('./routes/dashboardauth'));
 
 //loan review routes
@@ -40,6 +41,35 @@ app.use('/api/invoices', require('./routes/invoices'));
 
 // member import routes
 app.use('/api', require('./routes/importMembers'));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Staff Portal Backend is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Test database connection endpoint
+app.get('/test-db', async (req, res) => {
+  try {
+    const pool = require('./db');
+    const result = await pool.query('SELECT NOW()');
+    res.json({ 
+      status: 'OK', 
+      message: 'Database connection successful',
+      timestamp: result.rows[0].now 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      message: 'Database connection failed',
+      error: error.message 
+    });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Staff Portal server is running on port ${PORT}`);

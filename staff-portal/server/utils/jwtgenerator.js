@@ -8,7 +8,8 @@ function jwtgenerator(user_id, user_role) {
             role: user_role
         }
     }
-    const jwtSecret = process.env.jwt_secret || 'default_jwt_secret_for_development_only_change_in_production';
+    // Try multiple environment variable names for JWT secret
+    const jwtSecret = process.env.JWT_SECRET || process.env.jwt_secret || 'default_jwt_secret_for_development_only_change_in_production';
     return jwt.sign(payload, jwtSecret, { expiresIn: '1hr' });
 }
 
