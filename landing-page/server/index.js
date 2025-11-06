@@ -14,16 +14,15 @@ const PORT = process.env.PORT || 3004;
 
 // Database connection
 const pool = new Pool({
-  user: 'postgres',
-  password: 'password',
-  host: 'localhost',
-  port: 5432,
-  database: 'slz_coop_staff'
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3004', 'http://localhost:5000'],
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://credit-coop-landing.onrender.com', 'https://credit-coop-member-portal.onrender.com', 'https://credit-coop-staff-portal.onrender.com']
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3004', 'http://localhost:5000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'token']
