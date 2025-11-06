@@ -53,7 +53,7 @@ const MembershipApplications = () => {
     if (!isInitialLoad) setRefreshing(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/membership-applications', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ const MembershipApplications = () => {
 
   const updateApplicationStatus = async (applicationId, status, reviewNotes = '', membershipNum = '') => {
     try {
-      const response = await fetch(`http://localhost:5000/api/membership-applications/${applicationId}/status`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
