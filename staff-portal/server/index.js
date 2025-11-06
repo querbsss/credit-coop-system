@@ -300,6 +300,21 @@ app.get('/debug/users', async (req, res) => {
   }
 });
 
+// Debug: check membership applications
+app.get('/debug/applications', async (req, res) => {
+  try {
+    const pool = require('./db');
+    const result = await pool.query("SELECT * FROM membership_applications ORDER BY created_at DESC LIMIT 10");
+    res.json({ 
+      applications: result.rows, 
+      count: result.rows.length,
+      message: `Found ${result.rows.length} membership applications`
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message, table: 'membership_applications' });
+  }
+});
+
 // Reset passwords via debug endpoint
 app.get('/debug/reset-passwords', async (req, res) => {
   try {
