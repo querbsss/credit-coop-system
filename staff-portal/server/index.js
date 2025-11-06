@@ -29,103 +29,37 @@ app.get('/test', (req, res) => {
 });
 
 // Simple password reset for admin (temporary)
-// Password reset endpoint for admin user
 app.get('/reset-admin-password', async (req, res) => {
   try {
     const pool = require('./db');
     const bcrypt = require('bcrypt');
     
-    // Hash the password with same salt rounds as login
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash('password123', saltRounds);
+    const email = 'admin@creditcoop.com';
+    const newPassword = 'password123';
     
-    // Update admin user password
-    const updateQuery = `
-      UPDATE users 
-      SET password = $1 
-      WHERE email = 'admin@creditcoop.com'
-    `;
+    // Hash the new password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
     
-    const result = await pool.query(updateQuery, [hashedPassword]);
+    // Update the admin user's password
+    const result = await pool.query(
+      "UPDATE users SET user_password = $1 WHERE user_email = $2 RETURNING user_id, user_name, user_email, user_role",
+      [hashedPassword, email]
+    );
     
-    if (result.rowCount > 0) {
-      res.json({ 
-        success: true, 
-        message: 'Admin password reset successfully. You can now login with admin@creditcoop.com / password123' 
-      });
-    } else {
-      res.json({ 
-        success: false, 
-        message: 'Admin user not found in database' 
-      });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin user not found' });
     }
-  } catch (error) {
-    console.error('Password reset error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// Check what users exist in the database
-app.get('/check-users', async (req, res) => {
-  try {
-    const pool = require('./db');
-    
-    const query = 'SELECT id, email, name, role FROM users ORDER BY email';
-    const result = await pool.query(query);
     
     res.json({ 
-      success: true, 
-      users: result.rows,
-      count: result.rows.length
+      message: 'Admin password reset successfully!', 
+      user: result.rows[0],
+      credentials: { email: email, password: newPassword }
     });
+    
   } catch (error) {
-    console.error('Check users error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// Reset itadmin password
-app.get('/reset-itadmin-password', async (req, res) => {
-  try {
-    const pool = require('./db');
-    const bcrypt = require('bcrypt');
-    
-    // Hash the password with same salt rounds as login
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash('password123', saltRounds);
-    
-    // Update itadmin user password
-    const updateQuery = `
-      UPDATE users 
-      SET password = $1 
-      WHERE email = 'itadmin@creditcoop.com' OR email = 'itadmin'
-    `;
-    
-    const result = await pool.query(updateQuery, [hashedPassword]);
-    
-    if (result.rowCount > 0) {
-      res.json({ 
-        success: true, 
-        message: 'ITAdmin password reset successfully. You can now login with itadmin@creditcoop.com / password123' 
-      });
-    } else {
-      res.json({ 
-        success: false, 
-        message: 'ITAdmin user not found in database' 
-      });
-    }
-  } catch (error) {
-    console.error('Password reset error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
+    console.error('Error resetting admin password:', error);
+    res.status(500).json({ error: 'Failed to reset password', details: error.message });
   }
 });
 
@@ -321,6 +255,96 @@ app.get('/debug/users', async (req, res) => {
     res.json({ users: result.rows, count: result.rows.length });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Reset passwords via debug endpoint
+app.get('/debug/reset-passwords', async (req, res) => {
+  try {
+    const pool = require('./db');
+    
+    // Get all users
+    const usersResult = await pool.query("SELECT user_id, user_email FROM users");
+    const users = usersResult.rows;
+    
+    if (users.length === 0) {
+      return res.json({ message: 'No users found' });
+    }
+    
+    const bcrypt = require('bcryptjs');
+    const defaultPassword = 'password123'; // Default password for all accounts
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+    
+    // Update all users with the new hashed password
+    const updatePromises = users.map(user => 
+      pool.query(
+        "UPDATE users SET user_password = $1 WHERE user_id = $2",
+        [hashedPassword, user.user_id]
+      )
+    );
+    
+    await Promise.all(updatePromises);
+    
+    const updatedUsers = users.map(user => ({
+      email: user.user_email,
+      message: 'Password reset to: password123'
+    }));
+    
+    res.json({ 
+      message: 'All user passwords have been reset successfully',
+      defaultPassword: defaultPassword,
+      updatedUsers: updatedUsers,
+      count: users.length
+    });
+    
+  } catch (error) {
+    console.error('Error resetting all passwords:', error);
+    res.status(500).json({ error: 'Failed to reset passwords', details: error.message });
+  }
+});
+
+// Reset all user passwords endpoint
+app.get('/reset-all-passwords', async (req, res) => {
+  try {
+    const pool = require('./db');
+    
+    // Get all users
+    const usersResult = await pool.query("SELECT user_id, user_email FROM users");
+    const users = usersResult.rows;
+    
+    if (users.length === 0) {
+      return res.json({ message: 'No users found' });
+    }
+    
+    const bcrypt = require('bcryptjs');
+    const defaultPassword = 'password123'; // Default password for all accounts
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+    
+    // Update all users with the new hashed password
+    const updatePromises = users.map(user => 
+      pool.query(
+        "UPDATE users SET user_password = $1 WHERE user_id = $2",
+        [hashedPassword, user.user_id]
+      )
+    );
+    
+    await Promise.all(updatePromises);
+    
+    const updatedUsers = users.map(user => ({
+      email: user.user_email,
+      message: 'Password reset to: password123'
+    }));
+    
+    res.json({ 
+      message: 'All user passwords have been reset successfully',
+      defaultPassword: defaultPassword,
+      updatedUsers: updatedUsers,
+      count: users.length
+    });
+    
+  } catch (error) {
+    console.error('Error resetting all passwords:', error);
+    res.status(500).json({ error: 'Failed to reset passwords', details: error.message });
   }
 });
 
