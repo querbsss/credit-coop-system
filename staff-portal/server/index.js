@@ -28,6 +28,41 @@ app.get('/test', (req, res) => {
   res.json({ message: 'Test route working' });
 });
 
+// Simple password reset for admin (temporary)
+app.get('/reset-admin-password', async (req, res) => {
+  try {
+    const pool = require('./db');
+    const bcrypt = require('bcrypt');
+    
+    const email = 'admin@creditcoop.com';
+    const newPassword = 'password123';
+    
+    // Hash the new password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update the admin user's password
+    const result = await pool.query(
+      "UPDATE users SET user_password = $1 WHERE user_email = $2 RETURNING user_id, user_name, user_email, user_role",
+      [hashedPassword, email]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin user not found' });
+    }
+    
+    res.json({ 
+      message: 'Admin password reset successfully!', 
+      user: result.rows[0],
+      credentials: { email: email, password: newPassword }
+    });
+    
+  } catch (error) {
+    console.error('Error resetting admin password:', error);
+    res.status(500).json({ error: 'Failed to reset password', details: error.message });
+  }
+});
+
 // Simple auth routes first (always available)
 app.post('/auth/login', async (req, res) => {
   try {
