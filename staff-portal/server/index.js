@@ -255,7 +255,7 @@ app.get('/debug/users', async (req, res) => {
     // Check if reset parameter is provided
     if (req.query.reset === 'passwords') {
       // Reset all passwords
-      const bcrypt = require('bcryptjs');
+      const bcrypt = require('bcrypt');
       const defaultPassword = 'password123';
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
       
@@ -305,7 +305,7 @@ app.get('/debug/reset-passwords', async (req, res) => {
       return res.json({ message: 'No users found' });
     }
     
-    const bcrypt = require('bcryptjs');
+    const bcrypt = require('bcrypt');
     const defaultPassword = 'password123'; // Default password for all accounts
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);
     
