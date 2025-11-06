@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const { spawn } = require('child_process');
 const path = require('path');
+require('dotenv').config();
 const router = express.Router();
 router.post('/applications/:id/set-loan-amount', async (req, res) => {
     try {
@@ -39,11 +40,8 @@ router.post('/applications/:id/set-loan-amount', async (req, res) => {
 
 // Connect to members database for loan applications
 const membersPool = new Pool({
-    user: 'postgres',
-    password: 'password',
-    host: 'localhost',
-    database: 'slz_coop_staff',
-    port: 5432,
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // Get all loan applications for review
