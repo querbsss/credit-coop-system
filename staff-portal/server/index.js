@@ -9,7 +9,12 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json()); //req body
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://credit-coop-staff-portal.onrender.com', 'https://credit-coop-landing.onrender.com', 'https://credit-coop-member-portal.onrender.com']
+    ? [
+        'https://credit-coop-staff-portal.onrender.com', 
+        'https://credit-coop-staff-portal-wfvp.onrender.com',
+        'https://credit-coop-landing.onrender.com', 
+        'https://credit-coop-member-portal.onrender.com'
+      ]
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3004'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
