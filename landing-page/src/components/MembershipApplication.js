@@ -106,7 +106,7 @@ const MembershipApplication = () => {
       });
 
       // Submit to backend API
-      const response = await fetch('http://localhost:3002/api/membership-application', {
+      const response = await fetch('/api/membership-application', {
         method: 'POST',
         body: formDataToSubmit
       });
