@@ -251,6 +251,40 @@ app.post('/setup/create-admin', async (req, res) => {
 app.get('/debug/users', async (req, res) => {
   try {
     const pool = require('./db');
+    
+    // Check if reset parameter is provided
+    if (req.query.reset === 'passwords') {
+      // Reset all passwords
+      const bcrypt = require('bcryptjs');
+      const defaultPassword = 'password123';
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+      
+      // Get all users first
+      const usersResult = await pool.query("SELECT user_id, user_email FROM users");
+      const users = usersResult.rows;
+      
+      // Update all users with the new hashed password
+      const updatePromises = users.map(user => 
+        pool.query(
+          "UPDATE users SET user_password = $1 WHERE user_id = $2",
+          [hashedPassword, user.user_id]
+        )
+      );
+      
+      await Promise.all(updatePromises);
+      
+      return res.json({ 
+        message: 'All user passwords have been reset successfully',
+        defaultPassword: defaultPassword,
+        updatedUsers: users.map(user => ({
+          email: user.user_email,
+          message: 'Password reset to: password123'
+        })),
+        count: users.length
+      });
+    }
+    
+    // Normal user listing
     const result = await pool.query("SELECT user_id, user_name, user_email, user_role FROM users ORDER BY user_id");
     res.json({ users: result.rows, count: result.rows.length });
   } catch (error) {
