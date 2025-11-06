@@ -54,6 +54,19 @@ The `render.yaml` includes most environment variables, but you may need to set s
 #### Step 5: Run Database Migrations
 Once your services are deployed, you'll need to set up your database schema:
 
+**Important: Database Name Configuration**
+Your application is configured to use a database named "slz_coop_staff". Since Render auto-generates database names, you'll need to either:
+
+1. **Option A**: Create the "slz_coop_staff" database manually:
+   ```sql
+   -- Connect to your Render PostgreSQL instance
+   CREATE DATABASE slz_coop_staff;
+   \c slz_coop_staff;
+   -- Then run your migration scripts
+   ```
+
+2. **Option B**: Update your application connection strings to use Render's default database.
+
 1. Go to your database service in Render dashboard
 2. Use the "Connect" button to get connection details
 3. Run your SQL migration files from the `migrations/` folder
@@ -63,8 +76,12 @@ Once your services are deployed, you'll need to set up your database schema:
 # Connect to your database and run migrations
 psql "postgresql://your-database-url"
 
+# If using Option A, create and switch to your database
+CREATE DATABASE slz_coop_staff;
+\c slz_coop_staff;
+
 # Then run your migration files
-\i path/to/your/migration.sql
+\i migrations/render_database_setup.sql
 ```
 
 #### Step 6: Update Frontend API URLs

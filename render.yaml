@@ -1,26 +1,15 @@
 services:
-  # Database
-  - type: pserv
-    name: credit-coop-database
-    plan: free
-    region: singapore
-
   # Backend API Service
   - type: web
     name: credit-coop-backend
     env: node
     plan: free
     region: singapore
-    root: ./backend
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: credit-coop-database
-          property: connectionString
 
   # Landing Page (React + Express)
   - type: web
@@ -28,16 +17,11 @@ services:
     env: node
     plan: free
     region: singapore
-    root: ./landing-page
-    buildCommand: npm install && npm run build
-    startCommand: npm run server
+    buildCommand: cd landing-page && npm install && npm run build
+    startCommand: cd landing-page && npm run server
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: credit-coop-database
-          property: connectionString
 
   # Member Portal Backend
   - type: web
@@ -45,16 +29,11 @@ services:
     env: node
     plan: free
     region: singapore
-    root: ./member-portal/server
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: cd member-portal/server && npm install
+    startCommand: cd member-portal/server && npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: credit-coop-database
-          property: connectionString
       - key: JWT_SECRET
         generateValue: true
 
@@ -64,37 +43,28 @@ services:
     env: node
     plan: free
     region: singapore
-    root: ./staff-portal/server
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: cd staff-portal/server && npm install
+    startCommand: cd staff-portal/server && npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: credit-coop-database
-          property: connectionString
       - key: JWT_SECRET
         generateValue: true
 
-  # Member Portal Frontend (Static Site)
+  # Member Portal Frontend 
   - type: web
     name: credit-coop-member-portal
     env: static
-    region: singapore
     buildCommand: cd member-portal && npm install && npm run build
-    staticPublishPath: ./member-portal/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://credit-coop-member-backend.onrender.com
 
-  # Staff Portal Frontend (Static Site)
+  # Staff Portal Frontend
   - type: web
     name: credit-coop-staff-portal
     env: static
-    region: singapore
     buildCommand: cd staff-portal && npm install && npm run build
-    staticPublishPath: ./staff-portal/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://credit-coop-staff-backend.onrender.com
