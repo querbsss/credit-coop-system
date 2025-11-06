@@ -28,25 +28,94 @@ app.get('/test', (req, res) => {
   res.json({ message: 'Test route working' });
 });
 
-//register and login routes
-console.log('Registering auth routes...');
-try {
-  const authRoutes = require('./routes/coopauth');
-  app.use('/auth', authRoutes);
-  console.log('Auth routes registered successfully');
-} catch (error) {
-  console.error('Error loading auth routes:', error.message);
-  console.error('Stack trace:', error.stack);
-  
-  // Temporary simple auth routes as fallback
-  app.post('/auth/login', (req, res) => {
-    res.status(500).json({ error: 'Auth system temporarily unavailable', details: error.message });
-  });
-  
-  app.get('/auth/is-verify', (req, res) => {
-    res.status(500).json({ error: 'Auth system temporarily unavailable', details: error.message });
-  });
-}
+// Simple auth routes first (always available)
+app.post('/auth/login', async (req, res) => {
+  try {
+    const pool = require('./db');
+    const bcrypt = require('bcrypt');
+    const jwtgenerator = require('./utils/jwtgenerator');
+    
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(401).json({ error: "All fields are required" });
+    }
+    
+    // Check if user exists
+    const user = await pool.query("SELECT * FROM users WHERE user_email = $1", [email]);
+    
+    if (user.rows.length === 0) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    
+    // Check password
+    const validPassword = await bcrypt.compare(password, user.rows[0].user_password);
+    
+    if (!validPassword) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    
+    // Generate JWT token
+    const token = jwtgenerator(user.rows[0].user_id, user.rows[0].user_role);
+    const userInfo = {
+      id: user.rows[0].user_id,
+      name: user.rows[0].user_name,
+      email: user.rows[0].user_email,
+      role: user.rows[0].user_role
+    };
+    
+    res.json({ token, user: userInfo });
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Server error during login' });
+  }
+});
+
+app.get('/auth/is-verify', async (req, res) => {
+  try {
+    const jwt = require('jsonwebtoken');
+    const jwtToken = req.header("token");
+
+    if (!jwtToken) {
+      return res.status(403).json("Not authorized");
+    }
+
+    const jwtSecret = process.env.JWT_SECRET || process.env.jwt_secret || 'default_jwt_secret_for_development_only_change_in_production';
+    const payload = jwt.verify(jwtToken, jwtSecret);
+    
+    res.json(true);
+  } catch (err) {
+    console.error('Token verification error:', err.message);
+    return res.status(403).json("Not authorized");
+  }
+});
+
+app.get('/auth/profile', async (req, res) => {
+  try {
+    const jwt = require('jsonwebtoken');
+    const pool = require('./db');
+    const jwtToken = req.header("token");
+
+    if (!jwtToken) {
+      return res.status(403).json("Not authorized");
+    }
+
+    const jwtSecret = process.env.JWT_SECRET || process.env.jwt_secret || 'default_jwt_secret_for_development_only_change_in_production';
+    const payload = jwt.verify(jwtToken, jwtSecret);
+    
+    const user = await pool.query("SELECT user_id, user_name, user_email, user_role FROM users WHERE user_id = $1", [payload.user.id]);
+    
+    if (user.rows.length === 0) {
+      return res.status(404).json("User not found");
+    }
+    
+    res.json(user.rows[0]);
+  } catch (err) {
+    console.error('Profile error:', err.message);
+    return res.status(403).json("Not authorized");
+  }
+});
 
 //dashboard route
 console.log('Registering dashboard routes...');
