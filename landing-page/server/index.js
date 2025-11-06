@@ -68,7 +68,15 @@ const upload = multer({
 // Serve uploaded files
 app.use('/uploads', express.static(uploadsDir));
 
+<<<<<<< HEAD
 // API Routes (define BEFORE static files)
+=======
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, '../build')));
+
+// Routes
+
+>>>>>>> 3c2b974 (Add static file serving and React Router support to landing page)
 // Submit membership application
 app.post('/api/membership-application', upload.fields([
   { name: 'profileImage', maxCount: 1 },
@@ -332,13 +340,14 @@ app.get('/test-table', async (req, res) => {
   }
 });
 
+
 // Serve static files from React build (AFTER API routes)
 app.use(express.static(path.join(__dirname, '../build')));
 
 // Catch-all handler: send back React's index.html file for any non-API routes
 app.get('*', (req, res) => {
   const indexPath = path.join(__dirname, '../build/index.html');
-  if (require('fs').existsSync(indexPath)) {
+  if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
     res.status(404).json({ error: 'Frontend build not found' });
