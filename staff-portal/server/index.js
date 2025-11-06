@@ -315,6 +315,26 @@ app.get('/debug/applications', async (req, res) => {
   }
 });
 
+// Test endpoint for membership applications (no auth required for debugging)
+app.get('/test/membership-applications', async (req, res) => {
+  try {
+    const pool = require('./db');
+    const result = await pool.query("SELECT * FROM membership_applications ORDER BY created_at DESC");
+    res.json({
+      success: true,
+      applications: result.rows,
+      count: result.rows.length,
+      message: 'Test endpoint - no auth required'
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message, 
+      message: 'Failed to fetch applications' 
+    });
+  }
+});
+
 // Reset passwords via debug endpoint
 app.get('/debug/reset-passwords', async (req, res) => {
   try {

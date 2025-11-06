@@ -53,7 +53,8 @@ const MembershipApplications = () => {
     if (!isInitialLoad) setRefreshing(true);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications`, {
+      // Temporarily use test endpoint for debugging
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/test/membership-applications`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
