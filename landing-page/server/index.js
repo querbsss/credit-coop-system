@@ -334,7 +334,12 @@ app.get('/test-table', async (req, res) => {
 
 // Catch-all handler: send back React's index.html file for any non-API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../build/index.html'));
+  const indexPath = path.join(__dirname, '../build/index.html');
+  if (require('fs').existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ error: 'Frontend build not found' });
+  }
 });
 
 app.listen(PORT, () => {
