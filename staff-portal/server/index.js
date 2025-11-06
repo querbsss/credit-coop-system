@@ -145,7 +145,15 @@ app.get('/auth/profile', async (req, res) => {
       return res.status(404).json("User not found");
     }
     
-    res.json(user.rows[0]);
+    // Format response for frontend
+    const userInfo = {
+      id: user.rows[0].user_id,
+      name: user.rows[0].user_name,
+      email: user.rows[0].user_email,
+      role: user.rows[0].user_role
+    };
+    
+    res.json(userInfo);
   } catch (err) {
     console.error('Profile error:', err.message);
     return res.status(403).json("Not authorized");
