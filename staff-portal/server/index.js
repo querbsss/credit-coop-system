@@ -172,6 +172,57 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
+// Temporary endpoint to create a test user (for setup only)
+app.post('/setup/create-admin', async (req, res) => {
+  try {
+    const pool = require('./db');
+    const bcrypt = require('bcrypt');
+    
+    const email = 'admin@creditcoop.com';
+    const password = 'password123';
+    const name = 'Admin User';
+    const role = 'admin';
+    
+    // Check if user already exists
+    const existingUser = await pool.query("SELECT * FROM users WHERE user_email = $1", [email]);
+    
+    if (existingUser.rows.length > 0) {
+      return res.json({ message: 'Admin user already exists', email: email });
+    }
+    
+    // Hash password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    
+    // Create user
+    const result = await pool.query(
+      "INSERT INTO users (user_name, user_email, user_password, user_role) VALUES ($1, $2, $3, $4) RETURNING user_id, user_name, user_email, user_role",
+      [name, email, hashedPassword, role]
+    );
+    
+    res.json({ 
+      message: 'Admin user created successfully!', 
+      user: result.rows[0],
+      credentials: { email: email, password: password }
+    });
+    
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+    res.status(500).json({ error: 'Failed to create admin user', details: error.message });
+  }
+});
+
+// Debug: check what users exist
+app.get('/debug/users', async (req, res) => {
+  try {
+    const pool = require('./db');
+    const result = await pool.query("SELECT user_id, user_name, user_email, user_role FROM users ORDER BY user_id");
+    res.json({ users: result.rows, count: result.rows.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Debug: catch-all route to see what requests are not being handled
 app.all('*', (req, res) => {
   console.log(`Unhandled request: ${req.method} ${req.path}`);
