@@ -105,13 +105,19 @@ const MembershipApplication = () => {
         }
       });
 
+      // Submit to backend API
+      console.log('Submitting to:', '/api/membership-application');
+      const response = await fetch('/api/membership-application', {
+        method: 'POST',
+        body: formDataToSubmit
+      });
 
-  // Submit to backend API
-  console.log('Submitting to:', '/api/membership-application');
-  const response = await fetch('/api/membership-application', {
-    method: 'POST',
-    body: formDataToSubmit
-  });
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       console.log('Response status:', response.status);
       console.log('Response ok:', response.ok);
