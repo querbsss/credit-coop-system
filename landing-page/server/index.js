@@ -68,6 +68,9 @@ const upload = multer({
 // Serve uploaded files
 app.use('/uploads', express.static(uploadsDir));
 
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, '../build')));
+
 // Routes
 
 // Submit membership application
@@ -327,6 +330,11 @@ app.get('/test-table', async (req, res) => {
       error: error.message
     });
   }
+});
+
+// Catch-all handler: send back React's index.html file for any non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../build/index.html'));
 });
 
 app.listen(PORT, () => {
