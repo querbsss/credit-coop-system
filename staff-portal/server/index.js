@@ -25,11 +25,24 @@ app.use(cors({
 
 //register and login routes
 console.log('Registering auth routes...');
-app.use('/auth', require('./routes/coopauth'));
+try {
+  const authRoutes = require('./routes/coopauth');
+  app.use('/auth', authRoutes);
+  console.log('Auth routes registered successfully');
+} catch (error) {
+  console.error('Error loading auth routes:', error.message);
+  console.error('Stack trace:', error.stack);
+}
 
 //dashboard route
 console.log('Registering dashboard routes...');
-app.use('/dashboard', require('./routes/dashboardauth'));
+try {
+  const dashboardRoutes = require('./routes/dashboardauth');
+  app.use('/dashboard', dashboardRoutes);
+  console.log('Dashboard routes registered successfully');
+} catch (error) {
+  console.error('Error loading dashboard routes:', error.message);
+}
 
 //loan review routes
 app.use('/api/loan-review', require('./routes/loanReview'));
@@ -74,6 +87,18 @@ app.get('/test-db', async (req, res) => {
       error: error.message 
     });
   }
+});
+
+// Debug: catch-all route to see what requests are not being handled
+app.all('*', (req, res) => {
+  console.log(`Unhandled request: ${req.method} ${req.path}`);
+  console.log('Available routes should include /auth/login, /auth/is-verify');
+  res.status(404).json({ 
+    error: 'Route not found', 
+    method: req.method, 
+    path: req.path,
+    message: 'This endpoint does not exist on the server'
+  });
 });
 
 app.listen(PORT, () => {
