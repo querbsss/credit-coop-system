@@ -12,7 +12,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       console.log('Fetching total members count...');
       
       // Try the new member-count endpoint first
-      const countResponse = await fetch('http://localhost:5000/api/user-management/member-count', {
+      const countResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/member-count`, {
         headers: {
           'token': localStorage.token
         }
@@ -28,7 +28,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       }
       
       // Fallback to the members endpoint
-      const response = await fetch('http://localhost:5000/api/user-management/members?limit=1', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/members?limit=1`, {
         headers: {
           'token': localStorage.token
         }
@@ -46,7 +46,7 @@ const Dashboard = ({ setAuth, userRole }) => {
         
         // Try the test endpoint as fallback
         try {
-          const testResponse = await fetch('http://localhost:5000/api/user-management/test-db', {
+          const testResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/test-db`, {
             headers: {
               'token': localStorage.token
             }
@@ -74,7 +74,7 @@ const Dashboard = ({ setAuth, userRole }) => {
   const fetchPendingApplications = async () => {
     try {
       console.log('Fetching pending applications count...');
-      const response = await fetch('http://localhost:5000/api/membership-applications/count?status=pending', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications/count?status=pending`, {
         headers: {
           'token': localStorage.token
         }
