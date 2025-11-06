@@ -29,37 +29,103 @@ app.get('/test', (req, res) => {
 });
 
 // Simple password reset for admin (temporary)
+// Password reset endpoint for admin user
 app.get('/reset-admin-password', async (req, res) => {
   try {
     const pool = require('./db');
     const bcrypt = require('bcrypt');
     
-    const email = 'admin@creditcoop.com';
-    const newPassword = 'password123';
+    // Hash the password with same salt rounds as login
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash('password123', saltRounds);
     
-    // Hash the new password
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    // Update admin user password
+    const updateQuery = `
+      UPDATE users 
+      SET password = $1 
+      WHERE email = 'admin@creditcoop.com'
+    `;
     
-    // Update the admin user's password
-    const result = await pool.query(
-      "UPDATE users SET user_password = $1 WHERE user_email = $2 RETURNING user_id, user_name, user_email, user_role",
-      [hashedPassword, email]
-    );
+    const result = await pool.query(updateQuery, [hashedPassword]);
     
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Admin user not found' });
+    if (result.rowCount > 0) {
+      res.json({ 
+        success: true, 
+        message: 'Admin password reset successfully. You can now login with admin@creditcoop.com / password123' 
+      });
+    } else {
+      res.json({ 
+        success: false, 
+        message: 'Admin user not found in database' 
+      });
     }
+  } catch (error) {
+    console.error('Password reset error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Check what users exist in the database
+app.get('/check-users', async (req, res) => {
+  try {
+    const pool = require('./db');
+    
+    const query = 'SELECT id, email, name, role FROM users ORDER BY email';
+    const result = await pool.query(query);
     
     res.json({ 
-      message: 'Admin password reset successfully!', 
-      user: result.rows[0],
-      credentials: { email: email, password: newPassword }
+      success: true, 
+      users: result.rows,
+      count: result.rows.length
     });
-    
   } catch (error) {
-    console.error('Error resetting admin password:', error);
-    res.status(500).json({ error: 'Failed to reset password', details: error.message });
+    console.error('Check users error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Reset itadmin password
+app.get('/reset-itadmin-password', async (req, res) => {
+  try {
+    const pool = require('./db');
+    const bcrypt = require('bcrypt');
+    
+    // Hash the password with same salt rounds as login
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash('password123', saltRounds);
+    
+    // Update itadmin user password
+    const updateQuery = `
+      UPDATE users 
+      SET password = $1 
+      WHERE email = 'itadmin@creditcoop.com' OR email = 'itadmin'
+    `;
+    
+    const result = await pool.query(updateQuery, [hashedPassword]);
+    
+    if (result.rowCount > 0) {
+      res.json({ 
+        success: true, 
+        message: 'ITAdmin password reset successfully. You can now login with itadmin@creditcoop.com / password123' 
+      });
+    } else {
+      res.json({ 
+        success: false, 
+        message: 'ITAdmin user not found in database' 
+      });
+    }
+  } catch (error) {
+    console.error('Password reset error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 
