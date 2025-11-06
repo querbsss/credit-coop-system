@@ -33,7 +33,7 @@ const LoanReview = () => {
 
     const fetchApplications = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/loan-review/applications', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/applications`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }

@@ -24,7 +24,7 @@ const LoanApproval = () => {
 
     const fetchApplications = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/loan-review/applications', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/applications`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -42,7 +42,7 @@ const LoanApproval = () => {
 
     const fetchStatistics = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/loan-review/statistics', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/statistics`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -58,7 +58,7 @@ const LoanApproval = () => {
 
     const fetchApplicationDetails = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/loan-review/applications/${id}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/applications/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -74,7 +74,7 @@ const LoanApproval = () => {
 
     const handleApproval = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/loan-review/applications/${selectedApplication.application.application_id}/approve`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/applications/${selectedApplication.application.application_id}/approve`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
