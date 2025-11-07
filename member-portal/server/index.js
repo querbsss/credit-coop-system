@@ -9,18 +9,46 @@ const pool = require('./db_members'); // Import database connection
 
 //middlewares
 app.use(express.json());
+
+// Add request logging for debugging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`, {
+    origin: req.headers.origin,
+    userAgent: req.headers['user-agent']
+  });
+  next();
+});
+
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? [
         'https://credit-coop-member-portal.onrender.com',
+        'https://credit-coop-member-portals.onrender.com',
         'https://credit-coop-landing.onrender.com',
-        'https://credit-coop-staff-portal-wfvp.onrender.com'
+        'https://credit-coop-staff-portal-wfvp.onrender.com',
+        /\.onrender\.com$/
       ]
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'],
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:5001'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'token']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'token', 'Origin', 'X-Requested-With', 'Accept'],
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 }));
+
+// Handle preflight requests manually for debugging
+app.options('*', (req, res) => {
+  console.log('Preflight request received:', {
+    origin: req.headers.origin,
+    method: req.headers['access-control-request-method'],
+    headers: req.headers['access-control-request-headers']
+  });
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, Origin, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
 
 // Serve uploaded files
 app.use('/loan_applications', express.static('loan_applications'));
