@@ -204,4 +204,46 @@ router.get('/debug-db', async (req, res) => {
     }
 });
 
+// Debug endpoint to test password verification
+router.post('/debug-password', async (req, res) => {
+    try {
+        const { memberNumber, password } = req.body;
+        
+        console.log('Password debug for:', memberNumber);
+        
+        // Get user from database
+        const user = await pool.query("SELECT * FROM member_users WHERE member_number = $1 AND is_active = true", [memberNumber]);
+        
+        if (user.rows.length === 0) {
+            return res.json({ success: false, message: 'User not found' });
+        }
+        
+        const userData = user.rows[0];
+        console.log('User found:', userData.user_name, userData.user_email);
+        console.log('Password hash from DB:', userData.user_password);
+        
+        // Test password comparison
+        const bcrypt = require('bcrypt');
+        const validPassword = await bcrypt.compare(password, userData.user_password);
+        
+        res.json({
+            success: true,
+            userFound: true,
+            passwordMatch: validPassword,
+            userInfo: {
+                memberNumber: userData.member_number,
+                userName: userData.user_name,
+                userEmail: userData.user_email
+            }
+        });
+        
+    } catch (err) {
+        console.error('Password debug error:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+});
+
 module.exports = router;
