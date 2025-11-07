@@ -313,10 +313,17 @@ const MembershipApplications = () => {
                   <div className="detail-section">
                     <h4>Profile Image</h4>
                     <img 
-                      src={`http://localhost:3002/uploads/${selectedApplication.profile_image_path}`}
+                      src={`${process.env.REACT_APP_LANDING_PAGE_URL}/uploads/${selectedApplication.profile_image_path}`}
                       alt="Profile"
                       className="profile-image"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
                     />
+                    <div style={{ display: 'none', color: '#666', fontStyle: 'italic' }}>
+                      Profile image not available
+                    </div>
                   </div>
                 )}
 

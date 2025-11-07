@@ -120,7 +120,7 @@ router.put('/:id/status', staffAuthorize, async (req, res) => {
         
         const result = await pool.query(
             `UPDATE membership_applications 
-             SET status = $1, review_notes = $2, applicants_membership_number = $3, updated_at = CURRENT_TIMESTAMP 
+             SET status = $1, review_notes = $2, applicants_membership_number = $3
              WHERE application_id = $4 
              RETURNING *`,
             [status, finalNotes, membershipNumber, id]
