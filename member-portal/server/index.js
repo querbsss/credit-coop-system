@@ -98,7 +98,7 @@ app.post('/auth/simple-login', (req, res) => {
 // Database test endpoint to check member users
 app.get('/test-db-members', async (req, res) => {
   try {
-    const result = await db.query('SELECT member_number, email, status FROM member_users LIMIT 5');
+    const result = await pool.query('SELECT member_number, user_email, user_name, is_active FROM member_users LIMIT 5');
     console.log('Member users query result:', result.rows);
     res.json({ 
       message: 'Database query successful',
@@ -109,6 +109,54 @@ app.get('/test-db-members', async (req, res) => {
     console.error('Database query error:', error);
     res.status(500).json({ 
       error: 'Database query failed',
+      details: error.message
+    });
+  }
+});
+
+// Add test user endpoint
+app.post('/add-test-user', async (req, res) => {
+  try {
+    const bcrypt = require('bcrypt');
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash('testpass123', saltRounds);
+    
+    const result = await pool.query(`
+      INSERT INTO member_users (user_name, user_email, user_password, member_number, is_active) 
+      VALUES ($1, $2, $3, $4, $5) 
+      ON CONFLICT (member_number) DO NOTHING
+      RETURNING *
+    `, [
+      'Test User Account',
+      'testuser@example.com', 
+      hashedPassword,
+      'TEST123',
+      true
+    ]);
+    
+    if (result.rows.length > 0) {
+      res.json({ 
+        message: 'Test user created successfully',
+        user: {
+          memberNumber: 'TEST123',
+          email: 'testuser@example.com',
+          password: 'testpass123'
+        }
+      });
+    } else {
+      res.json({ 
+        message: 'Test user already exists',
+        user: {
+          memberNumber: 'TEST123',
+          email: 'testuser@example.com',
+          password: 'testpass123'
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error creating test user:', error);
+    res.status(500).json({ 
+      error: 'Failed to create test user',
       details: error.message
     });
   }
