@@ -89,6 +89,25 @@ app.post('/auth/simple-login', (req, res) => {
   });
 });
 
+// Database test endpoint to check member users
+app.get('/test-db-members', async (req, res) => {
+  try {
+    const result = await db.query('SELECT member_number, email, status FROM member_users LIMIT 5');
+    console.log('Member users query result:', result.rows);
+    res.json({ 
+      message: 'Database query successful',
+      members: result.rows,
+      count: result.rowCount
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ 
+      error: 'Database query failed',
+      details: error.message
+    });
+  }
+});
+
 // Configure multer for loan application file uploads
 const loanUploadStorage = multer.diskStorage({
     destination: function (req, file, cb) {
