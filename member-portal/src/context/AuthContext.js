@@ -18,8 +18,15 @@ export const AuthProvider = ({ children }) => {
   console.log('🔍 Environment Debug:', {
     NODE_ENV: process.env.NODE_ENV,
     REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+    expectedURL: 'https://credit-coop-member-backend.onrender.com',
     allEnvVars: Object.keys(process.env).filter(key => key.startsWith('REACT_APP_'))
   });
+  
+  // Force the correct URL if environment variable is wrong
+  const CORRECT_API_URL = 'https://credit-coop-member-backend.onrender.com';
+  if (process.env.REACT_APP_API_URL !== CORRECT_API_URL) {
+    console.warn('⚠️ Wrong API URL detected, using correct URL:', CORRECT_API_URL);
+  }
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -64,7 +71,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (memberNumber, password) => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL;
+      const CORRECT_API_URL = 'https://credit-coop-member-backend.onrender.com';
+      const apiUrl = process.env.REACT_APP_API_URL === CORRECT_API_URL 
+        ? process.env.REACT_APP_API_URL 
+        : CORRECT_API_URL;
       const fullUrl = `${apiUrl}/auth/login`;
       console.log('=== LOGIN ATTEMPT v2.0 ===');
       console.log('Login attempt - API URL:', apiUrl);
