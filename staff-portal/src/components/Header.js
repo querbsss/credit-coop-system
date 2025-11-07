@@ -8,7 +8,7 @@ const Header = ({ setAuth }) => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch("http://localhost:5000/auth/profile", {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/profile`, {
           method: "GET",
           headers: { 
             "Content-Type": "application/json",

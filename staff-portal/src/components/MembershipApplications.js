@@ -53,7 +53,8 @@ const MembershipApplications = () => {
     if (!isInitialLoad) setRefreshing(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/membership-applications', {
+      // Temporarily use test endpoint for debugging
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/test/membership-applications`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -84,16 +85,27 @@ const MembershipApplications = () => {
 
   const updateApplicationStatus = async (applicationId, status, reviewNotes = '', membershipNum = '') => {
     try {
-      const response = await fetch(`http://localhost:5000/api/membership-applications/${applicationId}/status`, {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No authentication token found');
+        alert('Authentication error. Please login again.');
+        return;
+      }
+
+      console.log('Updating application:', { applicationId, status, reviewNotes, membershipNum });
+      
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'token': localStorage.token
+          'token': token
         },
         body: JSON.stringify({ status, reviewNotes, membershipNumber: membershipNum }),
       });
 
       const result = await response.json();
+      
+      console.log('Update response:', result);
       
       if (result.success) {
         fetchApplications(); // Refresh the list
@@ -105,9 +117,11 @@ const MembershipApplications = () => {
         window.dispatchEvent(new CustomEvent('membershipApplicationUpdated'));
       } else {
         console.error('Failed to update application status:', result.message);
+        alert(`Failed to update application: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error updating application status:', error);
+      alert(`Error updating application: ${error.message}`);
     }
   };
 
