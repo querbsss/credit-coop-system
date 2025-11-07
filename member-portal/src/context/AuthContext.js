@@ -59,9 +59,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const apiUrl = process.env.REACT_APP_API_URL;
       const fullUrl = `${apiUrl}/auth/login`;
+      console.log('=== LOGIN ATTEMPT v2.0 ===');
       console.log('Login attempt - API URL:', apiUrl);
       console.log('Login attempt - Full URL:', fullUrl);
       console.log('Login attempt - Credentials:', { memberNumber, passwordProvided: !!password });
+      console.log('Timestamp:', new Date().toISOString());
       
       const response = await fetch(fullUrl, {
         method: 'POST',
@@ -74,6 +76,7 @@ export const AuthProvider = ({ children }) => {
         })
       });
 
+      console.log('Response received:', response);
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
       
