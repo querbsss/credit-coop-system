@@ -69,8 +69,14 @@ try {
 }
 
 // Add a simple test route
+// Test endpoint
 app.get('/test', (req, res) => {
-  res.json({ message: 'Server is working!', timestamp: new Date().toISOString() });
+  console.log('Test endpoint hit');
+  res.json({ 
+    message: 'Server is working! Updated deployment.', 
+    timestamp: new Date().toISOString(),
+    version: '1.1.0' 
+  });
 });
 
 // Test auth endpoint
