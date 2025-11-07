@@ -19,16 +19,34 @@ app.use((req, res, next) => {
   next();
 });
 
+// Manual CORS headers as fallback
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('.onrender.com') || origin.includes('localhost'))) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, Origin, X-Requested-With, Accept');
+  }
+  next();
+});
+
+// Simplified and more permissive CORS for debugging
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [
-        'https://credit-coop-member-portal.onrender.com',
-        'https://credit-coop-member-portals.onrender.com',
-        'https://credit-coop-landing.onrender.com',
-        'https://credit-coop-staff-portal-wfvp.onrender.com',
-        /\.onrender\.com$/
-      ]
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:5001'],
+  origin: function (origin, callback) {
+    console.log('CORS origin check:', origin);
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow all .onrender.com domains and localhost for development
+    if (origin.includes('.onrender.com') || origin.includes('localhost')) {
+      console.log('CORS: Origin allowed:', origin);
+      return callback(null, true);
+    }
+    
+    console.log('CORS: Origin denied:', origin);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
   allowedHeaders: ['Content-Type', 'Authorization', 'token', 'Origin', 'X-Requested-With', 'Accept'],
@@ -514,12 +532,43 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log('Available endpoints:');
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Global error handler:', err);
+  res.status(500).json({ 
+    error: 'Internal server error', 
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong' 
+  });
+});
+
+// Catch 404 routes
+app.use('*', (req, res) => {
+  console.log('404 - Route not found:', req.method, req.originalUrl);
+  res.status(404).json({ error: 'Route not found', path: req.originalUrl });
+});
+
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('📋 Available endpoints:');
   console.log('  GET  / - Health check');
   console.log('  POST /auth/register - User registration');
   console.log('  POST /auth/login - User login');
   console.log('  GET  /auth/is-verify - Verify token');
   console.log('  GET  /dashboard - Get user dashboard data');
+});
+
+// Handle server startup errors
+server.on('error', (err) => {
+  console.error('❌ Server startup error:', err);
+  process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🔄 SIGTERM received, shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Process terminated');
+    process.exit(0);
+  });
 });
