@@ -19,25 +19,35 @@ router.post('/register', validation, async (req, res) => {
 
 router.post('/login', validation, async (req, res) => {
     try {
+        console.log('Login attempt received:', { body: req.body, headers: req.headers });
+        
         // 1. Get user input - accepting both email and memberNumber
         const { email, memberNumber, password } = req.body;
         const loginField = email || memberNumber;
 
+        console.log('Login field:', loginField, 'Password provided:', !!password);
+
         // 2. Validate user input
         if (!(loginField && password)){
+            console.log('Validation failed: missing credentials');
             return res.status(400).send("Member number/email and password are required");
         }
 
         // 3. Check if user exists in member_users table (check both email and member number fields)
         let user;
         if (email) {
+            console.log('Looking up user by email:', email);
             user = await pool.query("SELECT * FROM member_users WHERE user_email = $1 AND is_active = true", [email]);
         } else {
+            console.log('Looking up user by member number:', memberNumber);
             // Check by member number
             user = await pool.query("SELECT * FROM member_users WHERE member_number = $1 AND is_active = true", [memberNumber]);
         }
 
+        console.log('User lookup result:', user.rows.length > 0 ? 'User found' : 'User not found');
+
         if (user.rows.length === 0){
+            console.log('User not found or inactive');
             return res.status(400).send("User does not exist or account is inactive");
         }
 

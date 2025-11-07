@@ -9,7 +9,18 @@ const pool = require('./db_members'); // Import database connection
 
 //middlewares
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [
+        'https://credit-coop-member-portal.onrender.com',
+        'https://credit-coop-landing.onrender.com',
+        'https://credit-coop-staff-portal-wfvp.onrender.com'
+      ]
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'token']
+}));
 
 // Serve uploaded files
 app.use('/loan_applications', express.static('loan_applications'));
