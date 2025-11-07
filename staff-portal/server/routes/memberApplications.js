@@ -100,12 +100,27 @@ router.put('/:id/status', staffAuthorize, async (req, res) => {
         const { id } = req.params;
         const { status, notes, reviewNotes, membershipNumber } = req.body;
         
+        console.log('Update request received:', { id, status, notes, reviewNotes, membershipNumber });
+        
         // Use reviewNotes if provided, otherwise use notes
         const finalNotes = reviewNotes || notes;
         
+        // Validate the application exists first
+        const existingApp = await pool.query('SELECT * FROM membership_applications WHERE application_id = $1', [id]);
+        
+        if (existingApp.rows.length === 0) {
+            console.log('Application not found:', id);
+            return res.status(404).json({
+                success: false,
+                message: 'Application not found'
+            });
+        }
+        
+        console.log('Updating application:', { id, status, finalNotes, membershipNumber });
+        
         const result = await pool.query(
             `UPDATE membership_applications 
-             SET status = $1, notes = $2, applicants_membership_number = $3, updated_at = CURRENT_TIMESTAMP 
+             SET status = $1, review_notes = $2, applicants_membership_number = $3, updated_at = CURRENT_TIMESTAMP 
              WHERE application_id = $4 
              RETURNING *`,
             [status, finalNotes, membershipNumber, id]
@@ -118,6 +133,8 @@ router.put('/:id/status', staffAuthorize, async (req, res) => {
             });
         }
         
+        console.log('Application updated successfully:', result.rows[0]);
+        
         res.json({
             success: true,
             application: result.rows[0],
@@ -129,7 +146,8 @@ router.put('/:id/status', staffAuthorize, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to update application status',
-            error: err.message
+            error: err.message,
+            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
         });
     }
 });
