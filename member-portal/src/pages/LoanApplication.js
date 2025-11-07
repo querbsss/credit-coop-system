@@ -291,7 +291,7 @@ const LoanApplication = () => {
       formDataToSend.append('user_id', user.user_id);
       formDataToSend.append('memberEmail', user.user_email);
 
-      const response = await fetch('http://localhost:5001/api/loan-application/submit', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-application/submit`, {
         method: 'POST',
         body: formDataToSend,
         headers: {
