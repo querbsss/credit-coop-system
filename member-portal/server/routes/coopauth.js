@@ -178,4 +178,30 @@ router.put('/password/update', authorization, async (req, res) => {
     }
 });
 
+// Debug endpoint to test database connection
+router.get('/debug-db', async (req, res) => {
+    try {
+        console.log('Testing database connection...');
+        const result = await pool.query('SELECT COUNT(*) FROM member_users WHERE is_active = true');
+        const userCount = result.rows[0].count;
+        
+        const users = await pool.query('SELECT member_number, user_name, user_email FROM member_users WHERE is_active = true ORDER BY member_number');
+        
+        res.json({
+            success: true,
+            message: 'Database connection successful',
+            activeUsers: userCount,
+            users: users.rows
+        });
+    } catch (err) {
+        console.error('Database connection error:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message,
+            code: err.code,
+            detail: err.detail
+        });
+    }
+});
+
 module.exports = router;
