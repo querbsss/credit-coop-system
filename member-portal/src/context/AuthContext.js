@@ -14,6 +14,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Debug environment variables
+  console.log('🔍 Environment Debug:', {
+    NODE_ENV: process.env.NODE_ENV,
+    REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+    allEnvVars: Object.keys(process.env).filter(key => key.startsWith('REACT_APP_'))
+  });
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
