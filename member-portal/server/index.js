@@ -10,49 +10,24 @@ const pool = require('./db_members'); // Import database connection
 //middlewares
 app.use(express.json());
 
-// Add request logging for debugging
+// Simple and effective CORS - allow all origins for now
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`, {
-    origin: req.headers.origin,
-    userAgent: req.headers['user-agent']
-  });
-  next();
-});
-
-// Manual CORS headers as fallback
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && (origin.includes('.onrender.com') || origin.includes('localhost'))) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, Origin, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, Origin, X-Requested-With, Accept');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
   }
+  
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`, {
+    origin: req.headers.origin
+  });
+  
   next();
 });
-
-// Simplified and more permissive CORS for debugging
-app.use(cors({
-  origin: function (origin, callback) {
-    console.log('CORS origin check:', origin);
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Allow all .onrender.com domains and localhost for development
-    if (origin.includes('.onrender.com') || origin.includes('localhost')) {
-      console.log('CORS: Origin allowed:', origin);
-      return callback(null, true);
-    }
-    
-    console.log('CORS: Origin denied:', origin);
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'token', 'Origin', 'X-Requested-With', 'Accept'],
-  preflightContinue: false,
-  optionsSuccessStatus: 200
-}));
 
 // Handle preflight requests manually for debugging
 app.options('*', (req, res) => {
