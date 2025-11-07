@@ -20,14 +20,14 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('memberPortalToken');
         if (token) {
           // Verify token with server
-          const response = await fetch('http://localhost:5001/auth/is-verify', {
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/is-verify`, {
             headers: {
               'token': token
             }
           });
           if (response.ok) {
             // Token is valid, fetch user dashboard data from backend
-            const dashboardRes = await fetch('http://localhost:5001/dashboard', {
+            const dashboardRes = await fetch(`${process.env.REACT_APP_API_URL}/dashboard`, {
               headers: {
                 'token': token
               }
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (memberNumber, password) => {
     try {
-      const response = await fetch('http://localhost:5001/auth/login', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     try {
       const token = localStorage.getItem('memberPortalToken');
-      const response = await fetch('http://localhost:5001/auth/profile/update', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/profile/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }) => {
   const updatePassword = async (currentPassword, newPassword) => {
     try {
       const token = localStorage.getItem('memberPortalToken');
-      const response = await fetch('http://localhost:5001/auth/password/update', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/password/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('memberPortalToken');
       console.log('Fetching membership data with token:', token);
-      const response = await fetch('http://localhost:5001/auth/membership-data', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/membership-data`, {
         headers: {
           'token': token
         }

@@ -25,7 +25,7 @@ const PaymentHistory = () => {
     const fetchHistory = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5001/api/payment-history', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/payment-history`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }

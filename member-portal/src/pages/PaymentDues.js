@@ -59,7 +59,7 @@ const PaymentDues = () => {
       try {
         setLoading(true);
         
-        const response = await fetch('http://localhost:5001/api/payment-dues', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/payment-dues`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
