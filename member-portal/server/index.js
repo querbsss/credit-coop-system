@@ -50,9 +50,44 @@ app.use('/payment_references', express.static('payment_references'));
 //routes
 
 //login route
-app.use('/auth', require('./routes/coopauth'));
+console.log('Registering auth routes...');
+try {
+  const authRoutes = require('./routes/coopauth');
+  app.use('/auth', authRoutes);
+  console.log('✅ Auth routes registered successfully');
+} catch (error) {
+  console.error('❌ Error registering auth routes:', error);
+}
 
-app.use('/dashboard', require('./routes/dashboard'));
+console.log('Registering dashboard routes...');
+try {
+  const dashboardRoutes = require('./routes/dashboard');
+  app.use('/dashboard', dashboardRoutes);
+  console.log('✅ Dashboard routes registered successfully');
+} catch (error) {
+  console.error('❌ Error registering dashboard routes:', error);
+}
+
+// Add a simple test route
+app.get('/test', (req, res) => {
+  res.json({ message: 'Server is working!', timestamp: new Date().toISOString() });
+});
+
+// Test auth endpoint
+app.post('/test-auth', (req, res) => {
+  console.log('Test auth endpoint hit:', req.body);
+  res.json({ message: 'Test auth endpoint working', body: req.body });
+});
+
+// Simple test login endpoint without middleware
+app.post('/auth/simple-login', (req, res) => {
+  console.log('Simple login endpoint hit:', req.body);
+  res.json({ 
+    message: 'Simple login endpoint working', 
+    body: req.body,
+    timestamp: new Date().toISOString() 
+  });
+});
 
 // Configure multer for loan application file uploads
 const loanUploadStorage = multer.diskStorage({
