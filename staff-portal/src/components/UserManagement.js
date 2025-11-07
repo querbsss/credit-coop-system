@@ -27,7 +27,14 @@ const UserManagement = () => {
     // Load members
     const loadMembers = async (page = 1, search = '', status = 'all') => {
         setLoading(true);
+        setError(''); // Clear previous errors
         try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Authentication required. Please login again.');
+                return;
+            }
+
             const params = new URLSearchParams({
                 page: page.toString(),
                 limit: '10',
@@ -35,21 +42,37 @@ const UserManagement = () => {
                 status
             });
             
-            const res = await fetch(`http://localhost:5000/api/user-management/members?${params}`, {
+            console.log('Loading members with params:', { page, search, status });
+            
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/members?${params}`, {
                 headers: {
-                    'token': localStorage.token
+                    'token': token
                 }
             });
-            const data = await res.json();
             
-            if (res.ok && data.success) {
-                setMembers(data.members);
-                setPagination(data.pagination);
+            if (!res.ok) {
+                if (res.status === 403) {
+                    setError('Access denied. IT Admin role required.');
+                } else if (res.status === 401) {
+                    setError('Authentication failed. Please login again.');
+                } else {
+                    setError(`Server error: ${res.status}`);
+                }
+                return;
+            }
+            
+            const data = await res.json();
+            console.log('Members response:', data);
+            
+            if (data.success) {
+                setMembers(data.members || []);
+                setPagination(data.pagination || {});
             } else {
                 setError(data.message || 'Failed to load members');
             }
         } catch (err) {
-            setError('Network error loading members');
+            console.error('Network error loading members:', err);
+            setError(`Network error: ${err.message || 'Unable to connect to server'}`);
         } finally {
             setLoading(false);
         }
@@ -86,8 +109,8 @@ const UserManagement = () => {
         setSubmitting(true);
         try {
             const url = editingMember 
-                ? `http://localhost:5000/api/user-management/members/${editingMember.user_id}`
-                : 'http://localhost:5000/api/user-management/members';
+                ? `${process.env.REACT_APP_API_URL}/api/user-management/members/${editingMember.user_id}`
+                : `${process.env.REACT_APP_API_URL}/api/user-management/members`;
             
             const method = editingMember ? 'PUT' : 'POST';
             const body = editingMember 
@@ -108,7 +131,7 @@ const UserManagement = () => {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'token': localStorage.token
+                    'token': localStorage.getItem('token')
                 },
                 body: JSON.stringify(body)
             });
@@ -155,10 +178,10 @@ const UserManagement = () => {
         }
         
         try {
-            const res = await fetch(`http://localhost:5000/api/user-management/members/${member.user_id}`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/members/${member.user_id}`, {
                 method: 'DELETE',
                 headers: {
-                    'token': localStorage.token
+                    'token': localStorage.getItem('token')
                 }
             });
             
@@ -177,10 +200,10 @@ const UserManagement = () => {
     // Handle toggle status
     const handleToggleStatus = async (member) => {
         try {
-            const res = await fetch(`http://localhost:5000/api/user-management/members/${member.user_id}/toggle-status`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/members/${member.user_id}/toggle-status`, {
                 method: 'PATCH',
                 headers: {
-                    'token': localStorage.token
+                    'token': localStorage.getItem('token')
                 }
             });
             

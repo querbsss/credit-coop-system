@@ -143,8 +143,11 @@ router.get('/members', staffAuthorize, async (req, res) => {
     try {
         // Only allow it_admin role
         const role = req.user?.role;
+        console.log('User role requesting members:', role);
+        
         if (role !== 'it_admin') {
-            return res.status(403).json({ success: false, message: 'Forbidden' });
+            console.log('Access denied - role is not it_admin');
+            return res.status(403).json({ success: false, message: 'Access denied. IT Admin role required.' });
         }
 
         const { page = 1, limit = 10, search = '', status = 'all' } = req.query;
@@ -216,7 +219,12 @@ router.get('/members', staffAuthorize, async (req, res) => {
         });
     } catch (err) {
         console.error('Error fetching members:', err);
-        return res.status(500).json({ success: false, message: 'Failed to fetch members' });
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch members',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 });
 

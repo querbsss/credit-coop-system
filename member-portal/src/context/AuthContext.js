@@ -57,7 +57,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (memberNumber, password) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
+      const apiUrl = process.env.REACT_APP_API_URL;
+      const fullUrl = `${apiUrl}/auth/login`;
+      console.log('=== LOGIN ATTEMPT v2.0 ===');
+      console.log('Login attempt - API URL:', apiUrl);
+      console.log('Login attempt - Full URL:', fullUrl);
+      console.log('Login attempt - Credentials:', { memberNumber, passwordProvided: !!password });
+      console.log('Timestamp:', new Date().toISOString());
+      
+      const response = await fetch(fullUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,8 +76,13 @@ export const AuthProvider = ({ children }) => {
         })
       });
 
+      console.log('Response received:', response);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Login failed:', { status: response.status, error: errorText, url: fullUrl });
         throw new Error(errorText || 'Login failed');
       }
 
@@ -83,6 +96,9 @@ export const AuthProvider = ({ children }) => {
       
       return data.user;
     } catch (error) {
+      console.error('Login error caught:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error.message);
       throw new Error(error.message || 'Login failed');
     }
   };

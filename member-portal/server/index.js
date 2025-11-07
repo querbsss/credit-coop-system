@@ -4,11 +4,44 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+require('dotenv').config();
 const pool = require('./db_members'); // Import database connection
 
 //middlewares
 app.use(express.json());
-app.use(cors());
+
+// Simple and effective CORS - allow all origins for now
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, Origin, X-Requested-With, Accept');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`, {
+    origin: req.headers.origin
+  });
+  
+  next();
+});
+
+// Handle preflight requests manually for debugging
+app.options('*', (req, res) => {
+  console.log('Preflight request received:', {
+    origin: req.headers.origin,
+    method: req.headers['access-control-request-method'],
+    headers: req.headers['access-control-request-headers']
+  });
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, Origin, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
 
 // Serve uploaded files
 app.use('/loan_applications', express.static('loan_applications'));
@@ -17,9 +50,117 @@ app.use('/payment_references', express.static('payment_references'));
 //routes
 
 //login route
-app.use('/auth', require('./routes/coopauth'));
+console.log('Registering auth routes...');
+try {
+  const authRoutes = require('./routes/coopauth');
+  app.use('/auth', authRoutes);
+  console.log('✅ Auth routes registered successfully');
+} catch (error) {
+  console.error('❌ Error registering auth routes:', error);
+}
 
-app.use('/dashboard', require('./routes/dashboard'));
+console.log('Registering dashboard routes...');
+try {
+  const dashboardRoutes = require('./routes/dashboard');
+  app.use('/dashboard', dashboardRoutes);
+  console.log('✅ Dashboard routes registered successfully');
+} catch (error) {
+  console.error('❌ Error registering dashboard routes:', error);
+}
+
+// Add a simple test route
+// Test endpoint
+app.get('/test', (req, res) => {
+  console.log('Test endpoint hit');
+  res.json({ 
+    message: 'Server is working! Updated deployment.', 
+    timestamp: new Date().toISOString(),
+    version: '1.1.0' 
+  });
+});
+
+// Test auth endpoint
+app.post('/test-auth', (req, res) => {
+  console.log('Test auth endpoint hit:', req.body);
+  res.json({ message: 'Test auth endpoint working', body: req.body });
+});
+
+// Simple test login endpoint without middleware
+app.post('/auth/simple-login', (req, res) => {
+  console.log('Simple login endpoint hit:', req.body);
+  res.json({ 
+    message: 'Simple login endpoint working', 
+    body: req.body,
+    timestamp: new Date().toISOString() 
+  });
+});
+
+// Database test endpoint to check member users
+app.get('/test-db-members', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT member_number, user_email, user_name, is_active FROM member_users LIMIT 5');
+    console.log('Member users query result:', result.rows);
+    res.json({ 
+      message: 'Database query successful',
+      members: result.rows,
+      count: result.rowCount
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ 
+      error: 'Database query failed',
+      details: error.message
+    });
+  }
+});
+
+// Add test user endpoint
+app.post('/add-test-user', async (req, res) => {
+  try {
+    const bcrypt = require('bcrypt');
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash('testpass123', saltRounds);
+    
+    const result = await pool.query(`
+      INSERT INTO member_users (user_name, user_email, user_password, member_number, is_active) 
+      VALUES ($1, $2, $3, $4, $5) 
+      ON CONFLICT (member_number) DO NOTHING
+      RETURNING *
+    `, [
+      'Test User Account',
+      'testuser@example.com', 
+      hashedPassword,
+      'TEST123',
+      true
+    ]);
+    
+    if (result.rows.length > 0) {
+      res.json({ 
+        message: 'Test user created successfully',
+        user: {
+          memberNumber: 'TEST123',
+          email: 'testuser@example.com',
+          password: 'testpass123'
+        }
+      });
+    } else {
+      res.json({ 
+        message: 'Test user already exists',
+        user: {
+          memberNumber: 'TEST123',
+          email: 'testuser@example.com',
+          password: 'testpass123'
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error creating test user:', error);
+    res.status(500).json({ 
+      error: 'Failed to create test user',
+      details: error.message
+    });
+  }
+});
 
 // Configure multer for loan application file uploads
 const loanUploadStorage = multer.diskStorage({
@@ -472,12 +613,45 @@ app.get('/', (req, res) => {
   });
 });
 
-app.listen(5001, () => {
-  console.log('Server is running on port 5001');
-  console.log('Available endpoints:');
+const PORT = process.env.PORT || 5001;
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Global error handler:', err);
+  res.status(500).json({ 
+    error: 'Internal server error', 
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong' 
+  });
+});
+
+// Catch 404 routes
+app.use('*', (req, res) => {
+  console.log('404 - Route not found:', req.method, req.originalUrl);
+  res.status(404).json({ error: 'Route not found', path: req.originalUrl });
+});
+
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('📋 Available endpoints:');
   console.log('  GET  / - Health check');
   console.log('  POST /auth/register - User registration');
   console.log('  POST /auth/login - User login');
   console.log('  GET  /auth/is-verify - Verify token');
   console.log('  GET  /dashboard - Get user dashboard data');
+});
+
+// Handle server startup errors
+server.on('error', (err) => {
+  console.error('❌ Server startup error:', err);
+  process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🔄 SIGTERM received, shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Process terminated');
+    process.exit(0);
+  });
 });
