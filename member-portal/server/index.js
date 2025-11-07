@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+require('dotenv').config();
 const pool = require('./db_members'); // Import database connection
 
 //middlewares
@@ -472,8 +473,10 @@ app.get('/', (req, res) => {
   });
 });
 
-app.listen(5001, () => {
-  console.log('Server is running on port 5001');
+const PORT = process.env.PORT || 5001;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
   console.log('Available endpoints:');
   console.log('  GET  / - Health check');
   console.log('  POST /auth/register - User registration');
