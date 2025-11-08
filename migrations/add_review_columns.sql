@@ -7,7 +7,10 @@ ADD COLUMN IF NOT EXISTS review_notes TEXT,
 ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP,
 ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP,
 ADD COLUMN IF NOT EXISTS manager_id VARCHAR(100),
-ADD COLUMN IF NOT EXISTS loan_officer_id VARCHAR(100);
+ADD COLUMN IF NOT EXISTS loan_officer_id VARCHAR(100),
+ADD COLUMN IF NOT EXISTS loan_amount DECIMAL(12,2),
+ADD COLUMN IF NOT EXISTS loan_duration INTEGER,
+ADD COLUMN IF NOT EXISTS monthly_payment DECIMAL(10,2);
 
 -- Add constraint for review_status
 ALTER TABLE loan_applications 

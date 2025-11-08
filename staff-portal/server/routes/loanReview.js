@@ -11,7 +11,7 @@ router.post('/applications/:id/set-loan-amount', async (req, res) => {
         // Update the loan_applications table
         const updateQuery = `
             UPDATE loan_applications
-            SET amount = $1, duration_months = $2, monthly_payment = $3
+            SET loan_amount = $1, loan_duration = $2, monthly_payment = $3
             WHERE application_id = $4 AND review_status = 'approved'
             RETURNING *
         `;
