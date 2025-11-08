@@ -104,16 +104,12 @@
 /* Mobile Styles */
 @media (max-width: 768px) {
   .contact {
-    padding: 2.5rem 0;
-  }
-
-  .section-header h2 {
-    font-size: 1.875rem;
+    padding: 3rem 0;
   }
 
   .contact-content {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 3rem;
   }
 
   .contact-info h3 {
@@ -122,47 +118,15 @@
 
   .contact-form {
     padding: 1.5rem;
-    margin: 0 var(--spacing-xs);
   }
 
   .form-group input,
   .form-group select,
   .form-group textarea {
-    padding: 0.875rem;
-    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 0.8rem;
   }
 
   .btn {
-    padding: 1rem 1.5rem;
-    min-height: 44px;
-  }
-
-  .contact-item {
-    justify-content: center;
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .contact {
-    padding: 2rem 0;
-  }
-  
-  .contact-form {
-    padding: 1rem;
-    border-radius: var(--border-radius);
-  }
-  
-  .contact-info h3 {
-    font-size: 1.25rem;
-  }
-  
-  .form-group {
-    margin-bottom: 1.25rem;
-  }
-  
-  .btn {
-    font-size: 0.95rem;
-    padding: 1rem;
+    padding: 0.8rem 1.5rem;
   }
 }

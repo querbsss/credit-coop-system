@@ -1,6 +1,6 @@
 .services {
   padding: 5rem 0;
-  background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
+  background: var(--gray-50);
 }
 
 .section-header {
