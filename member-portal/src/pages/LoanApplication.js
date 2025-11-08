@@ -47,17 +47,39 @@ const LoanApplication = () => {
   // Auto-populate form with membership data
   useEffect(() => {
     const fetchMembershipData = async () => {
-      if (!user || !user.member_number) {
-        console.log('No user or member number available');
+      if (!user) {
+        console.log('No user available for auto-population');
+        return;
+      }
+
+      // Debug: Log the full user object to see what properties are available
+      console.log('Full user object for membership data fetch:', user);
+      
+      // Try to get member number from various possible properties
+      let memberNumber = user.member_number || user.memberNumber;
+      
+      // If no member number in user object, try to get it from the email
+      // by looking up the member_users table first
+      if (!memberNumber) {
+        console.log('No member number in user object, will use email lookup method');
+        // For now, let's skip auto-population if we can't determine the member number
+        setSubmitStatus({
+          type: 'info', 
+          message: 'Please fill out the form manually. Member number not available for auto-population.'
+        });
+        setTimeout(() => setSubmitStatus(null), 3000);
         return;
       }
 
       setIsLoadingMembershipData(true);
       
       try {
-        console.log('Fetching membership data for member:', user.member_number);
+        console.log('Fetching membership data for member:', memberNumber);
         
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-data/${user.member_number}`);
+        const apiUrl = `${process.env.REACT_APP_API_URL}/api/membership-data/${memberNumber}`;
+        console.log('Making request to:', apiUrl);
+        
+        const response = await fetch(apiUrl);
         
         if (response.ok) {
           const result = await response.json();
