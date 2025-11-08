@@ -54,6 +54,10 @@ services:
         value: production
       - key: JWT_SECRET
         generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: credit-coop-database
+          property: connectionString
 
   # Member Portal Frontend 
   - type: web
@@ -73,4 +77,4 @@ services:
     publishDir: staff-portal/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://credit-coop-staff-backend.onrender.com
+        value: https://credit-coop-staffs-portal-backend.onrender.com
