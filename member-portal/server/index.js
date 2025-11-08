@@ -351,24 +351,23 @@ app.post('/api/loan-application/submit', loanUpload.fields([
         // Insert loan application into database
         const insertQuery = `
             INSERT INTO loan_applications (
-                user_id, member_number, date_filed, loan_type, membership_type,
+                user_id, date_filed, loan_type, membership_type,
                 last_name, first_name, middle_name, gender, civil_status, birth_date,
                 landline, mobile_number, email_address,
                 current_address, years_of_stay_current, permanent_address, years_of_stay_permanent, home_ownership,
                 spouse_name, number_of_children,
                 date_hired, company_business, contract_period, designation_position, years_in_company,
                 gov_id_file_path, company_id_file_path,
-                status, submitted_at, created_at, updated_at
+                status, submitted_at, updated_at
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-                $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
-                $22, $23, $24, $25, $26, $27, $28, 'pending', NOW(), NOW(), NOW()
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+                $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+                $21, $22, $23, $24, $25, $26, $27, 'pending', NOW(), NOW()
             ) RETURNING application_id, submitted_at
         `;
 
         const values = [
-            actualUserId, // Use the integer user_id from member_users table
-            memberNumber, // Add member_number
+            actualUserId, // Use the UUID from member_users table  
             dateFiled, 
             loanType, 
             membershipType,
