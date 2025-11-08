@@ -93,6 +93,19 @@ const Payment = () => {
 
     setIsProcessing(true);
     setSubmitStatus(null);
+
+    // TEMPORARY: Check if account is activated
+    if (PAYMONGO_SECRET_KEY.includes('dummy') || PAYMONGO_SECRET_KEY.includes('test_dum')) {
+      // Simulate successful payment for testing
+      setTimeout(() => {
+        setSubmitStatus({ 
+          type: 'success', 
+          message: 'Payment simulation successful! (PayMongo account activation required for real payments)' 
+        });
+        setIsProcessing(false);
+      }, 2000);
+      return;
+    }
     try {
       // Convert amount to cents (PayMongo expects amounts in centavos)
       const amountInCents = Math.round(parseFloat(amount) * 100);
@@ -123,6 +136,10 @@ const Payment = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle PayMongo account activation error
+        if (response.status === 401 || (data.errors && data.errors.some(err => err.detail?.includes('activate your account')))) {
+          throw new Error('PayMongo account needs activation. Please verify your account at https://dashboard.paymongo.com/');
+        }
         throw new Error(data.errors?.[0]?.detail || 'Failed to create payment intent');
       }
 
