@@ -288,18 +288,31 @@ const LoanApplication = () => {
       }
       
       // Add user information
-      formDataToSend.append('user_id', user.user_id);
-      formDataToSend.append('memberEmail', user.user_email);
+      console.log('User object for loan application:', user);
+      formDataToSend.append('user_id', user.user_id || user.id);
+      formDataToSend.append('memberEmail', user.user_email || user.email);
 
+      console.log('Submitting loan application to:', `${process.env.REACT_APP_API_URL}/api/loan-application/submit`);
+      console.log('FormData contents:', Array.from(formDataToSend.entries()));
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-application/submit`, {
         method: 'POST',
-        body: formDataToSend,
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        body: formDataToSend
+        // Note: No authentication header needed for this endpoint based on backend code
       });
 
-      const result = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      let result;
+      try {
+        result = await response.json();
+        console.log('Response data:', result);
+      } catch (jsonError) {
+        const textResponse = await response.text();
+        console.error('Failed to parse JSON response:', textResponse);
+        throw new Error(`Server returned non-JSON response: ${textResponse}`);
+      }
 
       if (result.success) {
         setApplicationId(result.application_id);
