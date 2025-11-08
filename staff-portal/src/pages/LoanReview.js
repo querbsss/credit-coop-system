@@ -51,7 +51,7 @@ const LoanReview = () => {
 
     const fetchStatistics = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/loan-review/statistics', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/statistics`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -67,7 +67,7 @@ const LoanReview = () => {
 
     const fetchApplicationDetails = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/loan-review/applications/${id}`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/applications/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -140,7 +140,7 @@ const LoanReview = () => {
                 priority_level: reviewForm.priority_level
             };
 
-            const response = await fetch(`http://localhost:5000/api/loan-review/applications/${selectedApplication.application.application_id}/review`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/applications/${selectedApplication.application.application_id}/review`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
