@@ -52,9 +52,11 @@ router.get('/applications', async (req, res) => {
         let query = `
             SELECT 
                 la.*,
+                mu.member_number,
                 ma.facebook_account as facebook_account
             FROM loan_applications la
-            LEFT JOIN membership_applications ma ON la.member_number = ma.applicants_membership_number
+            LEFT JOIN member_users mu ON la.user_id = mu.user_id
+            LEFT JOIN membership_applications ma ON mu.member_number = ma.applicants_membership_number
         `;
         
         const conditions = [];
@@ -105,9 +107,11 @@ router.get('/applications/:id', async (req, res) => {
         const query = `
             SELECT 
                 la.*,
+                mu.member_number,
                 ma.facebook_account as facebook_account
             FROM loan_applications la
-            LEFT JOIN membership_applications ma ON la.member_number = ma.applicants_membership_number
+            LEFT JOIN member_users mu ON la.user_id = mu.user_id
+            LEFT JOIN membership_applications ma ON mu.member_number = ma.applicants_membership_number
             WHERE la.application_id = $1
         `;
         
