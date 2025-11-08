@@ -40,6 +40,10 @@ services:
         fromDatabase:
           name: credit-coop-database
           property: connectionString
+      - key: PAYMONGO_SECRET_KEY
+        value: sk_test_dummy_key_replace_with_actual_key
+      - key: FRONTEND_URL
+        value: https://credit-coop-member-portal.onrender.com
 
   # Staff Portal Backend
   - type: web

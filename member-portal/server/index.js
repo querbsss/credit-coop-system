@@ -68,6 +68,16 @@ try {
   console.error('❌ Error registering dashboard routes:', error);
 }
 
+// Register payment routes
+try {
+  console.log('Registering payment routes...');
+  const paymentRoutes = require('./routes/payment');
+  app.use('/api/payment', paymentRoutes);
+  console.log('✅ Payment routes registered successfully');
+} catch (error) {
+  console.error('❌ Error registering payment routes:', error);
+}
+
 // Add a simple test route
 // Test endpoint
 app.get('/test', (req, res) => {
