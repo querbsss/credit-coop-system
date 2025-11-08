@@ -63,7 +63,7 @@ services:
     publishDir: member-portal/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://credit-coop-member-backend.onrender.com
+        value: https://credit-coop-member-portal-backend.onrender.com
 
   # Staff Portal Frontend
   - type: web
