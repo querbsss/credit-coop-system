@@ -114,6 +114,101 @@ app.get('/test-db-members', async (req, res) => {
   }
 });
 
+// Get membership data for loan application auto-population
+app.get('/api/membership-data/:memberNumber', async (req, res) => {
+  try {
+    const { memberNumber } = req.params;
+    
+    console.log('Fetching membership data for loan application, member:', memberNumber);
+    
+    // Get membership application data
+    const membershipQuery = `
+      SELECT 
+        first_name,
+        last_name, 
+        middle_name,
+        suffix,
+        address,
+        contact_number,
+        email_address,
+        date_of_birth,
+        place_of_birth,
+        gender,
+        civil_status,
+        fathers_full_name,
+        mothers_maiden_name,
+        occupation,
+        annual_income,
+        business_address,
+        employment_choice,
+        business_type,
+        employer_trade_name,
+        employment_occupation
+      FROM membership_applications 
+      WHERE applicants_membership_number = $1
+    `;
+    
+    const result = await pool.query(membershipQuery, [memberNumber]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Membership application not found for this member number'
+      });
+    }
+    
+    const membershipData = result.rows[0];
+    console.log('Found membership data:', membershipData);
+    
+    // Map membership data to loan application format
+    const loanFormData = {
+      // Personal Information
+      lastName: membershipData.last_name || '',
+      firstName: membershipData.first_name || '',
+      middleName: membershipData.middle_name || '',
+      gender: membershipData.gender?.toLowerCase() || '',
+      civilStatus: membershipData.civil_status?.toLowerCase() || '',
+      birthDate: membershipData.date_of_birth || '',
+      
+      // Contact Information  
+      mobileNumber: membershipData.contact_number || '',
+      emailAddress: membershipData.email_address || '',
+      
+      // Address Information
+      currentAddress: membershipData.address || '',
+      permanentAddress: membershipData.address || '', // Use same address as default
+      
+      // Employment Information
+      companyBusiness: membershipData.employer_trade_name || membershipData.business_type || '',
+      designationPosition: membershipData.occupation || membershipData.employment_occupation || '',
+      
+      // Additional data that might be useful for pre-filling
+      annualIncome: membershipData.annual_income,
+      businessAddress: membershipData.business_address || '',
+      employmentChoice: membershipData.employment_choice || '',
+      fatherName: membershipData.fathers_full_name || '',
+      motherName: membershipData.mothers_maiden_name || ''
+    };
+    
+    console.log('Mapped loan form data:', loanFormData);
+    
+    res.json({
+      success: true,
+      data: loanFormData,
+      memberNumber: memberNumber,
+      message: 'Membership data retrieved successfully'
+    });
+    
+  } catch (err) {
+    console.error('Error fetching membership data for loan:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch membership data',
+      error: err.message
+    });
+  }
+});
+
 // Add test user endpoint
 app.post('/add-test-user', async (req, res) => {
   try {

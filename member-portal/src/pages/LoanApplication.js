@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import './LoanApplication.css';
@@ -40,8 +40,79 @@ const LoanApplication = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [applicationId, setApplicationId] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
+  const [isLoadingMembershipData, setIsLoadingMembershipData] = useState(false);
   const govIdInputRef = useRef(null);
   const companyIdInputRef = useRef(null);
+
+  // Auto-populate form with membership data
+  useEffect(() => {
+    const fetchMembershipData = async () => {
+      if (!user || !user.member_number) {
+        console.log('No user or member number available');
+        return;
+      }
+
+      setIsLoadingMembershipData(true);
+      
+      try {
+        console.log('Fetching membership data for member:', user.member_number);
+        
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-data/${user.member_number}`);
+        
+        if (response.ok) {
+          const result = await response.json();
+          
+          if (result.success && result.data) {
+            console.log('Auto-populating form with membership data:', result.data);
+            
+            // Auto-populate form fields
+            setFormData(prev => ({
+              ...prev,
+              // Only update fields that are empty to preserve any user input
+              lastName: prev.lastName || result.data.lastName,
+              firstName: prev.firstName || result.data.firstName,
+              middleName: prev.middleName || result.data.middleName,
+              gender: prev.gender || result.data.gender,
+              civilStatus: prev.civilStatus || result.data.civilStatus,
+              birthDate: prev.birthDate || result.data.birthDate,
+              mobileNumber: prev.mobileNumber || result.data.mobileNumber,
+              emailAddress: prev.emailAddress || result.data.emailAddress,
+              currentAddress: prev.currentAddress || result.data.currentAddress,
+              permanentAddress: prev.permanentAddress || result.data.permanentAddress,
+              companyBusiness: prev.companyBusiness || result.data.companyBusiness,
+              designationPosition: prev.designationPosition || result.data.designationPosition
+            }));
+            
+            setSubmitStatus({
+              type: 'success',
+              message: 'Form auto-populated with your membership information! Please review and complete any missing fields.'
+            });
+            
+            // Clear the status message after 5 seconds
+            setTimeout(() => setSubmitStatus(null), 5000);
+          }
+        } else {
+          console.log('No membership data found or error fetching data');
+          setSubmitStatus({
+            type: 'info',
+            message: 'Please fill out the form manually. Auto-population unavailable.'
+          });
+          setTimeout(() => setSubmitStatus(null), 3000);
+        }
+      } catch (error) {
+        console.error('Error fetching membership data:', error);
+        setSubmitStatus({
+          type: 'info',
+          message: 'Please fill out the form manually. Auto-population unavailable.'
+        });
+        setTimeout(() => setSubmitStatus(null), 3000);
+      } finally {
+        setIsLoadingMembershipData(false);
+      }
+    };
+
+    fetchMembershipData();
+  }, [user]); // Dependency on user to refetch if user changes
 
   // Handle form input changes with real-time validation
   const handleInputChange = (e) => {
@@ -436,6 +507,14 @@ const LoanApplication = () => {
           <div className="page-header">
             <h1>Loan Application</h1>
             <p>Complete the loan application form below</p>
+            
+            {/* Auto-population status */}
+            {isLoadingMembershipData && (
+              <div className="auto-populate-status">
+                <div className="loading-spinner"></div>
+                <span>Auto-populating form with your membership information...</span>
+              </div>
+            )}
             
             {/* Progress Indicator */}
             <div className="form-progress">
