@@ -251,12 +251,22 @@
 /* Mobile Styles */
 @media (max-width: 768px) {
   .membership-application {
-    padding: 3rem 0;
+    padding: 2.5rem 0;
+  }
+
+  .section-header h2 {
+    font-size: 1.875rem;
+    padding: 0 var(--spacing-md);
+  }
+  
+  .section-header p {
+    font-size: 1rem;
+    padding: 0 var(--spacing-md);
   }
 
   .membership-content {
     grid-template-columns: 1fr;
-    gap: 3rem;
+    gap: 2rem;
   }
 
   .benefits-grid {
@@ -264,7 +274,8 @@
   }
 
   .application-form {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1rem;
+    margin: 0 var(--spacing-xs);
   }
 
   .form-row,
@@ -277,6 +288,7 @@
   .benefit-item {
     padding: 1rem;
     gap: 1rem;
+    margin: 0 var(--spacing-xs);
   }
 
   .benefit-icon {
@@ -291,12 +303,52 @@
   }
 
   .form-section {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
   }
 
   .conditional-section {
     padding: 1rem;
+  }
+  
+  .form-group input,
+  .form-group select {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}
+
+@media (max-width: 480px) {
+  .membership-application {
+    padding: 2rem 0;
+  }
+  
+  .application-form {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+  }
+  
+  .application-form h3 {
+    font-size: 1.5rem;
+  }
+  
+  .benefit-item {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .benefit-icon {
+    align-self: center;
+  }
+  
+  .form-section h4 {
+    font-size: 1.1rem;
+  }
+  
+  .submit-btn {
+    padding: 1rem;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
   }
 }
 

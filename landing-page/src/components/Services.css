@@ -97,15 +97,16 @@
   }
 
   .section-header {
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
   }
 
   .section-header h2 {
-    font-size: 2rem;
+    font-size: 1.875rem;
   }
 
   .section-header p {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    padding: 0 var(--spacing-md);
   }
 
   .services-grid {
@@ -115,6 +116,7 @@
 
   .service-card {
     padding: 1.5rem;
+    margin: 0 var(--spacing-xs);
   }
 
   .service-icon {
@@ -124,5 +126,32 @@
   .service-icon img {
     width: 40px;
     height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .services {
+    padding: 2rem 0;
+  }
+  
+  .section-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .section-header p {
+    font-size: 0.95rem;
+  }
+  
+  .service-card {
+    padding: 1.25rem;
+    text-align: center;
+  }
+  
+  .service-card h3 {
+    font-size: 1.25rem;
+  }
+  
+  .service-card p {
+    font-size: 0.9rem;
   }
 }

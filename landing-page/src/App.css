@@ -155,4 +155,44 @@ html {
   .container {
     padding: 0 1rem;
   }
+  
+  .btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px; /* Touch-friendly minimum */
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+  
+  .btn {
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* Ensure text is readable on small screens */
+  body {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  h1 {
+    font-size: 1.875rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+  }
 }
