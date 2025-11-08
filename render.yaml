@@ -56,6 +56,7 @@ services:
     name: credit-coop-member-portal
     env: static
     buildCommand: cd member-portal && npm install && npm run build
+    publishDir: member-portal/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://credit-coop-member-backend.onrender.com
@@ -65,6 +66,7 @@ services:
     name: credit-coop-staff-portal
     env: static
     buildCommand: cd staff-portal && npm install && npm run build
+    publishDir: staff-portal/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://credit-coop-staff-backend.onrender.com
