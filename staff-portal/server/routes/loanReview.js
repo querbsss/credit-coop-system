@@ -405,7 +405,7 @@ router.post('/applications/:id/approve', async (req, res) => {
                 UPDATE loan_applications 
                 SET 
                     review_status = 'approved',
-                    reviewer_comments = $1,
+                    review_notes = $1,
                     reviewed_at = CURRENT_TIMESTAMP
                 WHERE application_id = $2 AND review_status = 'under_review'
                 RETURNING *
@@ -416,7 +416,7 @@ router.post('/applications/:id/approve', async (req, res) => {
                 UPDATE loan_applications 
                 SET 
                     review_status = 'rejected',
-                    reviewer_comments = $1,
+                    review_notes = $1,
                     reviewed_at = CURRENT_TIMESTAMP
                 WHERE application_id = $2 AND review_status = 'under_review'
                 RETURNING *
