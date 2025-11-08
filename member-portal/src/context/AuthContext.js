@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   console.log('🔍 Environment Debug:', {
     NODE_ENV: process.env.NODE_ENV,
     REACT_APP_API_URL: process.env.REACT_APP_API_URL,
-    expectedURL: 'https://credit-coop-member-backend.onrender.com',
+    expectedURL: 'https://credit-coop-member-portal-backend.onrender.com',
     allEnvVars: Object.keys(process.env).filter(key => key.startsWith('REACT_APP_'))
   });
   
