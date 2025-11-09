@@ -37,14 +37,6 @@
   object-fit: contain;
 }
 
-.contact-icon {
-  width: 24px;
-  height: 24px;
-  margin-top: 0.2rem;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
 .contact-item h4 {
   color: #6b46c1;
   margin-bottom: 0.5rem;
