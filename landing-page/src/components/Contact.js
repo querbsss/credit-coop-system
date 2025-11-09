@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import './Contact.css';
+import addressIcon from '../assets/icons/finance/address-svgrepo-com.svg';
+import phoneIcon from '../assets/icons/finance/phone-svgrepo-com.svg';
+import emailIcon from '../assets/icons/finance/email-svgrepo-com.svg';
+import clockIcon from '../assets/icons/finance/clock-ten-svgrepo-com.svg';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -44,7 +48,9 @@ const Contact = () => {
             <h3>Contact Information</h3>
             
             <div className="contact-item">
-              <span className="icon">📍</span>
+              <span className="icon">
+                <img src={addressIcon} alt="Address" />
+              </span>
               <div>
                 <h4>Address</h4>
                 <p>Shrine Parish of St. Therese of the Child Jesus and the Holy Face<br />Poblacion 1, Sta Teresita Batangas</p>
@@ -52,7 +58,9 @@ const Contact = () => {
             </div>
 
             <div className="contact-item">
-              <span className="icon">📞</span>
+              <span className="icon">
+                <img src={phoneIcon} alt="Phone" />
+              </span>
               <div>
                 <h4>Phone</h4>
                 <p>0927-375-6771</p>
@@ -60,7 +68,9 @@ const Contact = () => {
             </div>
 
             <div className="contact-item">
-              <span className="icon">✉️</span>
+              <span className="icon">
+                <img src={emailIcon} alt="Email" />
+              </span>
               <div>
                 <h4>Email</h4>
                 <p>info@creditcoop.com</p>
@@ -68,7 +78,9 @@ const Contact = () => {
             </div>
 
             <div className="contact-item">
-              <span className="icon">🕒</span>
+              <span className="icon">
+                <img src={clockIcon} alt="Business Hours" />
+              </span>
               <div>
                 <h4>Business Hours</h4>
                 <p>Monday - Friday: 9:00 AM - 6:00 PM<br />Saturday: 9:00 AM - 2:00 PM<br />Sunday: Closed</p>
