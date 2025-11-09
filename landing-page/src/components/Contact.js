@@ -47,7 +47,7 @@ const Contact = () => {
               <span className="icon">📍</span>
               <div>
                 <h4>Address</h4>
-                <p>123 Financial Street<br />Cooperative City, CC 12345</p>
+                <p>Shrine Parish of St. Therese of the Child Jesus and the Holy Face<br />Poblacion 1, Sta Teresita Batangas</p>
               </div>
             </div>
 
@@ -55,7 +55,7 @@ const Contact = () => {
               <span className="icon">📞</span>
               <div>
                 <h4>Phone</h4>
-                <p>(555) 123-4567</p>
+                <p>0927-375-6771</p>
               </div>
             </div>
 
