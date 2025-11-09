@@ -36,6 +36,14 @@ services:
         value: production
       - key: JWT_SECRET
         generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: credit-coop-database
+          property: connectionString
+      - key: PAYMONGO_SECRET_KEY
+        value: sk_test_dummy_key_replace_with_actual_key
+      - key: FRONTEND_URL
+        value: https://credit-coop-member-portal.onrender.com
 
   # Staff Portal Backend
   - type: web
@@ -50,21 +58,27 @@ services:
         value: production
       - key: JWT_SECRET
         generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: credit-coop-database
+          property: connectionString
 
   # Member Portal Frontend 
   - type: web
     name: credit-coop-member-portal
     env: static
     buildCommand: cd member-portal && npm install && npm run build
+    publishDir: member-portal/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://credit-coop-member-backend.onrender.com
+        value: https://credit-coop-member-portal-backend.onrender.com
 
   # Staff Portal Frontend
   - type: web
     name: credit-coop-staff-portal
     env: static
     buildCommand: cd staff-portal && npm install && npm run build
+    publishDir: staff-portal/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://credit-coop-staff-backend.onrender.com
+        value: https://credit-coop-staffs-portal-backend.onrender.com

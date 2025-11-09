@@ -178,4 +178,99 @@ router.put('/password/update', authorization, async (req, res) => {
     }
 });
 
+// Debug endpoint to test database connection
+router.get('/debug-db', async (req, res) => {
+    try {
+        console.log('Testing database connection...');
+        const result = await pool.query('SELECT COUNT(*) FROM member_users WHERE is_active = true');
+        const userCount = result.rows[0].count;
+        
+        const users = await pool.query('SELECT member_number, user_name, user_email FROM member_users WHERE is_active = true ORDER BY member_number');
+        
+        res.json({
+            success: true,
+            message: 'Database connection successful',
+            activeUsers: userCount,
+            users: users.rows
+        });
+    } catch (err) {
+        console.error('Database connection error:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message,
+            code: err.code,
+            detail: err.detail
+        });
+    }
+});
+
+// Debug endpoint to test password verification (no validation middleware)
+router.post('/debug-password', async (req, res) => {
+    try {
+        const { memberNumber, password } = req.body;
+        
+        console.log('=== PASSWORD DEBUG ===');
+        console.log('Member Number:', memberNumber);
+        console.log('Password provided:', !!password);
+        
+        if (!memberNumber || !password) {
+            return res.json({ 
+                success: false, 
+                message: 'Missing memberNumber or password',
+                received: { memberNumber: !!memberNumber, password: !!password }
+            });
+        }
+        
+        // Get user from database
+        console.log('Querying database for member:', memberNumber);
+        const user = await pool.query("SELECT * FROM member_users WHERE member_number = $1 AND is_active = true", [memberNumber]);
+        
+        console.log('Query result:', user.rows.length, 'users found');
+        
+        if (user.rows.length === 0) {
+            return res.json({ 
+                success: false, 
+                message: 'User not found',
+                memberNumber: memberNumber 
+            });
+        }
+        
+        const userData = user.rows[0];
+        console.log('User found:', userData.user_name, userData.user_email);
+        console.log('Password hash length:', userData.user_password?.length);
+        
+        // Test bcrypt import
+        console.log('Testing bcrypt import...');
+        const bcrypt = require('bcrypt');
+        console.log('Bcrypt imported successfully');
+        
+        // Test password comparison
+        console.log('Comparing passwords...');
+        const validPassword = await bcrypt.compare(password, userData.user_password);
+        console.log('Password comparison result:', validPassword);
+        
+        res.json({
+            success: true,
+            userFound: true,
+            passwordMatch: validPassword,
+            userInfo: {
+                memberNumber: userData.member_number,
+                userName: userData.user_name,
+                userEmail: userData.user_email,
+                hashLength: userData.user_password?.length
+            }
+        });
+        
+    } catch (err) {
+        console.error('=== PASSWORD DEBUG ERROR ===');
+        console.error('Error message:', err.message);
+        console.error('Error stack:', err.stack);
+        res.status(500).json({
+            success: false,
+            error: err.message,
+            errorType: err.constructor.name
+        });
+    }
+});
+
 module.exports = router;

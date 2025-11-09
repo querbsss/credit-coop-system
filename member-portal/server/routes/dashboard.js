@@ -18,11 +18,11 @@ router.get('/', authorization, authorization, async (req, res) => {
 
         // Get active loan for this member
         const loanResult = await pool.query(
-            `SELECT amount, duration_months, review_status, application_id, monthly_payment
+            `SELECT loan_amount as amount, loan_duration as duration_months, review_status, application_id, monthly_payment
              FROM loan_applications
-             WHERE member_number = $1 AND review_status = 'approved'
+             WHERE user_id = $1 AND review_status = 'approved'
              ORDER BY submitted_at DESC LIMIT 1`,
-            [user.member_number]
+            [req.user]
         );
         // Debug: print loan query result
         console.log('Loan query result:', loanResult.rows);

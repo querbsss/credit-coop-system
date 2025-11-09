@@ -30,7 +30,7 @@ const CreditInvestigatorDashboard = () => {
 
   useEffect(() => {
     if (userRole === 'credit_investigator') {
-      axios.get('http://localhost:5000/api/loan-review/applications?reviewer_role=credit_investigator')
+      axios.get(`${process.env.REACT_APP_API_URL}/api/loan-review/applications?reviewer_role=credit_investigator`)
         .then(res => {
           if (res.data.success) {
             setLoanApplications(res.data.applications);
@@ -39,7 +39,7 @@ const CreditInvestigatorDashboard = () => {
           }
         })
         .catch(() => setLoanApplications([]));
-      axios.get('http://localhost:5000/api/loan-review/statistics')
+      axios.get(`${process.env.REACT_APP_API_URL}/api/loan-review/statistics`)
         .then(res => {
           if (res.data.success) {
             setStatistics(res.data.statistics);
@@ -50,7 +50,7 @@ const CreditInvestigatorDashboard = () => {
 
   const handleReview = async (application) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/loan-review/applications/${application.application_id}`);
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/loan-review/applications/${application.application_id}`);
       if (res.data.success) {
         setSelectedApplication(res.data.application);
       } else {
@@ -64,13 +64,13 @@ const CreditInvestigatorDashboard = () => {
   const handleSendToManager = async (applicationId) => {
     setLoading(true);
     try {
-      await axios.post(`http://localhost:5000/api/loan-review/applications/${applicationId}/review`, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/loan-review/applications/${applicationId}/review`, {
         action: 'approve_for_manager',
         notes: 'Reviewed by credit investigator',
         reviewer_id: 'credit_investigator',
       });
       setSelectedApplication(null);
-      axios.get('http://localhost:5000/api/loan-review/applications?reviewer_role=credit_investigator')
+      axios.get(`${process.env.REACT_APP_API_URL}/api/loan-review/applications?reviewer_role=credit_investigator`)
         .then(res => {
           if (res.data.success) {
             setLoanApplications(res.data.applications);
@@ -341,7 +341,7 @@ const CreditInvestigatorDashboard = () => {
                     const P = amount;
                     const r = monthlyInterestRate;
                     const monthlyPayment = P * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-                    axios.post(`http://localhost:5000/api/loan-review/applications/${selectedApplication.application_id}/set-loan-amount`, {
+                    axios.post(`${process.env.REACT_APP_API_URL}/api/loan-review/applications/${selectedApplication.application_id}/set-loan-amount`, {
                       loan_amount: netProceeds,
                       loan_duration: months,
                       monthly_payment: monthlyPayment
