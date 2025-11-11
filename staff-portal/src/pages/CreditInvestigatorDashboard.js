@@ -1,5 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
+import { ReactComponent as HourglassIcon } from '../assets/icons/hourglass-svgrepo-com.svg';
+import { ReactComponent as MagnifyingGlassIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
+import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle-svgrepo-com.svg';
+import { ReactComponent as CrossIcon } from '../assets/icons/cross-svgrepo-com.svg';
 import axios from 'axios';
 import './Dashboard.css';
 import '../status-badge.css';
@@ -103,38 +107,38 @@ const CreditInvestigatorDashboard = () => {
   return (
     <div className="dashboard-container credit-investigator-dashboard">
       <div className="page-header">
-        <h1>🕵️‍♂️ Credit Investigator Dashboard</h1>
+        <h1> Credit Investigator Dashboard</h1>
         <p>Review loan applications and send to manager for approval</p>
       </div>
       <div className="stats-grid">
-        <div className="stat-card pending">
-          <div className="stat-icon">⏳</div>
-          <div className="stat-content">
-            <h3>Pending Review</h3>
-            <span className="stat-number">{statistics.pending_review || 0}</span>
+          <div className="stat-card pending">
+            <div className="stat-icon"><HourglassIcon /></div>
+            <div className="stat-content">
+              <h3>Pending Review</h3>
+              <span className="stat-number">{statistics.pending_review || 0}</span>
+            </div>
           </div>
-        </div>
-        <div className="stat-card under-review">
-          <div className="stat-icon">🔍</div>
-          <div className="stat-content">
-            <h3>Awaiting Approval</h3>
-            <span className="stat-number">{statistics.under_review || 0}</span>
+          <div className="stat-card under-review">
+            <div className="stat-icon"><MagnifyingGlassIcon /></div>
+            <div className="stat-content">
+              <h3>Awaiting Approval</h3>
+              <span className="stat-number">{statistics.under_review || 0}</span>
+            </div>
           </div>
-        </div>
-        <div className="stat-card approved">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
-            <h3>Approved</h3>
-            <span className="stat-number">{statistics.approved || 0}</span>
+          <div className="stat-card approved">
+            <div className="stat-icon"><CheckCircleIcon /></div>
+            <div className="stat-content">
+              <h3>Approved</h3>
+              <span className="stat-number">{statistics.approved || 0}</span>
+            </div>
           </div>
-        </div>
-        <div className="stat-card rejected">
-          <div className="stat-icon">❌</div>
-          <div className="stat-content">
-            <h3>Rejected</h3>
-            <span className="stat-number">{statistics.rejected || 0}</span>
+          <div className="stat-card rejected">
+            <div className="stat-icon"><CrossIcon /></div>
+            <div className="stat-content">
+              <h3>Rejected</h3>
+              <span className="stat-number">{statistics.rejected || 0}</span>
+            </div>
           </div>
-        </div>
       </div>
       <div className="filters-section">
         <div className="filter-group">

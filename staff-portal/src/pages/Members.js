@@ -63,10 +63,7 @@ const Members = () => {
           <h1>Member Management</h1>
           <p>Manage credit cooperative members and their information</p>
         </div>
-        <button className="btn btn-primary">
-          <span>👤</span>
-          Add New Member
-        </button>
+        {/* Removed Add New Member button as requested */}
       </div>
 
       <div className="page-controls">

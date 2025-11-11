@@ -20,7 +20,7 @@ const Payment = () => {
   const [checkoutUrl, setCheckoutUrl] = useState(null);
 
   // Constants
-  const PAYMONGO_SECRET_KEY = 'sk_test_dummy_key_replace_with_actual_key';
+  const PAYMONGO_SECRET_KEY = 'sk_test_8kAzk7uz9eFZCXzMRAM7jVpH';
 
   // Load user's payment amount
   useEffect(() => {

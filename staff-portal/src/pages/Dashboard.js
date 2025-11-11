@@ -1,5 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
+import { ReactComponent as UserIcon } from '../assets/icons/user-svgrepo-com.svg';
+import { ReactComponent as MoneyCheckIcon } from '../assets/icons/money-check-dollar-svgrepo-com.svg';
+import { ReactComponent as BankIcon } from '../assets/icons/bank-svgrepo-com.svg';
+import { ReactComponent as ClipboardIcon } from '../assets/icons/clipboard-text-svgrepo-com.svg';
 
 const Dashboard = ({ setAuth, userRole }) => {
   const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
@@ -197,7 +202,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: loading ? '...' : totalMembersCount.toString(),
       change: loading ? '...' : (totalMembersCount > 0 ? `${totalMembersCount} registered` : 'No members'),
       changeType: totalMembersCount > 1000 ? 'positive' : totalMembersCount > 0 ? 'neutral' : 'warning',
-      icon: '👥',
+  icon: <UserIcon style={{ width: 40, height: 40, fill: 'none' }} />, // blue
       color: 'blue'
     },
     {
@@ -205,7 +210,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱45.2M',
       change: '+₱2.1M',
       changeType: 'positive',
-      icon: '💰',
+  icon: <MoneyCheckIcon style={{ width: 40, height: 40, fill: 'none' }} />, // green
       color: 'green'
     },
     {
@@ -213,7 +218,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱28.7M',
       change: '+₱890K',
       changeType: 'positive',
-      icon: '🏦',
+  icon: <BankIcon style={{ width: 40, height: 40, fill: 'none' }} />, // purple
       color: 'purple'
     },
     {
@@ -221,7 +226,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: loading ? '...' : pendingApplicationsCount.toString(),
       change: loading ? '...' : (pendingApplicationsCount > 0 ? `${pendingApplicationsCount} pending` : 'No pending'),
       changeType: pendingApplicationsCount > 20 ? 'warning' : pendingApplicationsCount > 0 ? 'neutral' : 'positive',
-      icon: '📋',
+  icon: <ClipboardIcon style={{ width: 40, height: 40, fill: 'none' }} />, // orange
       color: 'orange'
     }
   ];
@@ -299,23 +304,7 @@ const Dashboard = ({ setAuth, userRole }) => {
           <h1>{roleInfo.title}</h1>
           <p>{roleInfo.description}</p>
         </div>
-        <div className="page-actions">
-          <button className="btn btn-secondary" onClick={() => {
-            fetchPendingApplications();
-            fetchTotalMembers();
-          }}>
-            <span>🔄</span>
-            Refresh Data
-          </button>
-          <button className="btn btn-secondary">
-            <span>📊</span>
-            Export Report
-          </button>
-          <button className="btn btn-primary">
-            <span>📈</span>
-            Generate Analytics
-          </button>
-        </div>
+        {/* Removed page-actions buttons as requested */}
       </div>
 
       {/* Key Metrics Cards */}

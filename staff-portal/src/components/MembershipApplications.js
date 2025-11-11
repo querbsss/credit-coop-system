@@ -53,7 +53,8 @@ const MembershipApplications = () => {
     if (!isInitialLoad) setRefreshing(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/membership-applications', {
+      // Set a very high limit to fetch all applications
+      const response = await fetch('http://localhost:5000/api/membership-applications?page=1&limit=10000', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -121,9 +122,8 @@ const MembershipApplications = () => {
     setMembershipNumber(generateSuggestedMembershipNumber());
   };
 
-  const filteredApplications = applications.filter(app => 
-    filter === 'all' || app.status === filter
-  );
+  // Show all applications regardless of filter
+  const filteredApplications = applications;
 
   const getStatusBadge = (status) => {
     const statusClasses = {
@@ -324,8 +324,8 @@ const MembershipApplications = () => {
                   </div>
                 </div>
 
-                {/* Admin Membership Number Assignment */}
-                {userRole === 'admin' && (selectedApplication.status === 'pending' || selectedApplication.status === 'under_review') && (
+                {/* Staff Membership Number Assignment */}
+                {userRole === 'staff' && (selectedApplication.status === 'pending' || selectedApplication.status === 'under_review') && (
                   <div className="detail-section">
                     <h4>Assign Membership Number</h4>
                     <div className="membership-number-input">
@@ -374,7 +374,7 @@ const MembershipApplications = () => {
 
             <div className="modal-footer">
               <div className="action-buttons">
-                {userRole === 'admin' && (
+                {userRole === 'staff' && (
                   <>
                     <button 
                       className="btn btn-primary"
@@ -404,7 +404,7 @@ const MembershipApplications = () => {
                     </button>
                     <button 
                       className="btn btn-warning"
-                      onClick={() => updateApplicationStatus(selectedApplication.application_id, 'under_review', 'Application under review by admin')}
+                      onClick={() => updateApplicationStatus(selectedApplication.application_id, 'under_review', 'Application under review by staff')}
                       disabled={selectedApplication.status === 'approved' || selectedApplication.status === 'rejected'}
                     >
                       Mark Under Review
@@ -414,7 +414,7 @@ const MembershipApplications = () => {
                       onClick={() => {
                         const reason = prompt('Please provide a reason for rejection:');
                         if (reason) {
-                          updateApplicationStatus(selectedApplication.application_id, 'rejected', `Rejected by admin: ${reason}`);
+                          updateApplicationStatus(selectedApplication.application_id, 'rejected', `Rejected by staff: ${reason}`);
                         }
                       }}
                       disabled={selectedApplication.status === 'approved' || selectedApplication.status === 'rejected'}

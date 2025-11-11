@@ -82,23 +82,6 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Checking Account */}
-              <div className="account-card card">
-                <div className="account-header">
-                  <div className="account-icon checking">💳</div>
-                  <div className="account-info">
-                    <h3>Checking</h3>
-                    <p className="account-number">{user?.accounts?.checking?.accountNumber}</p>
-                  </div>
-                  <div className="account-action">
-                    <button className="btn-icon">➤</button>
-                  </div>
-                </div>
-                <div className="account-balance">
-                  <span className="balance-amount">{formatCurrency(user?.accounts?.checking?.balance)}</span>
-                  <span className="balance-label">Available balance</span>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -149,32 +132,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="recent-activity-section">
-            <div className="activity-header">
-              <h3>🕐 Recent Activity</h3>
-              <a href="#all" className="view-all-link">View All</a>
-            </div>
-            
-            <div className="activity-list">
-              {user?.recentTransactions?.slice(0, 4).map((transaction) => (
-                <div key={transaction.id} className="activity-item card">
-                  <div className="activity-icon">
-                    {transaction.type === 'credit' ? '💰' : 
-                     transaction.type === 'transfer' ? '🔄' : '💸'}
-                  </div>
-                  <div className="activity-info">
-                    <h4>{transaction.description}</h4>
-                    <p>{formatDate(transaction.date)} • {transaction.account}</p>
-                  </div>
-                  <div className={`activity-amount ${transaction.type}`}>
-                    {transaction.type === 'credit' ? '+' : ''}
-                    {formatCurrency(Math.abs(transaction.amount))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </main>
     </div>

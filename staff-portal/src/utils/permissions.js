@@ -1,5 +1,41 @@
 // Role-based permissions configuration
+import { ReactComponent as ReportsIcon } from '../assets/icons/reports-svgrepo-com.svg';
+import { ReactComponent as UserIcon } from '../assets/icons/user-svgrepo-com.svg';
+import { ReactComponent as MoneyCheckIcon } from '../assets/icons/money-check-dollar-svgrepo-com.svg';
+import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle-svgrepo-com.svg';
+import { ReactComponent as ClipboardIcon } from '../assets/icons/clipboard-text-svgrepo-com.svg';
+
 export const PERMISSIONS = {
+  // Staff permissions - similar to admin but for staff role
+  staff: {
+    allowedRoutes: ['/dashboard', '/members', '/reports', '/membership-applications'],
+    menuItems: [
+      {
+        path: '/dashboard',
+        icon: ReportsIcon,
+        label: 'Dashboard',
+        description: 'Staff Overview'
+      },
+      {
+        path: '/members',
+        icon: UserIcon,
+        label: 'Members',
+        description: 'Member Management'
+      },
+      {
+        path: '/membership-applications',
+        icon: ClipboardIcon,
+        label: 'Applications',
+        description: 'Membership Applications'
+      },
+      {
+        path: '/reports',
+        icon: ReportsIcon,
+        label: 'Reports',
+        description: 'System Reports'
+      }
+    ]
+  },
   // Admin permissions - limited to member management and reports
   admin: {
     allowedRoutes: ['/dashboard', '/members', '/reports', '/membership-applications'],
@@ -37,37 +73,37 @@ export const PERMISSIONS = {
     menuItems: [
       {
         path: '/dashboard',
-        icon: '📊',
+        icon: ReportsIcon,
         label: 'Dashboard',
         description: 'Manager Overview'
       },
       {
         path: '/members',
-        icon: '👥',
+        icon: UserIcon,
         label: 'Members',
         description: 'Member Management'
       },
       {
         path: '/membership-applications',
-        icon: '📝',
+        icon: ClipboardIcon,
         label: 'Applications',
         description: 'Membership Applications'
       },
       {
         path: '/loan-approval',
-        icon: '✅',
+        icon: CheckCircleIcon,
         label: 'Loan Approval',
         description: 'Approve/Reject Loans'
       },
       {
         path: '/transactions',
-        icon: '💳',
+        icon: MoneyCheckIcon,
         label: 'Transactions',
         description: 'Transaction History'
       },
       {
         path: '/reports',
-        icon: '📈',
+        icon: ReportsIcon,
         label: 'Reports',
         description: 'Financial Reports'
       }
@@ -149,25 +185,25 @@ export const PERMISSIONS = {
     menuItems: [
       {
         path: '/dashboard',
-        icon: '📊',
+        icon: ReportsIcon,
         label: 'Dashboard',
         description: 'System Overview'
       },
       {
         path: '/user-management',
-        icon: '👥',
+        icon: UserIcon,
         label: 'User Management',
         description: 'Staff & Members'
       },
       {
         path: '/membership-applications',
-        icon: '📝',
+        icon: ClipboardIcon,
         label: 'Applications',
         description: 'Membership Applications'
       },
       {
         path: '/import',
-        icon: '📥',
+        icon: MoneyCheckIcon,
         label: 'Import Members',
         description: 'Import Member Data'
       }
@@ -180,7 +216,7 @@ export const PERMISSIONS = {
     menuItems: [
       {
         path: '/credit-investigator',
-        icon: '🕵️',
+        icon: ReportsIcon,
         label: 'Credit Investigator',
         description: 'Review Loan Applications'
       }

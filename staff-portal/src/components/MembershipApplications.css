@@ -1,3 +1,7 @@
+.applications-table .action-buttons button,
+.btn {
+  min-width: 130px !important;
+}
 /* Make Actions column wider for buttons */
 .applications-table th:last-child,
 .applications-table td:last-child {
