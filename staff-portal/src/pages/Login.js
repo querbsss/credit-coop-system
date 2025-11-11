@@ -3,13 +3,13 @@ import './Login.css';
 
 const Login = ({ setAuth }) => {
   const [inputs, setInputs] = useState({
-    email: "",
+    empnumber: "",
     password: ""
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { email, password } = inputs;
+  const { empnumber, password } = inputs;
 
   const onChange = e => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
@@ -22,8 +22,8 @@ const Login = ({ setAuth }) => {
     setError('');
     
     try {
-      const body = { email, password };
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
+  const body = { empnumber, password };
+  const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify(body)
@@ -77,15 +77,15 @@ const Login = ({ setAuth }) => {
           )}
 
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="empnumber">Employee Number</label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={email}
+              type="text"
+              id="empnumber"
+              name="empnumber"
+              value={empnumber}
               onChange={onChange}
               className="form-control"
-              placeholder="Enter your email address"
+              placeholder="Enter your employee number"
               required
             />
           </div>

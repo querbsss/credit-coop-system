@@ -1,364 +1,295 @@
-import React, { useState } from 'react';
+import './Dashboard.css';
 
 const Reports = () => {
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
+  const [showReports, setShowReports] = useState(false);
 
-  // Generate dummy data for the report
-  const generateDummyReportData = () => {
-    return {
-      reportDate: new Date().toLocaleDateString(),
-      summary: {
-        totalMembers: 1247,
-        activeMembers: 1185,
-        inactiveMembers: 62,
-        newMembersThisMonth: 23
-      },
-      financials: {
-        totalSavings: 15750000,
-        totalLoanBalances: 8920000,
-        totalProfitFromLoans: 1340000,
-        averageSavingsPerMember: 12640.83,
-        averageLoanBalance: 18954.26
-      },
-      memberBalances: [
-        { id: 'M001', name: 'Juan Dela Cruz', savings: 75000, loanBalance: 120000, totalContribution: 195000 },
-        { id: 'M002', name: 'Maria Santos', savings: 45000, loanBalance: 0, totalContribution: 45000 },
-        { id: 'M003', name: 'Pedro Rodriguez', savings: 28000, loanBalance: 85000, totalContribution: 113000 },
-        { id: 'M004', name: 'Ana Garcia', savings: 92000, loanBalance: 150000, totalContribution: 242000 },
-        { id: 'M005', name: 'Carlos Mendoza', savings: 35000, loanBalance: 75000, totalContribution: 110000 },
-        { id: 'M006', name: 'Rosa Villanueva', savings: 68000, loanBalance: 0, totalContribution: 68000 },
-        { id: 'M007', name: 'Miguel Torres', savings: 55000, loanBalance: 95000, totalContribution: 150000 },
-        { id: 'M008', name: 'Sofia Reyes', savings: 41000, loanBalance: 60000, totalContribution: 101000 },
-        { id: 'M009', name: 'Roberto Cruz', savings: 78000, loanBalance: 180000, totalContribution: 258000 },
-        { id: 'M010', name: 'Carmen Lopez', savings: 33000, loanBalance: 45000, totalContribution: 78000 }
-      ],
-      loanProfitBreakdown: {
-        personalLoans: {
-          totalAmount: 3200000,
-          interestEarned: 480000,
-          avgInterestRate: 15
-        },
-        businessLoans: {
-          totalAmount: 4800000,
-          interestEarned: 720000,
-          avgInterestRate: 15
-        },
-        emergencyLoans: {
-          totalAmount: 920000,
-          interestEarned: 138000,
-          avgInterestRate: 15
-        }
-      },
-      monthlyTrends: {
-        savingsGrowth: 3.2,
-        loanDisbursements: 850000,
-        collections: 720000,
-        netGrowth: 2.8
-      }
-    };
-  };
-
-  const handleGenerateReport = async () => {
-    setIsGeneratingReport(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      setIsGeneratingReport(false);
-      setShowReportModal(true);
-    }, 2000);
-  };
-
-  const downloadReport = (format) => {
-    const reportData = generateDummyReportData();
-    
-    if (format === 'csv') {
-      downloadCSVReport(reportData);
-    } else if (format === 'pdf') {
-      downloadPDFReport(reportData);
+  // Dummy member data from Members.js
+  const members = [
+    {
+      id: 'MEM001',
+      name: 'Juan Dela Cruz',
+      email: 'juan.delacruz@email.com',
+      phone: '+63 912 345 6789',
+      memberSince: '2020-03-15',
+      status: 'active',
+      totalDeposits: 125000,
+      loanBalance: 45000
+    },
+    {
+      id: 'MEM002',
+      name: 'Maria Santos',
+      email: 'maria.santos@email.com',
+      phone: '+63 917 765 4321',
+      memberSince: '2019-11-22',
+      status: 'active',
+      totalDeposits: 89500,
+      loanBalance: 0
+    },
+    {
+      id: 'MEM003',
+      name: 'Pedro Garcia',
+      email: 'pedro.garcia@email.com',
+      phone: '+63 922 111 2233',
+      memberSince: '2021-07-08',
+      status: 'inactive',
+      totalDeposits: 15000,
+      loanBalance: 25000
+    },
+    {
+      id: 'MEM004',
+      name: 'Ana Rodriguez',
+      email: 'ana.rodriguez@email.com',
+      phone: '+63 918 444 5566',
+      memberSince: '2022-01-12',
+      status: 'active',
+      totalDeposits: 67800,
+      loanBalance: 12000
     }
-  };
+  ];
 
-  const downloadCSVReport = (data) => {
-    let csvContent = "Credit Cooperative Financial Report\n";
-    csvContent += `Report Date: ${data.reportDate}\n\n`;
-    
-    // Summary section
-    csvContent += "MEMBERSHIP SUMMARY\n";
-    csvContent += "Category,Count\n";
-    csvContent += `Total Members,${data.summary.totalMembers}\n`;
-    csvContent += `Active Members,${data.summary.activeMembers}\n`;
-    csvContent += `Inactive Members,${data.summary.inactiveMembers}\n`;
-    csvContent += `New Members This Month,${data.summary.newMembersThisMonth}\n\n`;
-    
-    // Financial summary
-    csvContent += "FINANCIAL SUMMARY\n";
-    csvContent += "Category,Amount (PHP)\n";
-    csvContent += `Total Savings,${data.financials.totalSavings.toLocaleString()}\n`;
-    csvContent += `Total Loan Balances,${data.financials.totalLoanBalances.toLocaleString()}\n`;
-    csvContent += `Total Profit from Loans,${data.financials.totalProfitFromLoans.toLocaleString()}\n`;
-    csvContent += `Average Savings per Member,${data.financials.averageSavingsPerMember.toLocaleString()}\n`;
-    csvContent += `Average Loan Balance,${data.financials.averageLoanBalance.toLocaleString()}\n\n`;
-    
-    // Member balances
-    csvContent += "MEMBER BALANCES\n";
-    csvContent += "Member ID,Name,Savings (PHP),Loan Balance (PHP),Total Contribution (PHP)\n";
-    data.memberBalances.forEach(member => {
-      csvContent += `${member.id},${member.name},${member.savings.toLocaleString()},${member.loanBalance.toLocaleString()},${member.totalContribution.toLocaleString()}\n`;
-    });
+        // Calculate financial metrics
+        const financialData = {
+          totalDeposits: members.reduce((sum, m) => sum + m.totalDeposits, 0),
+          totalLoans: members.reduce((sum, m) => sum + m.loanBalance, 0),
+          activeMembers: members.filter(m => m.status === 'active').length,
+          inactiveMembers: members.filter(m => m.status === 'inactive').length,
+          avgDeposit: members.reduce((sum, m) => sum + m.totalDeposits, 0) / members.length,
+          membersByYear: {}
+        };
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('hidden', '');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `financial-report-${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
+        // Group members by year
+        members.forEach(member => {
+          const year = new Date(member.memberSince).getFullYear();
+          financialData.membersByYear[year] = (financialData.membersByYear[year] || 0) + 1;
+        });
 
-  const downloadPDFReport = (data) => {
-    // For PDF generation, you would typically use a library like jsPDF
-    // For now, we'll create a simplified HTML version that can be printed
-    const reportWindow = window.open('', '_blank');
-    const reportHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Financial Report</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .section { margin-bottom: 25px; }
-          .section h2 { color: #7c3aed; border-bottom: 2px solid #7c3aed; padding-bottom: 5px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-          th { background-color: #f8f9fa; font-weight: bold; }
-          .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-          .summary-card { background: #f8f9fc; padding: 15px; border-radius: 8px; }
-          .amount { font-weight: bold; color: #7c3aed; }
-          @media print { body { margin: 0; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>Credit Cooperative Financial Report</h1>
-          <p>Generated on: ${data.reportDate}</p>
-        </div>
-        
-        <div class="section">
-          <h2>Membership Summary</h2>
-          <div class="summary-grid">
-            <div class="summary-card">
-              <strong>Total Members:</strong> ${data.summary.totalMembers}<br>
-              <strong>Active Members:</strong> ${data.summary.activeMembers}<br>
-            </div>
-            <div class="summary-card">
-              <strong>Inactive Members:</strong> ${data.summary.inactiveMembers}<br>
-              <strong>New Members This Month:</strong> ${data.summary.newMembersThisMonth}
-            </div>
-          </div>
-        </div>
-        
-        <div class="section">
-          <h2>Financial Overview</h2>
-          <table>
-            <tr><th>Category</th><th>Amount (PHP)</th></tr>
-            <tr><td>Total Savings</td><td class="amount">₱${data.financials.totalSavings.toLocaleString()}</td></tr>
-            <tr><td>Total Loan Balances</td><td class="amount">₱${data.financials.totalLoanBalances.toLocaleString()}</td></tr>
-            <tr><td>Total Profit from Loans</td><td class="amount">₱${data.financials.totalProfitFromLoans.toLocaleString()}</td></tr>
-            <tr><td>Average Savings per Member</td><td class="amount">₱${data.financials.averageSavingsPerMember.toLocaleString()}</td></tr>
-          </table>
-        </div>
-        
-        <div class="section">
-          <h2>Top 10 Member Balances</h2>
-          <table>
-            <tr><th>Member ID</th><th>Name</th><th>Savings</th><th>Loan Balance</th><th>Total Contribution</th></tr>
-            ${data.memberBalances.map(member => 
-              `<tr>
-                <td>${member.id}</td>
-                <td>${member.name}</td>
-                <td class="amount">₱${member.savings.toLocaleString()}</td>
-                <td class="amount">₱${member.loanBalance.toLocaleString()}</td>
-                <td class="amount">₱${member.totalContribution.toLocaleString()}</td>
-              </tr>`
-            ).join('')}
-          </table>
-        </div>
-        
-        <div class="section">
-          <h2>Loan Profit Breakdown</h2>
-          <table>
-            <tr><th>Loan Type</th><th>Total Amount</th><th>Interest Earned</th><th>Avg Rate</th></tr>
-            <tr><td>Personal Loans</td><td class="amount">₱${data.loanProfitBreakdown.personalLoans.totalAmount.toLocaleString()}</td><td class="amount">₱${data.loanProfitBreakdown.personalLoans.interestEarned.toLocaleString()}</td><td>${data.loanProfitBreakdown.personalLoans.avgInterestRate}%</td></tr>
-            <tr><td>Business Loans</td><td class="amount">₱${data.loanProfitBreakdown.businessLoans.totalAmount.toLocaleString()}</td><td class="amount">₱${data.loanProfitBreakdown.businessLoans.interestEarned.toLocaleString()}</td><td>${data.loanProfitBreakdown.businessLoans.avgInterestRate}%</td></tr>
-            <tr><td>Emergency Loans</td><td class="amount">₱${data.loanProfitBreakdown.emergencyLoans.totalAmount.toLocaleString()}</td><td class="amount">₱${data.loanProfitBreakdown.emergencyLoans.interestEarned.toLocaleString()}</td><td>${data.loanProfitBreakdown.emergencyLoans.avgInterestRate}%</td></tr>
-          </table>
-        </div>
-      </body>
-      </html>
-    `;
-    
-    reportWindow.document.write(reportHTML);
-    reportWindow.document.close();
-    
-    // Trigger print dialog
-    setTimeout(() => {
-      reportWindow.print();
-    }, 1000);
-  };
+        const handleGenerateReport = () => {
+          setShowReports(!showReports);
+        };
 
-  const ReportModal = () => {
-    const data = generateDummyReportData();
+        const BarChart = ({ data, label }) => {
+          const maxValue = Math.max(...Object.values(data));
     
-    return (
-      <div className="modal-overlay" onClick={() => setShowReportModal(false)}>
-        <div className="modal-content report-modal" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2>📊 Financial Report Preview</h2>
-            <button className="close-btn" onClick={() => setShowReportModal(false)}>×</button>
-          </div>
-          
-          <div className="modal-body">
-            <div className="report-summary">
-              <div className="report-date">
-                <strong>Report Generated:</strong> {data.reportDate}
+          return (
+            <div className="bar-chart">
+              <h4 className="chart-title">{label}</h4>
+              <div className="chart-container">
+                {Object.entries(data).map(([key, value]) => (
+                  <div key={key} className="bar-group">
+                    <div className="bar-wrapper">
+                      <div 
+                        className="bar" 
+                        style={{ 
+                          height: `${(value / maxValue) * 100}%`,
+                          background: 'linear-gradient(135deg, #7c3aed, #a78bfa)'
+                        }}
+                      >
+                        <span className="bar-value">{value}</span>
+                      </div>
+                    </div>
+                    <span className="bar-label">{key}</span>
+                  </div>
+                ))}
               </div>
-              
-              <div className="summary-grid">
-                <div className="summary-section">
-                  <h3>📈 Membership Overview</h3>
-                  <div className="summary-stats">
-                    <div className="stat-item">
-                      <span className="stat-label">Total Members:</span>
-                      <span className="stat-value">{data.summary.totalMembers.toLocaleString()}</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-label">Active Members:</span>
-                      <span className="stat-value success">{data.summary.activeMembers.toLocaleString()}</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-label">New This Month:</span>
-                      <span className="stat-value info">{data.summary.newMembersThisMonth}</span>
-                    </div>
+            </div>
+          );
+        };
+
+        const FinancialReportSection = () => {
+          const depositsData = {};
+          const loansData = {};
+    
+          members.forEach(member => {
+            depositsData[member.name.split(' ')[0]] = member.totalDeposits / 1000; // in thousands
+            loansData[member.name.split(' ')[0]] = member.loanBalance / 1000; // in thousands
+          });
+
+          return (
+            <div className="financial-reports-container">
+              <div className="report-summary-cards">
+                <div className="report-card blue">
+                  <div className="report-icon">💰</div>
+                  <div className="report-content">
+                    <h4>Total Deposits</h4>
+                    <span className="report-value">₱{financialData.totalDeposits.toLocaleString()}</span>
+                    <p className="report-description">All member deposits</p>
                   </div>
                 </div>
-                
-                <div className="summary-section">
-                  <h3>💰 Financial Overview</h3>
-                  <div className="summary-stats">
-                    <div className="stat-item">
-                      <span className="stat-label">Total Savings:</span>
-                      <span className="stat-value">₱{data.financials.totalSavings.toLocaleString()}</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-label">Loan Balances:</span>
-                      <span className="stat-value">₱{data.financials.totalLoanBalances.toLocaleString()}</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-label">Loan Profits:</span>
-                      <span className="stat-value success">₱{data.financials.totalProfitFromLoans.toLocaleString()}</span>
-                    </div>
+                <div className="report-card orange">
+                  <div className="report-icon">📋</div>
+                  <div className="report-content">
+                    <h4>Total Loan Balance</h4>
+                    <span className="report-value">₱{financialData.totalLoans.toLocaleString()}</span>
+                    <p className="report-description">Outstanding loans</p>
+                  </div>
+                </div>
+                <div className="report-card green">
+                  <div className="report-icon">👥</div>
+                  <div className="report-content">
+                    <h4>Active Members</h4>
+                    <span className="report-value">{financialData.activeMembers}</span>
+                    <p className="report-description">Currently active</p>
+                  </div>
+                </div>
+                <div className="report-card purple">
+                  <div className="report-icon">📈</div>
+                  <div className="report-content">
+                    <h4>Average Deposit</h4>
+                    <span className="report-value">₱{Math.round(financialData.avgDeposit).toLocaleString()}</span>
+                    <p className="report-description">Per member</p>
                   </div>
                 </div>
               </div>
-              
-              <div className="loan-profit-section">
-                <h3>🏦 Loan Profit Breakdown</h3>
-                <div className="profit-grid">
-                  {Object.entries(data.loanProfitBreakdown).map(([type, details]) => (
-                    <div key={type} className="profit-card">
-                      <h4>{type.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</h4>
-                      <div className="profit-details">
-                        <span>Total: ₱{details.totalAmount.toLocaleString()}</span>
-                        <span className="profit-earned">Profit: ₱{details.interestEarned.toLocaleString()}</span>
-                        <span className="interest-rate">{details.avgInterestRate}% avg rate</span>
-                      </div>
-                    </div>
-                  ))}
+
+              <div className="charts-grid">
+                <div className="chart-card">
+                  <BarChart data={depositsData} label="Member Deposits (in ₱1000s)" />
+                  <div className="chart-footer">
+                    <p>💡 Total deposits across all members</p>
+                  </div>
+                </div>
+                <div className="chart-card">
+                  <BarChart data={loansData} label="Member Loan Balances (in ₱1000s)" />
+                  <div className="chart-footer">
+                    <p>💡 Outstanding loan amounts per member</p>
+                  </div>
                 </div>
               </div>
-              
-              <div className="member-preview">
-                <h3>👥 Top 5 Member Balances</h3>
-                <div className="member-list">
-                  {data.memberBalances.slice(0, 5).map(member => (
-                    <div key={member.id} className="member-item">
-                      <div className="member-info">
-                        <strong>{member.name}</strong> ({member.id})
+
+              <div className="charts-grid">
+                <div className="chart-card">
+                  <BarChart data={financialData.membersByYear} label="Member Growth by Year" />
+                  <div className="chart-footer">
+                    <p>💡 New members registered each year</p>
+                  </div>
+                </div>
+                <div className="chart-card">
+                  <div className="member-status-chart">
+                    <h4 className="chart-title">Member Status Distribution</h4>
+                    <div className="status-bars">
+                      <div className="status-bar-item">
+                        <div className="status-label">
+                          <span className="status-dot active"></span>
+                          <span>Active Members</span>
+                        </div>
+                        <div className="status-bar-container">
+                          <div 
+                            className="status-bar active-bar"
+                            style={{ width: `${(financialData.activeMembers / members.length) * 100}%` }}
+                          >
+                            <span className="status-count">{financialData.activeMembers}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="member-balances">
-                        <span>Savings: ₱{member.savings.toLocaleString()}</span>
-                        <span>Loan: ₱{member.loanBalance.toLocaleString()}</span>
+                      <div className="status-bar-item">
+                        <div className="status-label">
+                          <span className="status-dot inactive"></span>
+                          <span>Inactive Members</span>
+                        </div>
+                        <div className="status-bar-container">
+                          <div 
+                            className="status-bar inactive-bar"
+                            style={{ width: `${(financialData.inactiveMembers / members.length) * 100}%` }}
+                          >
+                            <span className="status-count">{financialData.inactiveMembers}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  <div className="chart-footer">
+                    <p>💡 Active vs Inactive member ratio</p>
+                  </div>
                 </div>
+              </div>
+
+              <div className="member-details-table">
+                <h3>📋 Detailed Member Financial Report</h3>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Member ID</th>
+                      <th>Name</th>
+                      <th>Status</th>
+                      <th>Member Since</th>
+                      <th>Total Deposits</th>
+                      <th>Loan Balance</th>
+                      <th>Net Position</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {members.map((member) => (
+                      <tr key={member.id}>
+                        <td><span className="member-id">{member.id}</span></td>
+                        <td>
+                          <div className="member-info">
+                            <div className="member-avatar small">
+                              {member.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <span className="member-name">{member.name}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`status-badge status-${member.status}`}>
+                            {member.status}
+                          </span>
+                        </td>
+                        <td>{new Date(member.memberSince).toLocaleDateString()}</td>
+                        <td className="text-success font-weight-bold">
+                          ₱{member.totalDeposits.toLocaleString()}
+                        </td>
+                        <td className="text-warning font-weight-bold">
+                          ₱{member.loanBalance.toLocaleString()}
+                        </td>
+                        <td className={member.totalDeposits - member.loanBalance >= 0 ? 'text-success' : 'text-danger'}>
+                          <strong>₱{(member.totalDeposits - member.loanBalance).toLocaleString()}</strong>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="report-actions">
+                <button className="btn btn-primary">
+                  <span>📄</span>
+                  Export as PDF
+                </button>
+                <button className="btn btn-success">
+                  <span>📊</span>
+                  Export as Excel
+                </button>
+                <button className="btn btn-info">
+                  <span>📧</span>
+                  Email Report
+                </button>
               </div>
             </div>
-          </div>
-          
-          <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={() => setShowReportModal(false)}>
-              Close Preview
-            </button>
-            <button className="btn btn-success" onClick={() => downloadReport('csv')}>
-              📄 Download CSV
-            </button>
-            <button className="btn btn-primary" onClick={() => downloadReport('pdf')}>
-              📋 Download PDF
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="page">
-      <div className="page-header">
-        <div className="page-title">
-          <h1>Financial Reports</h1>
-          <p>Generate and view financial reports and analytics</p>
-        </div>
-        <button 
-          className="btn btn-primary"
-          onClick={handleGenerateReport}
-          disabled={isGeneratingReport}
-        >
-          <span>{isGeneratingReport ? '⏳' : '📈'}</span>
-          {isGeneratingReport ? 'Generating Report...' : 'Generate Report'}
-        </button>
-      </div>
+          );
+        };
+        return (
+          <div className="page">
+            <div className="page-header">
+              <div className="page-title">
+                <h1>Financial Reports</h1>
+                <p>Generate and view financial reports and analytics</p>
+              </div>
+              <button className="btn btn-primary" onClick={handleGenerateReport}>
+                <span>📈</span>
+                {showReports ? 'Hide Report' : 'Generate Report'}
+              </button>
+            </div>
       
-      <div className="card">
-        <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📈</div>
-          <h3>Financial Reports</h3>
-          <p>This section will contain reporting features including:</p>
-          <ul style={{ textAlign: 'left', display: 'inline-block', marginTop: '1rem' }}>
-            <li>Monthly financial statements</li>
-            <li>Member growth reports</li>
-            <li>Loan portfolio analysis</li>
-            <li>Deposit trends and analytics</li>
-            <li>Profitability reports</li>
-            <li>Regulatory compliance reports</li>
-          </ul>
-          
-          <div style={{ marginTop: '2rem' }}>
-            <p style={{ color: '#7c3aed', fontWeight: 'bold' }}>
-              Click "Generate Report" above to create a comprehensive financial report with dummy data!
-            </p>
+            {showReports ? (
+              <FinancialReportSection />
+            ) : (
+              <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#888' }}>
+                <h3>No report generated yet.</h3>
+                <p>Click "Generate Report" to view financial analytics.</p>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-      
-      {/* Report Modal */}
-      {showReportModal && <ReportModal />}
-    </div>
-  );
-};
+        );
+      };
 
 export default Reports;

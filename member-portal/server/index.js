@@ -9,6 +9,7 @@ const pool = require('./db_members'); // Import database connection
 
 //middlewares
 app.use(express.json());
+<<<<<<< HEAD
 
 // Simple and effective CORS - allow all origins for now
 app.use((req, res, next) => {
@@ -42,6 +43,17 @@ app.options('*', (req, res) => {
   res.header('Access-Control-Allow-Credentials', 'true');
   res.sendStatus(200);
 });
+=======
+app.use(cors({
+  origin: true, // Reflect request origin for development
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'token', 'Authorization'],
+}));
+
+// Handle preflight requests for all routes
+app.options('*', cors());
+>>>>>>> backup-before-push
 
 // Serve uploaded files
 app.use('/loan_applications', express.static('loan_applications'));
@@ -295,6 +307,32 @@ const loanUpload = multer({
     limits: {
         fileSize: 10 * 1024 * 1024 // 10MB limit
     }
+});
+
+// Get membership application by member number (for autofill)
+app.get('/api/membership-applications/by-member/:memberNumber', async (req, res) => {
+  try {
+    const { memberNumber } = req.params;
+    const query = `SELECT * FROM membership_applications WHERE applicants_membership_number = $1 LIMIT 1`;
+    const result = await pool.query(query, [memberNumber]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No application found for this member number'
+      });
+    }
+    res.json({
+      success: true,
+      ...result.rows[0]
+    });
+  } catch (err) {
+    console.error('Error fetching application by member number:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch application by member number',
+      error: err.message
+    });
+  }
 });
 
 // Loan application submission endpoint with database integration

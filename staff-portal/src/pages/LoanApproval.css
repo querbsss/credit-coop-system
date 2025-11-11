@@ -52,6 +52,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background: none !important;
 }
 
 .stat-card.pending .stat-icon {
@@ -74,31 +75,14 @@
     color: #721c24;
 }
 
+
+.stat-card.pending .stat-icon,
+.stat-card.under-review .stat-icon,
+.stat-card.approved .stat-icon,
+.stat-card.rejected .stat-icon,
 .stat-card.urgent .stat-icon {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.stat-content h3 {
-    margin: 0 0 0.5rem 0;
-    color: #495057;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2c3e50;
-}
-
-/* Filters Section */
-.filters-section {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: none !important;
+    color: inherit;
 }
 
 .filter-group {

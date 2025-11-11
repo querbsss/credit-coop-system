@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import './LoanApplication.css';
 
+// Removed duplicate React import statement
+
 const LoanApplication = () => {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -31,6 +33,64 @@ const LoanApplication = () => {
     designationPosition: '',
     yearsInCompany: ''
   });
+
+  // Auto-fill form with membership application data
+  useEffect(() => {
+    const fetchMembershipApplication = async () => {
+      try {
+        // Log the user object to debug
+        console.log('Auto-fill: user object:', user);
+        if (user && typeof user === 'object') {
+          console.log('Auto-fill: user keys:', Object.keys(user));
+        }
+        // Try to find a membership number or unique identifier
+        const membershipNumber = user?.membershipNumber || user?.member_number || user?.memberId || user?.empnumber || user?.id || user?.user_id || user?.applicants_membership_number;
+        console.log('Auto-fill: Using membership number:', membershipNumber);
+        if (!membershipNumber) return;
+        // Adjust endpoint as needed for your backend
+        const res = await fetch(`http://localhost:5001/api/membership-applications/by-member/${membershipNumber}`, {
+          headers: { 'token': localStorage.token }
+        });
+        console.log('Auto-fill: API status', res.status);
+        if (!res.ok) {
+          const errText = await res.text();
+          console.log('Auto-fill: API error response', errText);
+          return;
+        }
+        const data = await res.json();
+        console.log('Auto-fill: API data', data);
+        // Map backend fields to form fields
+        setFormData(prev => ({
+          ...prev,
+          membershipType: data.membership_type || prev.membershipType,
+          lastName: data.last_name || prev.lastName,
+          firstName: data.first_name || prev.firstName,
+          middleName: data.middle_name || prev.middleName,
+          gender: data.gender || prev.gender,
+          civilStatus: data.civil_status || prev.civilStatus,
+          birthDate: data.date_of_birth || prev.birthDate,
+          landline: data.landline || prev.landline,
+          mobileNumber: data.contact_number || prev.mobileNumber,
+          currentAddress: data.address || prev.currentAddress,
+          yearsOfStayCurrent: data.occupied_since || prev.yearsOfStayCurrent,
+          permanentAddress: data.permanent_address || prev.permanentAddress,
+          yearsOfStayPermanent: data.years_of_stay_permanent || prev.yearsOfStayPermanent,
+          homeOwnership: data.type_of_address || prev.homeOwnership,
+          emailAddress: data.email_address || prev.emailAddress,
+          spouseName: data.spouse_full_name || prev.spouseName,
+          numberOfChildren: data.number_of_dependents || prev.numberOfChildren,
+          dateHired: data.date_hired_from || prev.dateHired,
+          companyBusiness: data.employer_trade_name || prev.companyBusiness,
+          contractPeriod: data.employment_occupation_status || prev.contractPeriod,
+          designationPosition: data.employment_occupation || prev.designationPosition,
+          yearsInCompany: data.years_in_company || prev.yearsInCompany
+        }));
+      } catch (err) {
+        console.error('Auto-fill: fetchMembershipApplication error', err);
+      }
+    };
+    fetchMembershipApplication();
+  }, [user]);
   const [govIdFile, setGovIdFile] = useState(null);
   const [companyIdFile, setCompanyIdFile] = useState(null);
   const [govIdPreview, setGovIdPreview] = useState(null);
