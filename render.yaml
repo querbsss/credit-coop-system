@@ -1,4 +1,10 @@
 services:
+  # Database
+  - type: pserv
+    name: credit-coop-database
+    databaseName: slz_coop_staff
+    user: postgres
+    region: oregon
   # Backend API Service
   - type: web
     name: credit-coop-backend
@@ -81,4 +87,4 @@ services:
     publishDir: staff-portal/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://credit-coop-staffs-portal-backend.onrender.com
+  value: https://credit-coop-staff-backend.onrender.com
