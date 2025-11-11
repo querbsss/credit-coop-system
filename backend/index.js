@@ -17,22 +17,38 @@ const pool = new Pool({
 
 // Middleware - FIXED TYPO
 app.use(cors({
+<<<<<<< HEAD
     origin: process.env.NODE_ENV === 'production'
     ? [
         'https://credit-coop-landing.onrender.com',
         'https://credit-coop-member-portal.onrender.com',
         'https://credit-coop-staff-portal.onrender.com'
     ]
+=======
+  origin: process.env.NODE_ENV === 'production'
+    ? [
+        'https://credit-coop-landing.onrender.com',
+        'https://credit-coop-member-portal.onrender.com', 
+        'https://credit-coop-staff-portal.onrender.com'
+      ]
+>>>>>>> a1601c4 (Refactor CORS middleware configuration)
     : [
         'http://localhost:3000',
         'http://localhost:3001', 
         'http://localhost:3002',
         'http://localhost:3003',
         'http://localhost:3004'
+<<<<<<< HEAD
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'token']
+=======
+      ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'token']
+>>>>>>> a1601c4 (Refactor CORS middleware configuration)
 }));
 
 app.use(express.json());
