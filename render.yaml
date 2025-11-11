@@ -1,5 +1,6 @@
 services:
 <<<<<<< HEAD
+<<<<<<< HEAD
   # Database
   - type: pserv
     name: credit-coop-database
@@ -9,17 +10,30 @@ services:
     region: singapore
 =======
 >>>>>>> 7c10576 (Update render.yaml)
+=======
+  # Database
+  - type: pserv
+    name: credit-coop-database
+    plan: free
+    region: singapore
+
+>>>>>>> 7cb555f (🔧 Fix render.yaml: Replace unsupported 'static' type with 'web' type)
   # Backend API Service
   - type: web
     name: credit-coop-backend
     env: node
     plan: free
     region: singapore
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    root: ./backend
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: credit-coop-database
+          property: connectionString
 
   # Landing Page (React + Express)
   - type: web
@@ -27,11 +41,16 @@ services:
     env: node
     plan: free
     region: singapore
-    buildCommand: cd landing-page && npm install && npm run build
-    startCommand: cd landing-page && npm run server
+    root: ./landing-page
+    buildCommand: npm install && npm run build
+    startCommand: npm run server
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: credit-coop-database
+          property: connectionString
 
   # Member Portal Backend
   - type: web
@@ -39,11 +58,16 @@ services:
     env: node
     plan: free
     region: singapore
-    buildCommand: cd member-portal/server && npm install
-    startCommand: cd member-portal/server && npm start
+    root: ./member-portal/server
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: credit-coop-database
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
 
@@ -53,35 +77,46 @@ services:
     env: node
     plan: free
     region: singapore
-    buildCommand: cd staff-portal/server && npm install
-    startCommand: cd staff-portal/server && npm start
+    root: ./staff-portal/server
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7cb555f (🔧 Fix render.yaml: Replace unsupported 'static' type with 'web' type)
       - key: DATABASE_URL
         fromDatabase:
           name: credit-coop-database
           property: connectionString
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 7cb555f (🔧 Fix render.yaml: Replace unsupported 'static' type with 'web' type)
       - key: JWT_SECRET
         generateValue: true
 >>>>>>> 7c10576 (Update render.yaml)
 
-  # Member Portal Frontend 
+  # Member Portal Frontend (Static Site)
   - type: web
     name: credit-coop-member-portal
     env: static
+    region: singapore
     buildCommand: cd member-portal && npm install && npm run build
+    staticPublishPath: ./member-portal/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://credit-coop-member-backend.onrender.com
 
-  # Staff Portal Frontend
+  # Staff Portal Frontend (Static Site)
   - type: web
     name: credit-coop-staff-portal
     env: static
+    region: singapore
     buildCommand: cd staff-portal && npm install && npm run build
+    staticPublishPath: ./staff-portal/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://credit-coop-staff-backend.onrender.com
