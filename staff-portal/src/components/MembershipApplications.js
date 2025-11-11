@@ -53,13 +53,8 @@ const MembershipApplications = () => {
     if (!isInitialLoad) setRefreshing(true);
 
     try {
-<<<<<<< HEAD
-      // Temporarily use test endpoint for debugging
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/test/membership-applications`, {
-=======
       // Set a very high limit to fetch all applications
       const response = await fetch('http://localhost:5000/api/membership-applications?page=1&limit=10000', {
->>>>>>> backup-before-push
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -90,27 +85,16 @@ const MembershipApplications = () => {
 
   const updateApplicationStatus = async (applicationId, status, reviewNotes = '', membershipNum = '') => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No authentication token found');
-        alert('Authentication error. Please login again.');
-        return;
-      }
-
-      console.log('Updating application:', { applicationId, status, reviewNotes, membershipNum });
-      
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications/${applicationId}/status`, {
+      const response = await fetch(`http://localhost:5000/api/membership-applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'token': token
+          'token': localStorage.token
         },
         body: JSON.stringify({ status, reviewNotes, membershipNumber: membershipNum }),
       });
 
       const result = await response.json();
-      
-      console.log('Update response:', result);
       
       if (result.success) {
         fetchApplications(); // Refresh the list
@@ -122,11 +106,9 @@ const MembershipApplications = () => {
         window.dispatchEvent(new CustomEvent('membershipApplicationUpdated'));
       } else {
         console.error('Failed to update application status:', result.message);
-        alert(`Failed to update application: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error updating application status:', error);
-      alert(`Error updating application: ${error.message}`);
     }
   };
 
@@ -317,17 +299,10 @@ const MembershipApplications = () => {
                   <div className="detail-section">
                     <h4>Profile Image</h4>
                     <img 
-                      src={`${process.env.REACT_APP_LANDING_PAGE_URL}/uploads/${selectedApplication.profile_image_path}`}
+                      src={`http://localhost:3002/uploads/${selectedApplication.profile_image_path}`}
                       alt="Profile"
                       className="profile-image"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'block';
-                      }}
                     />
-                    <div style={{ display: 'none', color: '#666', fontStyle: 'italic' }}>
-                      Profile image not available
-                    </div>
                   </div>
                 )}
 
