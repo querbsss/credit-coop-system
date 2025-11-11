@@ -22,8 +22,8 @@ const Login = ({ setAuth }) => {
     setError('');
     
     try {
-  const body = { empnumber, password };
-  const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
+      const body = { empnumber, password };
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify(body)
