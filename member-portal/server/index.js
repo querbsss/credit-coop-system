@@ -10,38 +10,25 @@ const pool = require('./db_members'); // Import database connection
 //middlewares
 app.use(express.json());
 
-// Simple and effective CORS - allow all origins for now
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, Origin, X-Requested-With, Accept');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-    return;
-  }
-  
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`, {
-    origin: req.headers.origin
-  });
-  
-  next();
-});
-
-// Handle preflight requests manually for debugging
-app.options('*', (req, res) => {
-  console.log('Preflight request received:', {
-    origin: req.headers.origin,
-    method: req.headers['access-control-request-method'],
-    headers: req.headers['access-control-request-headers']
-  });
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, token, Origin, X-Requested-With, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
-});
+// Proper CORS configuration for production
+const allowedOrigins = [
+  'https://credit-coop-member-portal.onrender.com', // your frontend URL
+  'http://localhost:3000', // for local dev
+];
+app.use(cors({
+  origin: function(origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'token', 'Origin', 'X-Requested-With', 'Accept']
+}));
 
 // Serve uploaded files
 app.use('/loan_applications', express.static('loan_applications'));
