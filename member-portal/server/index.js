@@ -1,10 +1,10 @@
+const express = require('express');
+const app = express();
 // Ensure Access-Control-Allow-Credentials is always set
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
   next();
 });
-const express = require('express');
-const app = express();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
