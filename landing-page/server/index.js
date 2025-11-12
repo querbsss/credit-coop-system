@@ -65,19 +65,6 @@ const upload = multer({
   }
 });
 
-// Global error handler for all unhandled errors (including Multer and route errors)
-app.use((err, req, res, next) => {
-  console.error('Global error handler:', err);
-  if (res.headersSent) {
-    return next(err);
-  }
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal server error',
-    error: err
-  });
-});
-
 // Serve uploaded files
 app.use('/uploads', express.static(uploadsDir));
 
@@ -356,6 +343,19 @@ app.get('*', (req, res) => {
   } else {
     res.status(404).json({ error: 'Frontend build not found' });
   }
+});
+
+// Global error handler for all unhandled errors (including Multer and route errors)
+app.use((err, req, res, next) => {
+  console.error('Global error handler:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+    error: err
+  });
 });
 
 app.listen(PORT, () => {
