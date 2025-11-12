@@ -9,8 +9,8 @@ module.exports = function(req, res, next) {
     }
     try {
         // Use environment variable or fallback to a default secret
-        const jwtSecret = process.env.jwtSecret || 'default_jwt_secret_for_development_only_change_in_production';
-        const payload = jwt.verify(jwtToken, jwtSecret);
+    const jwtSecret = process.env.JWT_SECRET || 'default_jwt_secret_for_development_only_change_in_production';
+    const payload = jwt.verify(jwtToken, jwtSecret);
         req.user = payload.user;
         next();
     } catch (err) {
