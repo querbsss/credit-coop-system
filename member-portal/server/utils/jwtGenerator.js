@@ -7,8 +7,7 @@ function jwtGenerator(user_id) {
     };
 
     // Use environment variable or fallback to a default secret
-    const jwtSecret = process.env.jwtSecret || 'default_jwt_secret_for_development_only_change_in_production';
-    
+    const jwtSecret = process.env.JWT_SECRET || 'default_jwt_secret_for_development_only_change_in_production';
     return jwt.sign(payload, jwtSecret, { expiresIn: '1hr' });
 }
 
