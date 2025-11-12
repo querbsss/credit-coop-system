@@ -17,7 +17,8 @@ app.use(express.json());
 
 // Proper CORS configuration for production
 const allowedOrigins = [
-  'https://credit-coop-member-portal.onrender.com', // your frontend URL
+  'https://credit-coop-member-portal.onrender.com', // old frontend URL (keep for safety)
+  'https://credit-coop-member-portal-05zn.onrender.com', // correct deployed frontend URL
   'http://localhost:3000', // for local dev
 ];
 app.use(cors({
