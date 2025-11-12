@@ -54,7 +54,8 @@ const MembershipApplications = () => {
 
     try {
       // Set a very high limit to fetch all applications
-       const response = await fetch(`${process.env.REACT_APP_LANDING_API_URL}/api/membership-applications?page=1&limit=10000`, {
+         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications?page=1&limit=10000`, {
+, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
