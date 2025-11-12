@@ -126,7 +126,8 @@ const MembershipApplication = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
+      const text = await response.text();
+      const result = text ? JSON.parse(text) : {};
 
       if (result.success) {
         alert('Thank you for your membership application! We\'ll review it and contact you within 2-3 business days.');
