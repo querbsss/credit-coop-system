@@ -359,17 +359,23 @@ app.get('*', (req, res) => {
   }
 });
 
-// Global error handler for all unhandled errors (including Multer and route errors)
+// Multer error handler (must be before global error handler)
 app.use((err, req, res, next) => {
-  console.error('Global error handler:', err);
-  if (res.headersSent) {
-    return next(err);
+  if (err instanceof multer.MulterError || err.message?.includes('file')) {
+    console.error('Multer error:', err);
+    return res.status(400).json({
+      success: false,
+      message: 'File upload error',
+      error: err.message
+    });
   }
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal server error',
-    error: err
-  });
+  next(err);
+});
+
+// Simple test route to confirm requests reach backend
+app.post('/api/test', (req, res) => {
+  console.log('Test route hit:', req.body);
+  res.json({ success: true, message: 'Test route working', body: req.body });
 });
 
 app.listen(PORT, () => {
