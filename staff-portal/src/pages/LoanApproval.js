@@ -98,6 +98,11 @@ const LoanApproval = () => {
 
             // Log response for debugging
             console.log('Server Response:', response);
+            
+            const responseBody = await response.text();
+            console.log('Response Body:', responseBody);
+
+            const data = JSON.parse(responseBody);
 
             const data = await response.json();
             if (data.success) {
