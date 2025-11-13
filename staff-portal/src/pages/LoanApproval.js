@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import './LoanApproval.css';
 import { ReactComponent as HourglassIcon } from '../assets/icons/hourglass-svgrepo-com.svg';
@@ -27,9 +26,10 @@ const LoanApproval = () => {
         fetchStatistics();
     }, []);
 
+    const API_BASE_URL = process.env.REACT_APP_API_URL;
     const fetchApplications = async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/applications`, {
+            const response = await fetch(`${API_BASE_URL}/api/loan-review/applications`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -47,7 +47,7 @@ const LoanApproval = () => {
 
     const fetchStatistics = async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/statistics`, {
+            const response = await fetch(`${API_BASE_URL}/api/loan-review/statistics`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -63,7 +63,7 @@ const LoanApproval = () => {
 
     const fetchApplicationDetails = async (id) => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/applications/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/loan-review/applications/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -79,16 +79,21 @@ const LoanApproval = () => {
 
     const handleApproval = async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-review/applications/${selectedApplication.application.application_id}/approve`, {
+            const payload = {
+                ...approvalForm,
+                manager_id: JSON.parse(localStorage.getItem('userInfo') || '{}').id
+            };
+
+            // Log payload for debugging
+            console.log('Approval Payload:', payload);
+
+            const response = await fetch(`${API_BASE_URL}/api/loan-review/applications/${selectedApplication.application.application_id}/approve`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({
-                    ...approvalForm,
-                    manager_id: JSON.parse(localStorage.getItem('userInfo') || '{}').id
-                })
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
