@@ -102,8 +102,15 @@ const LoanApproval = () => {
             const responseBody = await response.text();
             console.log('Response Body:', responseBody);
 
-            const data = JSON.parse(responseBody);
-
+            let data;
+            try {
+                data = JSON.parse(responseBody);
+            } catch (parseError) {
+                console.error('Error parsing response body:', parseError);
+                alert('Unexpected server response');
+                return;
+            }
+            
             const data = await response.json();
             if (data.success) {
                 alert(data.message);
