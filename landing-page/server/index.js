@@ -98,11 +98,9 @@ app.post('/api/membership-application', upload.fields([
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Headers:', req.headers);
-  console.log('Received membership application submission');
   console.log('Request body:', req.body);
   console.log('Request files:', req.files);
-  console.log('Request file:', req.file);
-  
+
   try {
     const {
       // Basic membership information
@@ -206,15 +204,16 @@ app.post('/api/membership-application', upload.fields([
     ];
 
     const result = await pool.query(query, values);
-    
+    console.log('DEBUG: Query executed successfully');
+    console.log('DEBUG: Inserted application ID:', result.rows[0].application_id);
+
     res.status(201).json({
       success: true,
       message: 'Membership application submitted successfully!',
       applicationId: result.rows[0].application_id
     });
-
   } catch (error) {
-    console.error('Error submitting membership application:', error);
+    console.error('DEBUG: Error submitting membership application:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to submit membership application',
