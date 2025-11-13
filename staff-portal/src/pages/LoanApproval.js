@@ -96,6 +96,9 @@ const LoanApproval = () => {
                 body: JSON.stringify(payload)
             });
 
+            // Log response for debugging
+            console.log('Server Response:', response);
+
             const data = await response.json();
             if (data.success) {
                 alert(data.message);
