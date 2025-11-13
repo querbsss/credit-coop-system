@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
       const apiUrl = process.env.REACT_APP_API_URL === CORRECT_API_URL 
         ? process.env.REACT_APP_API_URL 
         : CORRECT_API_URL;
-      const fullUrl = `${apiUrl}/login`;
+      const fullUrl = `${apiUrl}/auth/login`;
       console.log('=== LOGIN ATTEMPT v2.0 ===');
       console.log('Login attempt - API URL:', apiUrl);
       console.log('Login attempt - Full URL:', fullUrl);
