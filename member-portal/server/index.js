@@ -295,153 +295,67 @@ app.post('/api/loan-application/submit', loanUpload.fields([
     { name: 'gov_id_file', maxCount: 1 },
     { name: 'company_id_file', maxCount: 1 }
 ]), async (req, res) => {
-    try {
-        // Extract form data
-        const {
-            user_id, memberEmail, dateFiled, loanType, membershipType,
-            lastName, firstName, middleName, gender, civilStatus, birthDate,
-            landline, mobileNumber, emailAddress,
-            currentAddress, yearsOfStayCurrent, permanentAddress, yearsOfStayPermanent, homeOwnership,
-            spouseName, numberOfChildren,
-            dateHired, companyBusiness, contractPeriod, designationPosition, yearsInCompany
-        } = req.body;
+  try {
+    // Extract form data
+    const {
+      user_id, memberEmail, dateFiled, loanType, membershipType,
+      lastName, firstName, middleName, gender, civilStatus, birthDate,
+      landline, mobileNumber, emailAddress,
+      currentAddress, yearsOfStayCurrent, permanentAddress, yearsOfStayPermanent, homeOwnership,
+      spouseName, numberOfChildren,
+      dateHired, companyBusiness, contractPeriod, designationPosition, yearsInCompany
+    } = req.body;
 
-        // Get file paths (store relative paths for database)
-        const govIdFilePath = req.files?.gov_id_file ? 
-            `uploads/loan_documents/${req.files.gov_id_file[0].filename}` : null;
-        const companyIdFilePath = req.files?.company_id_file ? 
-            `uploads/loan_documents/${req.files.company_id_file[0].filename}` : null;
+    // Log received memberEmail for debugging
+    console.log('Loan application submission: received memberEmail:', memberEmail);
 
-        // Validate required fields
-        if (!memberEmail || !dateFiled || !loanType || !lastName || !firstName || !gender || 
-            !civilStatus || !birthDate || !mobileNumber || !emailAddress || !currentAddress || 
-            !yearsOfStayCurrent || !permanentAddress || !yearsOfStayPermanent || !homeOwnership) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields'
-            });
-        }
+    // Get file paths (store relative paths for database)
+    const govIdFilePath = req.files?.gov_id_file ? 
+      `uploads/loan_documents/${req.files.gov_id_file[0].filename}` : null;
+    const companyIdFilePath = req.files?.company_id_file ? 
+      `uploads/loan_documents/${req.files.company_id_file[0].filename}` : null;
 
-        // Get member number from member_users table using email
-        let memberNumber = null;
-        let actualUserId = null;
-        
-        try {
-            const memberQuery = `
-                SELECT user_id, member_number 
-                FROM member_users 
-                WHERE user_email = $1
-            `;
-            const memberResult = await pool.query(memberQuery, [memberEmail]);
-            
-            if (memberResult.rows.length > 0) {
-                actualUserId = memberResult.rows[0].user_id;
-                memberNumber = memberResult.rows[0].member_number;
-            } else {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Member not found in system'
-                });
-            }
-        } catch (memberError) {
-            console.error('Error finding member:', memberError);
-            return res.status(500).json({
-                success: false,
-                message: 'Error validating member information'
-            });
-        }
-
-        // Insert loan application into database
-        const insertQuery = `
-            INSERT INTO loan_applications (
-                user_id, date_filed, loan_type, membership_type,
-                last_name, first_name, middle_name, gender, civil_status, birth_date,
-                landline, mobile_number, email_address,
-                current_address, years_of_stay_current, permanent_address, years_of_stay_permanent, home_ownership,
-                spouse_name, number_of_children,
-                date_hired, company_business, contract_period, designation_position, years_in_company,
-                gov_id_file_path, company_id_file_path,
-                status, submitted_at, updated_at
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-                $21, $22, $23, $24, $25, $26, $27, 'pending', NOW(), NOW()
-            ) RETURNING application_id, submitted_at
-        `;
-
-        const values = [
-            actualUserId, // Use the UUID from member_users table  
-            dateFiled, 
-            loanType, 
-            membershipType,
-            lastName, 
-            firstName, 
-            middleName || null, 
-            gender, 
-            civilStatus, 
-            birthDate,
-            landline || null, 
-            mobileNumber, 
-            emailAddress,
-            currentAddress, 
-            parseFloat(yearsOfStayCurrent), 
-            permanentAddress, 
-            parseFloat(yearsOfStayPermanent), 
-            homeOwnership,
-            spouseName || null, 
-            numberOfChildren ? parseInt(numberOfChildren) : 0,
-            dateHired || null, 
-            companyBusiness || null, 
-            contractPeriod || null, 
-            designationPosition || null, 
-            yearsInCompany ? parseFloat(yearsInCompany) : null,
-            govIdFilePath, 
-            companyIdFilePath
-        ];
-
-        const result = await pool.query(insertQuery, values);
-        const applicationId = result.rows[0].application_id;
-        const submittedAt = result.rows[0].submitted_at;
-
-        console.log(`Loan application submitted successfully. ID: ${applicationId}, Member: ${memberNumber}`);
-        
-        res.json({
-            success: true,
-            message: 'Loan application submitted successfully!',
-            application_id: applicationId,
-            member_number: memberNumber,
-            submitted_at: submittedAt,
-            status: 'pending'
-        });
-
-    } catch (error) {
-        console.error('Error submitting loan application:', error);
-        
-        // Clean up uploaded files on error
-        if (req.files?.gov_id_file) {
-            try {
-                fs.unlinkSync(req.files.gov_id_file[0].path);
-            } catch (cleanupError) {
-                console.error('Error cleaning up gov_id_file:', cleanupError);
-            }
-        }
-        if (req.files?.company_id_file) {
-            try {
-                fs.unlinkSync(req.files.company_id_file[0].path);
-            } catch (cleanupError) {
-                console.error('Error cleaning up company_id_file:', cleanupError);
-            }
-        }
-        
-    // Log the full error for debugging
-    console.error('Loan application DB error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error submitting loan application',
-      error: error.message || error
-    });
+    // Validate required fields
+    if (!memberEmail || !dateFiled || !loanType || !lastName || !firstName || !gender || 
+      !civilStatus || !birthDate || !mobileNumber || !emailAddress || !currentAddress || 
+      !yearsOfStayCurrent || !permanentAddress || !yearsOfStayPermanent || !homeOwnership) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
     }
-});
+
+    // Get member number from member_users table using email
+    let memberNumber = null;
+    let actualUserId = null;
+        
+    try {
+      const memberQuery = `
+        SELECT user_id, member_number 
+        FROM member_users 
+        WHERE user_email = $1
+      `;
+      console.log('Loan application: running memberQuery with email:', memberEmail);
+      const memberResult = await pool.query(memberQuery, [memberEmail]);
+      console.log('Loan application: memberQuery result:', memberResult.rows);
+            
+      if (memberResult.rows.length > 0) {
+        actualUserId = memberResult.rows[0].user_id;
+        memberNumber = memberResult.rows[0].member_number;
+      } else {
+        console.log('Loan application: member not found for email:', memberEmail);
+        return res.status(404).json({
+          success: false,
+          message: 'Member not found in system'
+        });
+      }
+    } catch (memberError) {
+      console.error('Error finding member:', memberError);
+      return res.status(500).json({
+        success: false,
+        message: 'Error validating member information'
+      });
+    }
 
 // Get loan applications for a user (by email)
 app.get('/api/loan-applications/user/:email', async (req, res) => {
