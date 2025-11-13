@@ -17,54 +17,52 @@ router.post('/register', validation, async (req, res) => {
     }
 });
 
-router.post('/auth/login', validation, async (req, res) => {
+router.post('/login', validation, async (req, res) => {
     try {
-        console.log('Login attempt received:', { body: req.body, headers: req.headers });
-        
-        // 1. Get user input - accepting both email and memberNumber
+        console.log('DEBUG: /login route hit');
+        console.log('Request body:', req.body);
+        console.log('Request headers:', req.headers);
 
         const { email, memberNumber, password } = req.body;
         const loginField = email || memberNumber;
 
-        console.log('=== LOGIN DEBUG ===');
-        console.log('Login field:', loginField, 'Password provided:', !!password);
-        console.log('Raw req.body:', req.body);
+        console.log('DEBUG: Login field:', loginField);
+        console.log('DEBUG: Password provided:', !!password);
 
-        // 2. Validate user input
-        if (!(loginField && password)){
-            console.log('Validation failed: missing credentials');
+        if (!(loginField && password)) {
+            console.log('DEBUG: Validation failed - missing credentials');
             return res.status(400).send("Member number/email and password are required");
         }
 
-        // 3. Check if user exists in member_users table (check both email and member number fields)
         let user;
         if (email) {
-            console.log('Looking up user by email:', email);
+            console.log('DEBUG: Looking up user by email:', email);
             user = await pool.query("SELECT * FROM member_users WHERE user_email = $1 AND is_active = true", [email]);
         } else {
-            console.log('Looking up user by memberNumber:', memberNumber);
+            console.log('DEBUG: Looking up user by memberNumber:', memberNumber);
             user = await pool.query("SELECT * FROM member_users WHERE member_number = $1 AND is_active = true", [memberNumber]);
         }
 
-        console.log('User query result:', user.rows);
+        console.log('DEBUG: User query result:', user.rows);
 
-        if (user.rows.length === 0){
-            console.log('User not found or inactive');
+        if (user.rows.length === 0) {
+            console.log('DEBUG: User not found or inactive');
             return res.status(400).send("User does not exist or account is inactive");
         }
 
-        // 4. Check if password is correct
         const validPassword = await bcrypt.compare(password, user.rows[0].user_password);
 
-        if (!validPassword){
+        if (!validPassword) {
+            console.log('DEBUG: Invalid password');
             return res.status(400).send("Invalid Password");
         }
 
-        // 5. Generate JWT token
         const token = jwtGenerator(user.rows[0].user_id);
+        console.log('DEBUG: JWT token generated:', token);
+
         res.json({ token, user: user.rows[0] });
     } catch (err){
-        console.error(err.message);
+        console.error('DEBUG: Error in /login route:', err.message);
         res.status(500).send('Server Error');
     }
 });
