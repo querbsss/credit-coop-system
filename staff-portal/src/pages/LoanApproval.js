@@ -102,18 +102,16 @@ const LoanApproval = () => {
             const responseBody = await response.text();
             console.log('Response Body:', responseBody);
 
-            let data;
+            let parsedData;
             try {
-                data = JSON.parse(responseBody);
+                parsedData = JSON.parse(responseBody);
             } catch (parseError) {
                 console.error('Error parsing response body:', parseError);
                 alert('Unexpected server response');
                 return;
             }
-            
-            const data = await response.json();
-            if (data.success) {
-                alert(data.message);
+            if (parsedData.success) {
+                alert(parsedData.message);
                 setShowApprovalModal(false);
                 fetchApplications();
                 setApprovalForm({
@@ -121,7 +119,7 @@ const LoanApproval = () => {
                     notes: ''
                 });
             } else {
-                alert(data.message);
+                alert(parsedData.message);
             }
         } catch (error) {
             console.error('Error approving application:', error);
