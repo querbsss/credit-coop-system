@@ -21,12 +21,18 @@ const pool = new Pool({
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://credit-coop-landing.onrender.com', 'https://credit-coop-member-portal.onrender.com', 'https://credit-coop-staff-portal.onrender.com']
+    ? [
+        'https://credit-coop-landing.onrender.com',
+        'https://credit-coop-member-portal.onrender.com',
+        'https://credit-coop-staff-portal.onrender.com',
+        'https://credit-coop-staff-portal-x4ql.onrender.com'
+      ]
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3004', 'http://localhost:5000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'token']
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -64,6 +70,7 @@ const upload = multer({
     }
   }
 });
+
 
 // Global error handler for all unhandled errors (including Multer and route errors)
 app.use((err, req, res, next) => {
@@ -359,23 +366,17 @@ app.get('*', (req, res) => {
   }
 });
 
-// Multer error handler (must be before global error handler)
+// Global error handler for all unhandled errors (including Multer and route errors)
 app.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError || err.message?.includes('file')) {
-    console.error('Multer error:', err);
-    return res.status(400).json({
-      success: false,
-      message: 'File upload error',
-      error: err.message
-    });
+  console.error('Global error handler:', err);
+  if (res.headersSent) {
+    return next(err);
   }
-  next(err);
-});
-
-// Simple test route to confirm requests reach backend
-app.post('/api/test', (req, res) => {
-  console.log('Test route hit:', req.body);
-  res.json({ success: true, message: 'Test route working', body: req.body });
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+    error: err
+  });
 });
 
 app.listen(PORT, () => {
