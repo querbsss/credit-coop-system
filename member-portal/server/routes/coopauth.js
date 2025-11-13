@@ -22,10 +22,13 @@ router.post('/login', validation, async (req, res) => {
         console.log('Login attempt received:', { body: req.body, headers: req.headers });
         
         // 1. Get user input - accepting both email and memberNumber
+
         const { email, memberNumber, password } = req.body;
         const loginField = email || memberNumber;
 
+        console.log('=== LOGIN DEBUG ===');
         console.log('Login field:', loginField, 'Password provided:', !!password);
+        console.log('Raw req.body:', req.body);
 
         // 2. Validate user input
         if (!(loginField && password)){
@@ -39,12 +42,11 @@ router.post('/login', validation, async (req, res) => {
             console.log('Looking up user by email:', email);
             user = await pool.query("SELECT * FROM member_users WHERE user_email = $1 AND is_active = true", [email]);
         } else {
-            console.log('Looking up user by member number:', memberNumber);
-            // Check by member number
+            console.log('Looking up user by memberNumber:', memberNumber);
             user = await pool.query("SELECT * FROM member_users WHERE member_number = $1 AND is_active = true", [memberNumber]);
         }
 
-        console.log('User lookup result:', user.rows.length > 0 ? 'User found' : 'User not found');
+        console.log('User query result:', user.rows);
 
         if (user.rows.length === 0){
             console.log('User not found or inactive');
