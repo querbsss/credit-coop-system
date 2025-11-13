@@ -17,7 +17,7 @@ router.post('/register', validation, async (req, res) => {
     }
 });
 
-router.post('/login', validation, async (req, res) => {
+router.post('/auth/login', validation, async (req, res) => {
     try {
         console.log('Login attempt received:', { body: req.body, headers: req.headers });
         
