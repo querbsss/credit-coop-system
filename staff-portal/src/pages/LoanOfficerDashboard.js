@@ -114,14 +114,14 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                             </div>
                         </div>
                         <div className="quick-action-item">
-                            <span className="action-icon">🔍</span>
+                            <span className="action-icon"></span>
                             <div className="action-content">
                                 <h4>Member Credit Check</h4>
                                 <p>Verify member creditworthiness</p>
                             </div>
                         </div>
                         <div className="quick-action-item">
-                            <span className="action-icon">📞</span>
+                            <span className="action-icon"></span>
                             <div className="action-content">
                                 <h4>Follow-up Calls</h4>
                                 <p>Contact pending applicants</p>
