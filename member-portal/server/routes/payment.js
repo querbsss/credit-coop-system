@@ -3,7 +3,7 @@ const router = express.Router();
 const authorization = require('../middleware/authorization');
 
 // PayMongo API endpoint
-const PAYMONGO_SECRET_KEY = process.env.PAYMONGO_SECRET_KEY || 'sk_test_dummy_key_replace_with_actual_key';
+const PAYMONGO_SECRET_KEY = process.env.PAYMONGO_SECRET_KEY || 'sk_test_8kAzk7uz9eFZCXzMRAM7jVpH';
 
 // Create payment intent
 router.post('/create-payment-intent', authorization, async (req, res) => {
