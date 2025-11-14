@@ -72,6 +72,12 @@ const upload = multer({
 });
 
 
+// Log every incoming request for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Multer error handler (must be before global error handler)
 app.use((err, req, res, next) => {
   if (err && err.name === 'MulterError') {
@@ -95,6 +101,16 @@ app.use((err, req, res, next) => {
     success: false,
     message: err.message || 'Internal server error',
     error: err
+  });
+});
+
+// Catch-all for unmatched API routes (should be after all API routes, before static/catch-all)
+app.all('/api/*', (req, res) => {
+  console.warn(`Unmatched API route: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    success: false,
+    message: 'API route not found',
+    path: req.originalUrl
   });
 });
 
