@@ -371,7 +371,9 @@ app.use(express.static(path.join(__dirname, '../build')));
 
 
 // Catch-all handler: send back React's index.html file for any non-API GET routes only
-app.get('*', (req, res) => {
+
+// Only serve index.html for non-API GET requests
+app.get(/^\/(?!api).*/, (req, res) => {
   const indexPath = path.join(__dirname, '../build/index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
