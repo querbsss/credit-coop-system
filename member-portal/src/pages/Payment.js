@@ -84,7 +84,7 @@ const Payment = () => {
     }
   };
 
-  // Create PayMongo Payment Intent
+// Create PayMongo Payment Intent
   const createPaymentIntent = async () => {
     if (!amount || parseFloat(amount) <= 0) {
       setSubmitStatus({ type: 'error', message: 'Please enter a valid amount.' });
@@ -151,6 +151,7 @@ const Payment = () => {
       setIsProcessing(false);
     }
   };
+
 
 
   return (
