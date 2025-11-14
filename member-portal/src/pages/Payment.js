@@ -1,276 +1,145 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import gcashIcon from '../assets/icons/payment/gcash-svgrepo-com.svg';
-import grabIcon from '../assets/icons/payment/grab-logo-svgrepo-com.svg';
-import creditCardIcon from '../assets/icons/payment/credit-card-alt-1-svgrepo-com.svg';
-import './Payment.css';
+const express = require('express');
+const router = express.Router();
+const authorization = require('../middleware/authorization');
 
-const Payment = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  
-  // State management
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('gcash');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null);
-  const [checkoutUrl, setCheckoutUrl] = useState(null);
+// PayMongo API endpoint
+const PAYMONGO_SECRET_KEY = process.env.PAYMONGO_SECRET_KEY || 'sk_test_dummy_key_replace_with_actual_key';
 
-  // Constants
-  const PAYMONGO_SECRET_KEY = process.env.REACT_APP_PAYMONGO_SECRET_KEY || 'sk_test_dummy_key_replace_with_actual_key';
+// Mock PayMongo for development/testing
+router.post('/create-payment-intent', authorization, async (req, res, next) => {
+  if (process.env.NODE_ENV !== 'production' || process.env.MOCK_PAYMONGO === 'true') {
+    const { amount, description } = req.body;
+    return res.json({
+      success: true,
+      message: 'Mock payment intent created (PayMongo bypassed for testing)',
+      paymentIntent: {
+        id: 'mock_intent_123',
+        status: 'succeeded',
+        amount: amount,
+        currency: 'PHP',
+        description: description || 'Credit Cooperative Loan Payment'
+      }
+    });
+  }
+  next();
+});
 
-  // Load user's payment amount
-  useEffect(() => {
-    if (user && user.loan && user.loan.monthly_payment) {
-      const monthlyPaymentNum = Number(user.loan.monthly_payment);
-      setAmount(monthlyPaymentNum.toFixed(2));
+// Create payment intent
+router.post('/create-payment-intent', authorization, async (req, res) => {
+  try {
+    const { amount, description } = req.body;
+    
+    // Validate amount
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid amount'
+      });
     }
-  }, [user]);
 
-  // Create checkout session with PayMongo
-  const createCheckoutSession = async (paymentIntentId, amountInCents) => {
-    try {
-      const checkoutData = {
-        data: {
-          type: 'checkout_session',
-          attributes: {
-            payment_intent_id: paymentIntentId,
-            success_url: `${window.location.origin}/payment-success`,
-            cancel_url: `${window.location.origin}/payment`,
-            line_items: [
-              {
-                name: description || 'Credit Cooperative Payment',
-                amount: amountInCents,
-                currency: 'PHP',
-                quantity: 1
-              }
-            ],
-            payment_method_types: [paymentMethod],
-            description: description || 'Payment to Credit Cooperative'
+    // Convert to centavos (PayMongo uses centavos)
+    const amountInCentavos = Math.round(parseFloat(amount) * 100);
+
+    // Create payment intent with PayMongo
+    const paymentIntentData = {
+      data: {
+        type: 'payment_intent',
+        attributes: {
+          amount: amountInCentavos,
+          payment_method_allowed: ['gcash', 'grab_pay', 'paymaya'],
+          payment_method_options: {
+            card: {
+              request_three_d_secure: 'automatic'
+            }
+          },
+          currency: 'PHP',
+          description: description || 'Credit Cooperative Loan Payment',
+          statement_descriptor: 'CreditCoop',
+          metadata: {
+            user_id: req.user,
+            payment_type: 'loan_payment'
           }
         }
-      };
-
-      const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(PAYMONGO_SECRET_KEY + ':')}`
-        },
-        body: JSON.stringify(checkoutData)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.errors?.[0]?.detail || 'Failed to create checkout session');
       }
+    };
 
-      // Show success message and redirect to checkout
-      setSubmitStatus({ type: 'success', message: 'Payment session created! Redirecting...' });
-      setCheckoutUrl(data.data.attributes.checkout_url);
-      
-      // Redirect to PayMongo checkout page after a short delay
-      setTimeout(() => {
-        window.location.href = data.data.attributes.checkout_url;
-      }, 1500);
+    const response = await fetch('https://api.paymongo.com/v1/payment_intents', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(PAYMONGO_SECRET_KEY + ':').toString('base64')}`
+      },
+      body: JSON.stringify(paymentIntentData)
+    });
 
-    } catch (error) {
-      setSubmitStatus({ type: 'error', message: error.message || 'Checkout creation failed.' });
-      throw error;
-    }
-  };
+    const paymentIntent = await response.json();
 
-// Create PayMongo Payment Intent
-  const createPaymentIntent = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
-      setSubmitStatus({ type: 'error', message: 'Please enter a valid amount.' });
-      return;
-    }
-
-    setIsProcessing(true);
-    setSubmitStatus(null);
-
-    // TEMPORARY: Check if account is activated
-    if (PAYMONGO_SECRET_KEY.includes('dummy') || PAYMONGO_SECRET_KEY.includes('test_dum')) {
-      // Simulate successful payment for testing
-      setTimeout(() => {
-        setSubmitStatus({ 
-          type: 'success', 
-          message: 'Payment simulation successful! (PayMongo account activation required for real payments)' 
-        });
-        setIsProcessing(false);
-      }, 2000);
-      return;
-    }
-    try {
-      // Convert amount to cents (PayMongo expects amounts in centavos)
-      const amountInCents = Math.round(parseFloat(amount) * 100);
-
-      const paymentIntentData = {
-        data: {
-          type: 'payment_intent',
-          attributes: {
-            amount: amountInCents,
-            currency: 'PHP',
-            description: description || 'Credit Cooperative Payment',
-            payment_method_allowed: [paymentMethod],
-            capture_type: 'automatic',
-            statement_descriptor: 'Credit Coop Payment'
-          }
-        }
-      };
-
-      const response = await fetch('https://api.paymongo.com/v1/payment_intents', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(PAYMONGO_SECRET_KEY + ':')}`
-        },
-        body: JSON.stringify(paymentIntentData)
+    if (!response.ok) {
+      console.error('PayMongo payment intent error:', paymentIntent);
+      return res.status(400).json({
+        success: false,
+        message: 'Payment initialization failed',
+        error: paymentIntent
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Handle PayMongo account activation error
-        if (response.status === 401 || (data.errors && data.errors.some(err => err.detail?.includes('activate your account')))) {
-          throw new Error('PayMongo account needs activation. Please verify your account at https://dashboard.paymongo.com/');
-        }
-        throw new Error(data.errors?.[0]?.detail || 'Failed to create payment intent');
-      }
-
-      // Create Checkout Session
-      await createCheckoutSession(data.data.id, amountInCents);
-    } catch (error) {
-      setSubmitStatus({ type: 'error', message: error.message || 'Payment creation failed.' });
-    } finally {
-      setIsProcessing(false);
     }
-  };
 
+    // Create checkout session
+    const checkoutData = {
+      data: {
+        type: 'checkout_session',
+        attributes: {
+          payment_intent_id: paymentIntent.data.id,
+          success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment-success`,
+          cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment`,
+          line_items: [
+            {
+              name: description || 'Credit Cooperative Loan Payment',
+              amount: amountInCentavos,
+              currency: 'PHP',
+              quantity: 1
+            }
+          ],
+          payment_method_types: ['gcash', 'paymaya', 'grab_pay']
+        }
+      }
+    };
 
+    const checkoutResponse = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(PAYMONGO_SECRET_KEY + ':').toString('base64')}`
+      },
+      body: JSON.stringify(checkoutData)
+    });
 
-  return (
-    <div className="payment-page">
-      <Header />
-      <main className="payment-main">
-        <div className="container">
-          <div className="page-header">
-            <h1> Make a Payment</h1>
-            <p>Secure payment processing powered by PayMongo</p>
-          </div>
+    const checkoutSession = await checkoutResponse.json();
 
-          <div className="grid grid-1">
-            <div className="card">
-              <h2>Payment Details</h2>
-              
-              <div className="form-group">
-                <label htmlFor="amount">Amount (PHP)</label>
-                <input
-                  type="number"
-                  id="amount"
-                  value={amount}
-                  readOnly
-                  placeholder="0.00"
-                  min="1"
-                  step="0.01"
-                  className="form-input"
-                />
-              </div>
+    if (!checkoutResponse.ok) {
+      console.error('PayMongo checkout session error:', checkoutSession);
+      return res.status(400).json({
+        success: false,
+        message: 'Checkout session creation failed',
+        error: checkoutSession
+      });
+    }
 
-              <div className="form-group">
-                <label htmlFor="payment-method">Payment Method</label>
-                <select
-                  id="payment-method"
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="form-select"
-                >
-                  <option value="gcash">GCash</option>
-                  <option value="grab_pay">GrabPay</option>
-                  <option value="paymaya">Maya</option>
-                  <option value="card">Credit/Debit Card</option>
-                </select>
-              </div>
+    res.json({
+      success: true,
+      payment_intent_id: paymentIntent.data.id,
+      checkout_url: checkoutSession.data.attributes.checkout_url
+    });
 
-              <div className="payment-method-info">
-                {paymentMethod === 'gcash' && (
-                  <div className="method-info">
-                    <div className="method-icon">
-                      <img src={gcashIcon} alt="GCash" className="payment-method-svg-icon" />
-                    </div>
-                    <div>
-                      <h4>GCash</h4>
-                      <p>Pay securely using your GCash wallet</p>
-                    </div>
-                  </div>
-                )}
-                {paymentMethod === 'grab_pay' && (
-                  <div className="method-info">
-                    <div className="method-icon">
-                      <img src={grabIcon} alt="GrabPay" className="payment-method-svg-icon" />
-                    </div>
-                    <div>
-                      <h4>GrabPay</h4>
-                      <p>Pay using your GrabPay wallet</p>
-                    </div>
-                  </div>
-                )}
-                {paymentMethod === 'paymaya' && (
-                  <div className="method-info">
-                    <div className="method-icon">💰</div>
-                    <div>
-                      <h4>Maya</h4>
-                      <p>Pay using your Maya wallet</p>
-                    </div>
-                  </div>
-                )}
-                {paymentMethod === 'card' && (
-                  <div className="method-info">
-                    <div className="method-icon">
-                      <img src={creditCardIcon} alt="Credit/Debit Card" className="payment-method-svg-icon" />
-                    </div>
-                    <div>
-                      <h4>Credit/Debit Card</h4>
-                      <p>Pay using Visa, Mastercard, or JCB</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+  } catch (error) {
+    console.error('Payment creation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
 
-              <div className="submit-section">
-                <button
-                  onClick={createPaymentIntent}
-                  disabled={!amount || parseFloat(amount) <= 0 || isProcessing}
-                  className={`btn btn-primary btn-lg ${isProcessing ? 'loading' : ''}`}
-                >
-                  {isProcessing ? 'Processing...' : `Pay ₱${amount || '0.00'}`}
-                </button>
-              </div>
-
-              {submitStatus && (
-                <div className={`status-message ${submitStatus.type}`}>
-                  {submitStatus.type === 'error' ? '❌' : submitStatus.type === 'success' ? '✅' : '⏳'} {submitStatus.message}
-                </div>
-              )}
-
-              <div className="payment-security">
-                <div className="security-badges">
-                  <span className="security-badge">🔒 SSL Secured</span>
-                  <span className="security-badge">🛡️ PayMongo Protected</span>
-                  <span className="security-badge">✅ PCI Compliant</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-};
-
-export default Payment;
+module.exports = router;
