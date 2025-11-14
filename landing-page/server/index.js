@@ -72,6 +72,19 @@ const upload = multer({
 });
 
 
+// Multer error handler (must be before global error handler)
+app.use((err, req, res, next) => {
+  if (err && err.name === 'MulterError') {
+    console.error('Multer error:', err);
+    return res.status(400).json({
+      success: false,
+      message: 'File upload error',
+      error: err.message
+    });
+  }
+  next(err);
+});
+
 // Global error handler for all unhandled errors (including Multer and route errors)
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
