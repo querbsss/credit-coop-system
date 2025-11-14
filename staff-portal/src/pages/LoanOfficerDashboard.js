@@ -85,19 +85,19 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     <h2>Loan Management</h2>
                     <div className="action-buttons">
                         <button className="action-btn warning">
-                            <span className="btn-icon">📋</span>
+                            <span className="btn-icon"></span>
                             Review Applications
                         </button>
                         <button className="action-btn success">
-                            <span className="btn-icon">✅</span>
+                            <span className="btn-icon"></span>
                             Approve Loans
                         </button>
                         <button className="action-btn primary">
-                            <span className="btn-icon">🔍</span>
+                            <span className="btn-icon"></span>
                             Credit Assessment
                         </button>
                         <button className="action-btn info">
-                            <span className="btn-icon">📊</span>
+                            <span className="btn-icon"></span>
                             Loan Portfolio
                         </button>
                     </div>
@@ -107,7 +107,7 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     <h2>Quick Actions</h2>
                     <div className="quick-actions">
                         <div className="quick-action-item">
-                            <span className="action-icon">📝</span>
+                            <span className="action-icon"></span>
                             <div className="action-content">
                                 <h4>New Application</h4>
                                 <p>Process new loan request</p>
