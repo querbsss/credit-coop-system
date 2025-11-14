@@ -432,9 +432,9 @@ router.post('/applications/:id/approve', async (req, res) => {
         }
 
         console.log('Executing update query:', updateQuery);
-        console.log('Query parameters:', [notes, id]);
+        console.log('Query parameters:', [notes, id, reviewer_id]);
 
-        const result = await membersPool.query(updateQuery, [notes, id]);
+        const result = await membersPool.query(updateQuery, [notes, id, reviewer_id]);
         console.log('Update query result:', result.rows);
 
         if (result.rows.length === 0) {
