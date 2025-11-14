@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ReactComponent as HourglassIcon } from '../assets/icons/hourglass-svgrepo-com.svg';
 import { ReactComponent as MagnifyingGlassIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
 import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle-svgrepo-com.svg';
+import { ReactComponent as ReportsIcon } from '../assets/icons/reports-svgrepo-com.svg';
 import { ReactComponent as CrossIcon } from '../assets/icons/cross-svgrepo-com.svg';
 // All icon imports above are valid ReactComponent imports. Ensure usage is <HourglassIcon />, <MagnifyingGlassIcon />, <CheckCircleIcon />, <CrossIcon /> only.
 import '../pages/Dashboard.css';
@@ -98,7 +99,7 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                             Credit Assessment
                         </button>
                         <button className="action-btn info">
-                            <span className="btn-icon">📊</span>
+                            <span className="btn-icon"><ReportsIcon style={{ width: 20, height: 20 }} /></span>
                             Loan Portfolio
                         </button>
                     </div>
