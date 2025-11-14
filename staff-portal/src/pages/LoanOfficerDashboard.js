@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ReactComponent as HourglassIcon } from '../assets/icons/hourglass-svgrepo-com.svg';
-import { ReactComponent as MagnifyingGlassIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
+import { ReactComponent as MagnifierIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
 import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle-svgrepo-com.svg';
 import { ReactComponent as CrossIcon } from '../assets/icons/cross-svgrepo-com.svg';
 import { ReactComponent as ReportsIcon } from '../assets/icons/reports-svgrepo-com.svg';
 import { ReactComponent as ClipboardIcon } from '../assets/icons/clipboard-text-svgrepo-com.svg';
 import { ReactComponent as CheckCircleIcon2 } from '../assets/icons/check-circle-svgrepo-com.svg';
-import { ReactComponent as MagnifierIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
+// Removed duplicate import of MagnifierIcon
 import { ReactComponent as UserIcon } from '../assets/icons/user-svgrepo-com.svg';
 import { ReactComponent as BankIcon } from '../assets/icons/bank-svgrepo-com.svg';
 // All icon imports above are valid ReactComponent imports. Ensure usage is <HourglassIcon />, <MagnifyingGlassIcon />, <CheckCircleIcon />, <CrossIcon /> only.
@@ -63,7 +63,7 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     </div>
 
                     <div className="stat-card success">
-                        <div className="stat-icon"><MagnifyingGlassIcon style={{ width: 36, height: 36 }} /></div>
+                        <div className="stat-icon"><MagnifierIcon style={{ width: 36, height: 36 }} /></div>
                         <div className="stat-info">
                             <h3>Approved This Month</h3>
                             <span className="stat-number">{stats.approvedLoans}</span>
