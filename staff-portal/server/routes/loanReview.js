@@ -36,7 +36,6 @@ router.post('/applications/:id/set-loan-amount', async (req, res) => {
         });
     }
 });
-// ...existing code...
 
 // Connect to members database for loan applications
 const membersPool = new Pool({
@@ -400,13 +399,15 @@ router.post('/applications/:id/approve', async (req, res) => {
         const { action, notes, reviewer_id } = req.body;
         let updateQuery = '';
         let status = '';
+
         if (action === 'approve') {
             updateQuery = `
                 UPDATE loan_applications 
                 SET 
                     review_status = 'approved',
                     review_notes = $1,
-                    reviewed_at = CURRENT_TIMESTAMP
+                    reviewed_at = CURRENT_TIMESTAMP,
+                    manager_id = $3
                 WHERE application_id = $2 AND review_status = 'under_review'
                 RETURNING *
             `;
@@ -417,7 +418,8 @@ router.post('/applications/:id/approve', async (req, res) => {
                 SET 
                     review_status = 'rejected',
                     review_notes = $1,
-                    reviewed_at = CURRENT_TIMESTAMP
+                    reviewed_at = CURRENT_TIMESTAMP,
+                    manager_id = $3
                 WHERE application_id = $2 AND review_status = 'under_review'
                 RETURNING *
             `;
@@ -428,62 +430,53 @@ router.post('/applications/:id/approve', async (req, res) => {
                 message: 'Invalid action'
             });
         }
+
+        console.log('Executing update query:', updateQuery);
+        console.log('Query parameters:', [notes, id]);
+
         const result = await membersPool.query(updateQuery, [notes, id]);
+        console.log('Update query result:', result.rows);
+
         if (result.rows.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: 'Application not found or not ready for approval'
             });
         }
-        
-        // Add to review history - handle missing manager ID gracefully
+
         try {
-            // Check if the manager_id exists in the users table
             const userCheck = await membersPool.query(
                 'SELECT user_id FROM users WHERE user_id = $1',
-                [manager_id]
+                [reviewer_id]
             );
-            
-            let reviewerId = manager_id;
+            console.log('User check result:', userCheck.rows);
+
+            let reviewerId = reviewer_id;
             let reviewerNotes = notes || `Decision: ${action} by manager`;
-            
+
             if (userCheck.rows.length === 0) {
-                // Manager doesn't exist in members database
-                console.warn(`Manager ID ${manager_id} not found in members database. Creating system entry.`);
-                
-                // Create a system user for staff operations if it doesn't exist
-                const systemUserId = '00000000-0000-0000-0000-000000000001'; // Fixed UUID for system user
-                await membersPool.query(
-                    `INSERT INTO users (user_id, user_name, user_email, user_role, user_password)
-                     VALUES ($1, 'Staff Portal System', 'system@staffportal.local', 'admin', 'system-hash')
-                     ON CONFLICT (user_id) DO NOTHING`,
-                    [systemUserId]
-                );
-                
-                reviewerId = systemUserId;
-                reviewerNotes = `${reviewerNotes} (Decision made by staff portal manager: ${manager_id})`;
+                console.warn(`Reviewer ID ${reviewer_id} not found in users database.`);
             }
-            
-            // Insert review history
-            await membersPool.query(
-                `INSERT INTO loan_review_history (application_id, reviewer_id, reviewer_role, action_taken, notes)
-                 VALUES ($1, $2, 'manager', $3, $4)`,
-                [id, reviewerId, action, reviewerNotes]
-            );
-            
+
+            const historyInsertQuery = `
+                INSERT INTO loan_review_history (application_id, reviewer_id, reviewer_role, action_taken, notes)
+                VALUES ($1, $2, 'manager', $3, $4)
+            `;
+            console.log('Executing history insert query:', historyInsertQuery);
+            console.log('History insert parameters:', [id, reviewerId, action, reviewerNotes]);
+
+            await membersPool.query(historyInsertQuery, [id, reviewerId, action, reviewerNotes]);
         } catch (historyError) {
             console.error('Error adding to review history:', historyError);
-            // Don't fail the main operation if history insertion fails
         }
-        
+
         res.json({
             success: true,
-            message: `Application ${action}d successfully`,
+            message: `Application ${action} successfully`,
             application: result.rows[0]
         });
-        
     } catch (error) {
-        console.error('Error approving application:', error);
+        console.error('Error in approve endpoint:', error);
         res.status(500).json({
             success: false,
             message: 'Error approving application'
