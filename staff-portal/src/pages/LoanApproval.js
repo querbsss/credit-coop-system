@@ -78,10 +78,16 @@ const LoanApproval = () => {
     };
 
     const handleApproval = async () => {
+        if (!approvalForm.notes.trim()) {
+            alert('Please provide notes for your decision.');
+            return;
+        }
+
         try {
             const payload = {
-                ...approvalForm,
-                manager_id: JSON.parse(localStorage.getItem('userInfo') || '{}').id
+                action: approvalForm.action,
+                notes: approvalForm.notes,
+                reviewer_id: JSON.parse(localStorage.getItem('userInfo') || '{}').id
             };
 
             // Log payload for debugging
@@ -96,20 +102,15 @@ const LoanApproval = () => {
                 body: JSON.stringify(payload)
             });
 
-            // Log response for debugging
-            console.log('Server Response:', response);
-            
-            const responseBody = await response.text();
-            console.log('Response Body:', responseBody);
-
-            let parsedData;
-            try {
-                parsedData = JSON.parse(responseBody);
-            } catch (parseError) {
-                console.error('Error parsing response body:', parseError);
-                alert('Unexpected server response');
+            if (!response.ok) {
+                const errorMessage = `Error: ${response.status} - ${response.statusText}`;
+                console.error(errorMessage);
+                alert(errorMessage);
                 return;
             }
+
+            const parsedData = await response.json();
+
             if (parsedData.success) {
                 alert(parsedData.message);
                 setShowApprovalModal(false);
@@ -123,7 +124,7 @@ const LoanApproval = () => {
             }
         } catch (error) {
             console.error('Error approving application:', error);
-            alert('Error processing approval');
+            alert('An unexpected error occurred. Please try again later.');
         }
     };
 
