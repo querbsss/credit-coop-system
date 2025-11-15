@@ -1,251 +1,496 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const bcrypt = require('bcrypt');
 const staffAuthorize = require('../middleware/authorization');
+const membersPool = require('../db_members');
 
-// Get count of membership applications by status
-router.get('/count', staffAuthorize, async (req, res) => {
+// Ensure member_users table schema exists
+async function ensureMemberUsersSchema() {
     try {
-        const { status } = req.query;
+        // Check if member_users table exists
+        const tableCheck = await membersPool.query(`
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_name = 'member_users'
+        `);
         
-        let query = 'SELECT COUNT(*) FROM membership_applications';
-        let queryParams = [];
-        
-        if (status) {
-            query += ' WHERE status = $1';
-            queryParams.push(status);
+        if (tableCheck.rows.length === 0) {
+            console.log('Creating member_users table...');
+            await membersPool.query(`
+                CREATE TABLE member_users (
+                    user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                    user_name VARCHAR(255) NOT NULL,
+                    user_email VARCHAR(255) NOT NULL UNIQUE,
+                    user_password VARCHAR(255) NOT NULL,
+                    member_number VARCHAR(50) UNIQUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    is_active BOOLEAN DEFAULT TRUE
+                )
+            `);
+            
+            // Create indexes
+            await membersPool.query(`CREATE INDEX idx_member_users_email ON member_users(user_email)`);
+            await membersPool.query(`CREATE INDEX idx_member_users_member_number ON member_users(member_number)`);
+            await membersPool.query(`CREATE INDEX idx_member_users_active ON member_users(is_active)`);
+        } else {
+            // Check if all required columns exist, if not add them
+            const columnCheck = await membersPool.query(`
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'member_users' AND column_name IN ('created_at', 'updated_at', 'is_active')
+            `);
+            
+            const existingColumns = columnCheck.rows.map(row => row.column_name);
+            console.log('Existing columns:', existingColumns);
+            
+            if (!existingColumns.includes('created_at')) {
+                console.log('Adding created_at column...');
+                await membersPool.query(`
+                    ALTER TABLE member_users 
+                    ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                `);
+            }
+            
+            if (!existingColumns.includes('updated_at')) {
+                console.log('Adding updated_at column...');
+                await membersPool.query(`
+                    ALTER TABLE member_users 
+                    ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                `);
+            }
+            
+            if (!existingColumns.includes('is_active')) {
+                console.log('Adding is_active column...');
+                await membersPool.query(`
+                    ALTER TABLE member_users 
+                    ADD COLUMN is_active BOOLEAN DEFAULT TRUE
+                `);
+            }
         }
+    } catch (e) {
+        console.error('Error ensuring member_users schema', e);
+    }
+}
+
+ensureMemberUsersSchema();
+
+// Test endpoint to check database connection and table
+router.get('/test-db', async (req, res) => {
+    try {
+        // Test database connection
+        const testQuery = await membersPool.query('SELECT NOW()');
+        console.log('Database connection successful:', testQuery.rows[0]);
         
-        const result = await pool.query(query, queryParams);
-        const count = parseInt(result.rows[0].count);
+        // Check if table exists
+        const tableExists = await membersPool.query(`
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_name = 'member_users'
+        `);
+        
+        // Get table schema
+        const tableSchema = await membersPool.query(`
+            SELECT column_name, data_type, is_nullable
+            FROM information_schema.columns 
+            WHERE table_name = 'member_users'
+            ORDER BY ordinal_position
+        `);
+        
+        // Count existing records
+        const recordCount = await membersPool.query('SELECT COUNT(*) FROM member_users');
         
         res.json({
             success: true,
-            count: count
+            database_connected: true,
+            current_time: testQuery.rows[0].now,
+            table_exists: tableExists.rows.length > 0,
+            table_schema: tableSchema.rows,
+            record_count: parseInt(recordCount.rows[0].count)
         });
         
     } catch (err) {
-        console.error('Error fetching application count:', err);
+        console.error('Database test error:', err);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch application count',
             error: err.message
         });
     }
 });
 
-// Get membership data for loan application auto-population
-router.get('/member-data/:memberNumber', async (req, res) => {
+// Get member count - accessible to all authenticated users for dashboard
+router.get('/member-count', staffAuthorize, async (req, res) => {
     try {
-        const { memberNumber } = req.params;
+        const countResult = await membersPool.query('SELECT COUNT(*) FROM member_users WHERE is_active = true');
+        const totalCount = parseInt(countResult.rows[0].count);
         
-        console.log('Fetching membership data for member:', memberNumber);
-        
-        // Get membership application data
-        const membershipQuery = `
-            SELECT 
-                first_name,
-                last_name, 
-                middle_name,
-                suffix,
-                address,
-                contact_number,
-                email_address,
-                date_of_birth,
-                place_of_birth,
-                gender,
-                civil_status,
-                fathers_full_name,
-                mothers_maiden_name,
-                occupation,
-                annual_income,
-                business_address,
-                employment_choice,
-                business_type,
-                employer_trade_name,
-                employment_occupation
-            FROM membership_applications 
-            WHERE applicants_membership_number = $1
-        `;
-        
-        const result = await pool.query(membershipQuery, [memberNumber]);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Membership application not found for this member number'
-            });
-        }
-        
-        const membershipData = result.rows[0];
-        
-        // Map membership data to loan application format
-        const loanFormData = {
-            // Personal Information
-            lastName: membershipData.last_name,
-            firstName: membershipData.first_name,
-            middleName: membershipData.middle_name,
-            gender: membershipData.gender?.toLowerCase(),
-            civilStatus: membershipData.civil_status?.toLowerCase(),
-            birthDate: membershipData.date_of_birth,
-            
-            // Contact Information  
-            mobileNumber: membershipData.contact_number,
-            emailAddress: membershipData.email_address,
-            
-            // Address Information
-            currentAddress: membershipData.address,
-            permanentAddress: membershipData.address, // Use same address as default
-            
-            // Family Information
-            spouseName: membershipData.civil_status?.toLowerCase() === 'married' ? '' : null, // Leave empty if married, they can fill
-            
-            // Employment Information
-            companyBusiness: membershipData.employer_trade_name || membershipData.business_type,
-            designationPosition: membershipData.occupation || membershipData.employment_occupation,
-            
-            // Additional data that might be useful
-            annualIncome: membershipData.annual_income,
-            businessAddress: membershipData.business_address,
-            employmentChoice: membershipData.employment_choice,
-            fatherName: membershipData.fathers_full_name,
-            motherName: membershipData.mothers_maiden_name
-        };
-        
-        console.log('Mapped loan form data:', loanFormData);
+        console.log(`Member count endpoint called - Total active members: ${totalCount}`);
         
         res.json({
             success: true,
-            data: loanFormData,
-            memberNumber: memberNumber
+            count: totalCount,
+            active_members: totalCount
         });
-        
     } catch (err) {
-        console.error('Error fetching membership data for loan:', err);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch membership data',
-            error: err.message
+        console.error('Error fetching member count:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch member count',
+            error: err.message 
         });
     }
 });
 
-// Get all membership applications with pagination and filtering
-router.get('/', staffAuthorize, async (req, res) => {
+// IT Admin: Get all members with pagination and search
+router.get('/members', staffAuthorize, async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, search } = req.query;
+        // Only allow it_admin role
+        const role = req.user?.role;
+        console.log('User role requesting members:', role);
+        
+        if (role !== 'it_admin') {
+            console.log('Access denied - role is not it_admin');
+            return res.status(403).json({ success: false, message: 'Access denied. IT Admin role required.' });
+        }
+
+        const { page = 1, limit = 10, search = '', status = 'all' } = req.query;
         const offset = (page - 1) * limit;
         
         let whereClause = '';
         let queryParams = [];
-        let paramCount = 1;
-        
-        // Build WHERE clause
-        if (status) {
-            whereClause += `WHERE status = $${paramCount}`;
-            queryParams.push(status);
-            paramCount++;
-        }
         
         if (search) {
-            const searchCondition = `(first_name ILIKE $${paramCount} OR last_name ILIKE $${paramCount} OR email ILIKE $${paramCount})`;
-            whereClause += whereClause ? ` AND ${searchCondition}` : `WHERE ${searchCondition}`;
+            whereClause += `WHERE (user_name ILIKE $1 OR user_email ILIKE $1 OR member_number ILIKE $1)`;
             queryParams.push(`%${search}%`);
-            paramCount++;
+        }
+        
+        if (status !== 'all') {
+            const statusCondition = status === 'active' ? 'is_active = true' : 'is_active = false';
+            whereClause += whereClause ? ` AND ${statusCondition}` : `WHERE ${statusCondition}`;
         }
         
         // Get total count
-        const countQuery = `SELECT COUNT(*) FROM membership_applications ${whereClause}`;
-        const countResult = await pool.query(countQuery, queryParams);
+        const countQuery = `SELECT COUNT(*) FROM member_users ${whereClause}`;
+        const countResult = await membersPool.query(countQuery, queryParams);
         const total = parseInt(countResult.rows[0].count);
         
-        // Get applications
-        const applicationsQuery = `
-            SELECT * FROM membership_applications 
+        // Debug: Check table schema
+        try {
+            const schemaCheck = await membersPool.query(`
+                SELECT column_name, data_type 
+                FROM information_schema.columns 
+                WHERE table_name = 'member_users' 
+                ORDER BY column_name
+            `);
+            console.log('member_users table schema:', schemaCheck.rows);
+        } catch (schemaErr) {
+            console.error('Error checking schema:', schemaErr);
+        }
+        
+        // Get members with pagination
+        const membersQuery = `
+            SELECT user_id, user_name, user_email, member_number, created_at, updated_at, is_active
+            FROM member_users 
             ${whereClause}
             ORDER BY created_at DESC 
-            LIMIT $${paramCount} OFFSET $${paramCount + 1}
+            LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
         `;
         
-        const applicationsResult = await pool.query(applicationsQuery, [...queryParams, limit, offset]);
+        // Debugging: Log the query and parameters before execution
+        console.log('Executing query:', membersQuery);
+        console.log('Query parameters:', [...queryParams, limit, offset]);
         
-        res.json({
+        const membersResult = await membersPool.query(membersQuery, [...queryParams, limit, offset]);
+        
+        // Debug: Also check total count in table
+        const totalCountCheck = await membersPool.query('SELECT COUNT(*) as total FROM member_users');
+        console.log('Total records in member_users table:', totalCountCheck.rows[0].total);
+        
+        // Debug: Show all records for debugging
+        const allRecords = await membersPool.query('SELECT user_id, user_name, member_number FROM member_users ORDER BY created_at DESC');
+        console.log('All records in table:', allRecords.rows);
+        
+        return res.json({
             success: true,
-            applications: applicationsResult.rows,
+            members: membersResult.rows,
             pagination: {
                 currentPage: parseInt(page),
                 totalPages: Math.ceil(total / limit),
-                totalApplications: total,
+                totalMembers: total,
                 limit: parseInt(limit)
             }
         });
-        
     } catch (err) {
-        console.error('Error fetching applications:', err);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch applications',
-            error: err.message
-        });
-    }
-});
-
-// Update application status
-router.put('/:id/status', staffAuthorize, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status, notes, reviewNotes, membershipNumber } = req.body;
-        
-        console.log('Update request received:', { id, status, notes, reviewNotes, membershipNumber });
-        
-        // Use reviewNotes if provided, otherwise use notes
-        const finalNotes = reviewNotes || notes;
-        
-        // Validate the application exists first
-        const existingApp = await pool.query('SELECT * FROM membership_applications WHERE application_id = $1', [id]);
-        
-        if (existingApp.rows.length === 0) {
-            console.log('Application not found:', id);
-            return res.status(404).json({
-                success: false,
-                message: 'Application not found'
-            });
-        }
-        
-        console.log('Updating application:', { id, status, finalNotes, membershipNumber });
-        
-        const result = await pool.query(
-            `UPDATE membership_applications 
-             SET status = $1, review_notes = $2, applicants_membership_number = $3
-             WHERE application_id = $4 
-             RETURNING *`,
-            [status, finalNotes, membershipNumber, id]
-        );
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Application not found'
-            });
-        }
-        
-        console.log('Application updated successfully:', result.rows[0]);
-        
-        res.json({
-            success: true,
-            application: result.rows[0],
-            message: `Application ${status} successfully`
-        });
-        
-    } catch (err) {
-        console.error('Error updating application status:', err);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update application status',
-            error: err.message,
+        console.error('Error fetching members:', err);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch members',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined,
             details: process.env.NODE_ENV === 'development' ? err.stack : undefined
         });
     }
 });
+
+// IT Admin: Get single member by ID
+router.get('/members/:id', staffAuthorize, async (req, res) => {
+    try {
+        const role = req.user?.role;
+        if (role !== 'it_admin') {
+            return res.status(403).json({ success: false, message: 'Forbidden' });
+        }
+
+        const { id } = req.params;
+        const result = await membersPool.query(
+            `SELECT user_id, user_name, user_email, member_number, created_at, updated_at, is_active 
+             FROM member_users WHERE user_id = $1`,
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Member not found' });
+        }
+
+        return res.json({ success: true, member: result.rows[0] });
+    } catch (err) {
+        console.error('Error fetching member:', err);
+        return res.status(500).json({ success: false, message: 'Failed to fetch member' });
+    }
+});
+
+// IT Admin: Create member account
+router.post('/members', staffAuthorize, async (req, res) => {
+    const client = await membersPool.connect();
+
+    try {
+        // Only allow it_admin role
+        const role = req.user?.role;
+        if (role !== 'it_admin') {
+            return res.status(403).json({ message: 'Access denied. Only IT Admins can create members.' });
+        }
+
+        console.log('Creating member with data:', req.body);
+
+        await client.query('BEGIN');
+
+        const { member_number, default_password, member_name, user_email } = req.body;
+        if (!member_number || !default_password || !user_email) {
+            return res.status(400).json({ message: 'Missing required fields: member_number, default_password, user_email' });
+        }
+
+        // Hash the password
+        const saltRounds = 10;
+        const salt = await bcrypt.genSalt(saltRounds);
+        const hash = await bcrypt.hash(default_password, salt);
+
+        console.log('Password hashed successfully');
+
+        // Check duplicates
+        const existing = await client.query(
+            `SELECT user_id FROM member_users WHERE member_number = $1 OR user_email = $2`,
+            [member_number, user_email]
+        );
+
+        if (existing.rows.length > 0) {
+            console.log('Duplicate member detected:', existing.rows);
+            return res.status(409).json({ message: 'Member with this number or email already exists' });
+        }
+
+        // Use provided member_name or default to member_number if null/empty
+        const finalMemberName = member_name || `Member ${member_number}`;
+
+        console.log('Inserting member:', {
+            finalMemberName,
+            user_email,
+            member_number,
+            passwordLength: hash.length
+        });
+
+        const insert = await client.query(
+            `INSERT INTO member_users (user_name, user_email, user_password, member_number) 
+             VALUES ($1, $2, $3, $4) RETURNING user_id, member_number, user_name, user_email, created_at, is_active`,
+            [finalMemberName, user_email, hash, member_number]
+        );
+
+        console.log('Insert successful, returning:', insert.rows[0]);
+
+        await client.query('COMMIT');
+        console.log('Transaction committed successfully');
+
+        return res.json({ success: true, member: insert.rows[0] });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Error creating member account:', err);
+
+        if (err.code === '23505') { // Unique constraint violation
+            return res.status(409).json({ message: 'Duplicate entry detected. Please use a unique member number and email.' });
+        }
+
+        return res.status(500).json({ message: 'Failed to create member account', error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
+// IT Admin: Update member account
+router.put('/members/:id', staffAuthorize, async (req, res) => {
+    try {
+        const role = req.user?.role;
+        if (role !== 'it_admin') {
+            return res.status(403).json({ success: false, message: 'Forbidden' });
+        }
+
+        const { id } = req.params;
+        const { user_name, user_email, member_number, is_active, new_password } = req.body;
+
+        // Check if member exists
+        const existing = await membersPool.query(
+            `SELECT user_id FROM member_users WHERE user_id = $1`,
+            [id]
+        );
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Member not found' });
+        }
+
+        let updateFields = [];
+        let updateValues = [];
+        let paramCount = 1;
+
+        if (user_name !== undefined) {
+            updateFields.push(`user_name = $${paramCount}`);
+            updateValues.push(user_name);
+            paramCount++;
+        }
+
+        if (user_email !== undefined) {
+            // Check if email is already taken by another user
+            const emailCheck = await membersPool.query(
+                `SELECT user_id FROM member_users WHERE user_email = $1 AND user_id != $2`,
+                [user_email, id]
+            );
+            if (emailCheck.rows.length > 0) {
+                return res.status(409).json({ success: false, message: 'Email already taken by another member' });
+            }
+            updateFields.push(`user_email = $${paramCount}`);
+            updateValues.push(user_email);
+            paramCount++;
+        }
+
+        if (member_number !== undefined) {
+            // Check if member number is already taken by another user
+            const memberNumberCheck = await membersPool.query(
+                `SELECT user_id FROM member_users WHERE member_number = $1 AND user_id != $2`,
+                [member_number, id]
+            );
+            if (memberNumberCheck.rows.length > 0) {
+                return res.status(409).json({ success: false, message: 'Member number already taken by another member' });
+            }
+            updateFields.push(`member_number = $${paramCount}`);
+            updateValues.push(member_number);
+            paramCount++;
+        }
+
+        if (is_active !== undefined) {
+            updateFields.push(`is_active = $${paramCount}`);
+            updateValues.push(is_active);
+            paramCount++;
+        }
+
+        if (new_password) {
+            const saltRounds = 10;
+            const salt = await bcrypt.genSalt(saltRounds);
+            const hash = await bcrypt.hash(new_password, salt);
+            updateFields.push(`user_password = $${paramCount}`);
+            updateValues.push(hash);
+            paramCount++;
+        }
+
+        if (updateFields.length === 0) {
+            return res.status(400).json({ success: false, message: 'No fields to update' });
+        }
+
+        updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+        updateValues.push(id);
+
+        const updateQuery = `
+            UPDATE member_users 
+            SET ${updateFields.join(', ')} 
+            WHERE user_id = $${paramCount}
+            RETURNING user_id, user_name, user_email, member_number, created_at, updated_at, is_active
+        `;
+
+        const result = await membersPool.query(updateQuery, updateValues);
+
+        return res.json({ success: true, member: result.rows[0] });
+    } catch (err) {
+        console.error('Error updating member:', err);
+        return res.status(500).json({ success: false, message: 'Failed to update member' });
+    }
+});
+
+// IT Admin: Delete member account
+router.delete('/members/:id', staffAuthorize, async (req, res) => {
+    try {
+        const role = req.user?.role;
+        if (role !== 'it_admin') {
+            return res.status(403).json({ success: false, message: 'Forbidden' });
+        }
+
+        const { id } = req.params;
+
+        // Check if member exists
+        const existing = await membersPool.query(
+            `SELECT user_id, user_name FROM member_users WHERE user_id = $1`,
+            [id]
+        );
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Member not found' });
+        }
+
+        // Delete the member
+        await membersPool.query(`DELETE FROM member_users WHERE user_id = $1`, [id]);
+
+        return res.json({ 
+            success: true, 
+            message: `Member ${existing.rows[0].user_name} has been deleted successfully` 
+        });
+    } catch (err) {
+        console.error('Error deleting member:', err);
+        return res.status(500).json({ success: false, message: 'Failed to delete member' });
+    }
+});
+
+// IT Admin: Toggle member active status
+router.patch('/members/:id/toggle-status', staffAuthorize, async (req, res) => {
+    try {
+        const role = req.user?.role;
+        if (role !== 'it_admin') {
+            return res.status(403).json({ success: false, message: 'Forbidden' });
+        }
+
+        const { id } = req.params;
+
+        // Toggle the is_active status
+        const result = await membersPool.query(
+            `UPDATE member_users 
+             SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP 
+             WHERE user_id = $1 
+             RETURNING user_id, user_name, user_email, member_number, is_active`,
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Member not found' });
+        }
+
+        const member = result.rows[0];
+        return res.json({ 
+            success: true, 
+            member,
+            message: `Member ${member.user_name} has been ${member.is_active ? 'activated' : 'deactivated'}` 
+        });
+    } catch (err) {
+        console.error('Error toggling member status:', err);
+        return res.status(500).json({ success: false, message: 'Failed to toggle member status' });
+    }
+});
+
+
 
 module.exports = router;
