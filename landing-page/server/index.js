@@ -235,12 +235,17 @@ app.post('/api/membership-application', upload.fields([
   } catch (error) {
     console.error('DEBUG: Error submitting membership application:', error);
     // Always return JSON, even on unexpected errors
-    if (res.headersSent) return;
+    if (res.headersSent) {
+      console.error('DEBUG: Response headers already sent, skipping response');
+      return;
+    }
     res.status(500).json({
       success: false,
       message: 'Failed to submit membership application',
       error: error.message || 'Unknown error'
     });
+  } finally {
+    console.log('DEBUG: Response sent for membership application');
   }
 });
 

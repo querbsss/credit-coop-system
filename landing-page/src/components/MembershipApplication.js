@@ -109,93 +109,101 @@ const MembershipApplication = () => {
       console.log('Submitting to:', '/api/membership-application');
       const response = await fetch('/api/membership-application', {
         method: 'POST',
-        body: formDataToSubmit
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
-
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
-
-      if (result.success) {
-        alert('Thank you for your membership application! We\'ll review it and contact you within 2-3 business days.');
-        
-        // Reset form
-        setFormData({
-          // Basic membership information
-          numberOfShares: '',
-          amountSubscribe: '',
-          date: '',
-          membershipType: '',
-          
-          // Personal information
-          lastName: '',
-          firstName: '',
-          middleName: '',
-          suffix: '',
-          address: '',
-          contactNumber: '',
-          typeOfAddress: '',
-          occupiedSince: '',
-          emailAddress: '',
-          dateOfBirth: '',
-          placeOfBirth: '',
-          religion: '',
-          age: '',
-          gender: '',
-          civilStatus: '',
-          highestEducationalAttainment: '',
-          
-          // Family information
-          spouseFullName: '',
-          fathersFullName: '',
-          mothersMaidenName: '',
-          numberOfDependents: '',
-          
-          // Professional information
-          occupation: '',
-          annualIncome: '',
-          taxIdentificationNumber: '',
-          identificationType: '',
-          identificationNumber: '',
-          employmentChoice: '',
-          
-          // If self employed
-          businessType: '',
-          businessAddress: '',
-          
-          // If employed
-          employerTradeName: '',
-          employerTinNumber: '',
-          employerPhoneNumber: '',
-          dateHiredFrom: '',
-          dateHiredTo: '',
-          employmentOccupation: '',
-          employmentOccupationStatus: '',
-          annualMonthlyIndicator: '',
-          employmentIndustry: '',
-          
-          // Social and reference
-          facebookAccount: '',
-          referencePerson: '',
-          referenceAddress: '',
-          referenceContactNumber: '',
-          
-          // File upload
-          profileImage: null,
-          idDocument: null,
-          
-          // Agreements
-          agreeToTerms: false,
-          agreeToPrivacy: false
-        });
-      } else {
-        alert('Error submitting application: ' + result.message);
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (error) {
+        console.error('DEBUG: Failed to parse JSON response:', error);
+        throw new Error('Invalid JSON response from server');
       }
+
+      console.log('DEBUG: Response data:', responseData);
+      if (!responseData.success) {
+        throw new Error(responseData.message || 'Unknown error');
+      }
+
+      console.log('Membership application submitted successfully!');
+      alert('Thank you for your membership application! We\'ll review it and contact you within 2-3 business days.');
+      
+      // Reset form
+      setFormData({
+        // Basic membership information
+        numberOfShares: '',
+        amountSubscribe: '',
+        date: '',
+        membershipType: '',
+        
+        // Personal information
+        lastName: '',
+        firstName: '',
+        middleName: '',
+        suffix: '',
+        address: '',
+        contactNumber: '',
+        typeOfAddress: '',
+        occupiedSince: '',
+        emailAddress: '',
+        dateOfBirth: '',
+        placeOfBirth: '',
+        religion: '',
+        age: '',
+        gender: '',
+        civilStatus: '',
+        highestEducationalAttainment: '',
+        
+        // Family information
+        spouseFullName: '',
+        fathersFullName: '',
+        mothersMaidenName: '',
+        numberOfDependents: '',
+        
+        // Professional information
+        occupation: '',
+        annualIncome: '',
+        taxIdentificationNumber: '',
+        identificationType: '',
+        identificationNumber: '',
+        employmentChoice: '',
+        
+        // If self employed
+        businessType: '',
+        businessAddress: '',
+        
+        // If employed
+        employerTradeName: '',
+        employerTinNumber: '',
+        employerPhoneNumber: '',
+        dateHiredFrom: '',
+        dateHiredTo: '',
+        employmentOccupation: '',
+        employmentOccupationStatus: '',
+        annualMonthlyIndicator: '',
+        employmentIndustry: '',
+        
+        // Social and reference
+        facebookAccount: '',
+        referencePerson: '',
+        referenceAddress: '',
+        referenceContactNumber: '',
+        
+        // File upload
+        profileImage: null,
+        idDocument: null,
+        
+        // Agreements
+        agreeToTerms: false,
+        agreeToPrivacy: false
+      });
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Error submitting application. Please try again.');
