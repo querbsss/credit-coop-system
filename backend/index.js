@@ -41,6 +41,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'token']
 }));
 
+// Ensure preflight OPTIONS requests are handled for all routes by CORS
+// This guarantees the server will respond with the correct Access-Control-* headers
+// when the browser sends a preflight request.
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
