@@ -85,7 +85,7 @@ const MembershipApplications = () => {
 
   const updateApplicationStatus = async (applicationId, status, reviewNotes = '', membershipNum = '') => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_LANDING_API_URL}/api/membership-applications/${applicationId}/status`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
