@@ -17,11 +17,16 @@ const pool = new Pool({
 
 // Middleware - FIXED TYPO
 app.use(cors({
+  // Allow only specific origins. In production this includes the deployed
+  // frontends and the deployed backend hostnames (Render domains observed).
   origin: process.env.NODE_ENV === 'production'
     ? [
         'https://credit-coop-landing.onrender.com',
         'https://credit-coop-member-portal.onrender.com',
-        'https://credit-coop-staff-portal.onrender.com'
+        'https://credit-coop-staff-portal.onrender.com',
+        // Add Render hostnames that may be used for the deployed apps/APIs
+        'https://credit-coop-landing-backend.onrender.com',
+        'https://credit-coop-staff-portal-x4ql.onrender.com'
       ]
     : [
         'http://localhost:3000',
