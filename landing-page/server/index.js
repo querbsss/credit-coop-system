@@ -104,15 +104,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Catch-all for unmatched API routes (should be after all API routes, before static/catch-all)
-app.all('/api/*', (req, res) => {
-  console.warn(`Unmatched API route: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    success: false,
-    message: 'API route not found',
-    path: req.originalUrl
-  });
-});
 
 // Serve uploaded files
 app.use('/uploads', express.static(uploadsDir));
@@ -381,6 +372,17 @@ app.get('/test-table', async (req, res) => {
     });
   }
 });
+
+// Catch-all for unmatched API routes (placed AFTER all API routes so real endpoints are matched first)
+app.all('/api/*', (req, res) => {
+  console.warn(`Unmatched API route: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    success: false,
+    message: 'API route not found',
+    path: req.originalUrl
+  });
+});
+
 
 // Serve static files from React build (AFTER API routes)
 app.use(express.static(path.join(__dirname, '../build')));
