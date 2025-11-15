@@ -257,21 +257,30 @@ router.get('/members/:id', staffAuthorize, async (req, res) => {
 // IT Admin: Create member account
 router.post('/members', staffAuthorize, async (req, res) => {
     const client = await membersPool.connect();
-
+    
     try {
         // Only allow it_admin role
         const role = req.user?.role;
         if (role !== 'it_admin') {
-            return res.status(403).json({ message: 'Access denied. Only IT Admins can create members.' });
+            return res.status(403).json({ success: false, message: 'Forbidden' });
         }
 
         console.log('Creating member with data:', req.body);
+        console.log('Database config:', {
+            database: membersPool.options.database,
+            host: membersPool.options.host,
+            user: membersPool.options.user
+        });
 
         await client.query('BEGIN');
 
         const { member_number, default_password, member_name, user_email } = req.body;
         if (!member_number || !default_password || !user_email) {
-            return res.status(400).json({ message: 'Missing required fields: member_number, default_password, user_email' });
+            await client.query('ROLLBACK');
+            return res.status(400).json({ 
+                success: false, 
+                message: 'member_number, user_email, and default_password are required' 
+            });
         }
 
         // Hash the password
@@ -286,10 +295,12 @@ router.post('/members', staffAuthorize, async (req, res) => {
             `SELECT user_id FROM member_users WHERE member_number = $1 OR user_email = $2`,
             [member_number, user_email]
         );
-
+        
+        console.log('Duplicate check result:', existing.rows.length);
+        
         if (existing.rows.length > 0) {
-            console.log('Duplicate member detected:', existing.rows);
-            return res.status(409).json({ message: 'Member with this number or email already exists' });
+            await client.query('ROLLBACK');
+            return res.status(409).json({ success: false, message: 'Member account already exists with this member number or email' });
         }
 
         // Use provided member_name or default to member_number if null/empty
@@ -310,19 +321,38 @@ router.post('/members', staffAuthorize, async (req, res) => {
 
         console.log('Insert successful, returning:', insert.rows[0]);
 
+        // Explicitly commit the transaction
         await client.query('COMMIT');
         console.log('Transaction committed successfully');
+
+        // Double-check that the record was saved
+        const verifyInsert = await client.query(
+            `SELECT user_id, user_name, user_email, member_number FROM member_users WHERE user_id = $1`,
+            [insert.rows[0].user_id]
+        );
+        
+        console.log('Verification query result:', verifyInsert.rows);
 
         return res.json({ success: true, member: insert.rows[0] });
     } catch (err) {
         await client.query('ROLLBACK');
         console.error('Error creating member account:', err);
-
-        if (err.code === '23505') { // Unique constraint violation
-            return res.status(409).json({ message: 'Duplicate entry detected. Please use a unique member number and email.' });
+        
+        // Provide more specific error messages
+        if (err.code === '23502') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Required field missing. Please ensure all required fields are provided.',
+                details: err.detail
+            });
+        } else if (err.code === '23505') {
+            return res.status(409).json({ 
+                success: false, 
+                message: 'Member account already exists with this member number or email.'
+            });
         }
-
-        return res.status(500).json({ message: 'Failed to create member account', error: err.message });
+        
+        return res.status(500).json({ success: false, message: 'Failed to create member account' });
     } finally {
         client.release();
     }
