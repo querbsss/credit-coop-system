@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 import { ReactComponent as UserIcon } from '../assets/icons/user-svgrepo-com.svg';
@@ -5,12 +6,10 @@ import { ReactComponent as MoneyCheckIcon } from '../assets/icons/money-check-do
 import { ReactComponent as BankIcon } from '../assets/icons/bank-svgrepo-com.svg';
 import { ReactComponent as ClipboardIcon } from '../assets/icons/clipboard-text-svgrepo-com.svg';
 
-const Dashboard = ({ setAuth, userRole, updateLoanAmount }) => {
+const Dashboard = ({ setAuth, userRole }) => {
   const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
   const [totalMembersCount, setTotalMembersCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [applicationId, setApplicationId] = useState('');
-  const [loanAmount, setLoanAmount] = useState('');
 
   // Function to fetch total members count
   const fetchTotalMembers = async () => {
@@ -114,15 +113,6 @@ const Dashboard = ({ setAuth, userRole, updateLoanAmount }) => {
       setPendingApplicationsCount(0);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUpdateLoanAmount = (e) => {
-    e.preventDefault();
-    if (applicationId && loanAmount) {
-      updateLoanAmount(applicationId, parseFloat(loanAmount));
-    } else {
-      alert('Please provide both Application ID and Loan Amount.');
     }
   };
 
@@ -443,38 +433,6 @@ const Dashboard = ({ setAuth, userRole, updateLoanAmount }) => {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* Update Loan Amount Section */}
-        <div className="dashboard-section">
-          <div className="section-header">
-            <h2>Update Loan Amount</h2>
-          </div>
-          <div className="card">
-            <form onSubmit={handleUpdateLoanAmount} className="update-loan-form">
-              <div className="form-group">
-                <label htmlFor="applicationId">Application ID</label>
-                <input
-                  type="text"
-                  id="applicationId"
-                  value={applicationId}
-                  onChange={(e) => setApplicationId(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="loanAmount">Loan Amount</label>
-                <input
-                  type="number"
-                  id="loanAmount"
-                  value={loanAmount}
-                  onChange={(e) => setLoanAmount(e.target.value)}
-                  required
-                />
-              </div>
-              <button type="submit" className="btn btn-primary">Update Loan Amount</button>
-            </form>
           </div>
         </div>
       </div>
