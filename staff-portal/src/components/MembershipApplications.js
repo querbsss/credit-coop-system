@@ -55,6 +55,7 @@ const MembershipApplications = () => {
     try {
       // Set a very high limit to fetch all applications
          const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications?page=1&limit=10000`, {
+
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +86,9 @@ const MembershipApplications = () => {
 
   const updateApplicationStatus = async (applicationId, status, reviewNotes = '', membershipNum = '') => {
     try {
+
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications/${applicationId}/status`, {
+
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -428,7 +431,18 @@ const MembershipApplications = () => {
                   <>
                     <button 
                       className="btn btn-success"
-                      onClick={() => updateApplicationStatus(selectedApplication.application_id, 'approved', 'Application approved by manager')}
+                      onClick={() => {
+                        if (!membershipNumber.trim()) {
+                          alert('Please ensure the membership number is set before approving the application.');
+                          return;
+                        }
+                        updateApplicationStatus(
+                          selectedApplication.application_id,
+                          'approved',
+                          'Application approved by manager',
+                          membershipNumber // Pass membership number here
+                        );
+                      }}
                       disabled={selectedApplication.status === 'approved' || selectedApplication.status === 'rejected'}
                     >
                       Approve Application
