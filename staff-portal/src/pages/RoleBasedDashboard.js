@@ -40,6 +40,30 @@ const RoleBasedDashboard = ({ setAuth }) => {
         fetchUserProfile();
     }, [setAuth]);
 
+    const updateLoanAmount = async (loanId, newAmount) => {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/loans/${loanId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "token": localStorage.token
+                },
+                body: JSON.stringify({ loan_amount: newAmount })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to update loan amount: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log("Loan amount updated successfully:", result);
+            alert("Loan amount updated successfully.");
+        } catch (error) {
+            console.error("Error updating loan amount:", error);
+            alert("Failed to update loan amount. Please try again.");
+        }
+    };
+
     if (loading) {
         return (
             <div className="loading-container" style={{ 
@@ -72,7 +96,7 @@ const RoleBasedDashboard = ({ setAuth }) => {
     }
 
     // Default dashboard for other roles
-    return <Dashboard setAuth={setAuth} userRole={userRole} />;
+    return <Dashboard setAuth={setAuth} userRole={userRole} updateLoanAmount={updateLoanAmount} />;
 };
 
 export default RoleBasedDashboard;
