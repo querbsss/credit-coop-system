@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 import { ReactComponent as UserIcon } from '../assets/icons/user-svgrepo-com.svg';
@@ -6,10 +5,12 @@ import { ReactComponent as MoneyCheckIcon } from '../assets/icons/money-check-do
 import { ReactComponent as BankIcon } from '../assets/icons/bank-svgrepo-com.svg';
 import { ReactComponent as ClipboardIcon } from '../assets/icons/clipboard-text-svgrepo-com.svg';
 
-const Dashboard = ({ setAuth, userRole }) => {
+const Dashboard = ({ setAuth, userRole, updateLoanAmount }) => {
   const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
   const [totalMembersCount, setTotalMembersCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [applicationId, setApplicationId] = useState('');
+  const [loanAmount, setLoanAmount] = useState('');
 
   // Function to fetch total members count
   const fetchTotalMembers = async () => {
@@ -17,7 +18,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       console.log('Fetching total members count...');
       
       // Try the new member-count endpoint first
-      const countResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/member-count`, {
+      const countResponse = await fetch('http://localhost:5000/api/user-management/member-count', {
         headers: {
           'token': localStorage.token
         }
@@ -33,7 +34,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       }
       
       // Fallback to the members endpoint
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/members?limit=1`, {
+      const response = await fetch('http://localhost:5000/api/user-management/members?limit=1', {
         headers: {
           'token': localStorage.token
         }
@@ -51,7 +52,7 @@ const Dashboard = ({ setAuth, userRole }) => {
         
         // Try the test endpoint as fallback
         try {
-          const testResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/test-db`, {
+          const testResponse = await fetch('http://localhost:5000/api/user-management/test-db', {
             headers: {
               'token': localStorage.token
             }
@@ -79,7 +80,7 @@ const Dashboard = ({ setAuth, userRole }) => {
   const fetchPendingApplications = async () => {
     try {
       console.log('Fetching pending applications count...');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications/count?status=pending`, {
+      const response = await fetch('http://localhost:5000/api/membership-applications/count?status=pending', {
         headers: {
           'token': localStorage.token
         }
@@ -113,6 +114,15 @@ const Dashboard = ({ setAuth, userRole }) => {
       setPendingApplicationsCount(0);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateLoanAmount = (e) => {
+    e.preventDefault();
+    if (applicationId && loanAmount) {
+      updateLoanAmount(applicationId, parseFloat(loanAmount));
+    } else {
+      alert('Please provide both Application ID and Loan Amount.');
     }
   };
 
@@ -202,7 +212,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: loading ? '...' : totalMembersCount.toString(),
       change: loading ? '...' : (totalMembersCount > 0 ? `${totalMembersCount} registered` : 'No members'),
       changeType: totalMembersCount > 1000 ? 'positive' : totalMembersCount > 0 ? 'neutral' : 'warning',
-  icon: <UserIcon style={{ width: 40, height: 40, fill: 'none' }} />, // blue
+      icon: <UserIcon style={{ width: 40, height: 40 }} />, // blue
       color: 'blue'
     },
     {
@@ -210,7 +220,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱45.2M',
       change: '+₱2.1M',
       changeType: 'positive',
-  icon: <MoneyCheckIcon style={{ width: 40, height: 40, fill: 'none' }} />, // green
+      icon: <MoneyCheckIcon style={{ width: 40, height: 40 }} />, // green
       color: 'green'
     },
     {
@@ -218,7 +228,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱28.7M',
       change: '+₱890K',
       changeType: 'positive',
-  icon: <BankIcon style={{ width: 40, height: 40, fill: 'none' }} />, // purple
+      icon: <BankIcon style={{ width: 40, height: 40 }} />, // purple
       color: 'purple'
     },
     {
@@ -226,7 +236,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: loading ? '...' : pendingApplicationsCount.toString(),
       change: loading ? '...' : (pendingApplicationsCount > 0 ? `${pendingApplicationsCount} pending` : 'No pending'),
       changeType: pendingApplicationsCount > 20 ? 'warning' : pendingApplicationsCount > 0 ? 'neutral' : 'positive',
-  icon: <ClipboardIcon style={{ width: 40, height: 40, fill: 'none' }} />, // orange
+      icon: <ClipboardIcon style={{ width: 40, height: 40 }} />, // orange
       color: 'orange'
     }
   ];
@@ -433,6 +443,38 @@ const Dashboard = ({ setAuth, userRole }) => {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Update Loan Amount Section */}
+        <div className="dashboard-section">
+          <div className="section-header">
+            <h2>Update Loan Amount</h2>
+          </div>
+          <div className="card">
+            <form onSubmit={handleUpdateLoanAmount} className="update-loan-form">
+              <div className="form-group">
+                <label htmlFor="applicationId">Application ID</label>
+                <input
+                  type="text"
+                  id="applicationId"
+                  value={applicationId}
+                  onChange={(e) => setApplicationId(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="loanAmount">Loan Amount</label>
+                <input
+                  type="number"
+                  id="loanAmount"
+                  value={loanAmount}
+                  onChange={(e) => setLoanAmount(e.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary">Update Loan Amount</button>
+            </form>
           </div>
         </div>
       </div>
