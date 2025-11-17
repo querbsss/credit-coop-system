@@ -17,7 +17,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       console.log('Fetching total members count...');
       
       // Try the new member-count endpoint first
-      const countResponse = await fetch('http://localhost:5000/api/user-management/member-count', {
+      const countResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/member-count`, {
         headers: {
           'token': localStorage.token
         }
@@ -33,7 +33,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       }
       
       // Fallback to the members endpoint
-      const response = await fetch('http://localhost:5000/api/user-management/members?limit=1', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/members?limit=1`, {
         headers: {
           'token': localStorage.token
         }
@@ -51,7 +51,7 @@ const Dashboard = ({ setAuth, userRole }) => {
         
         // Try the test endpoint as fallback
         try {
-          const testResponse = await fetch('http://localhost:5000/api/user-management/test-db', {
+          const testResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/user-management/test-db`, {
             headers: {
               'token': localStorage.token
             }
@@ -79,7 +79,7 @@ const Dashboard = ({ setAuth, userRole }) => {
   const fetchPendingApplications = async () => {
     try {
       console.log('Fetching pending applications count...');
-      const response = await fetch('http://localhost:5000/api/membership-applications/count?status=pending', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/membership-applications/count?status=pending`, {
         headers: {
           'token': localStorage.token
         }
@@ -202,7 +202,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: loading ? '...' : totalMembersCount.toString(),
       change: loading ? '...' : (totalMembersCount > 0 ? `${totalMembersCount} registered` : 'No members'),
       changeType: totalMembersCount > 1000 ? 'positive' : totalMembersCount > 0 ? 'neutral' : 'warning',
-      icon: <UserIcon style={{ width: 40, height: 40 }} />, // blue
+  icon: <UserIcon style={{ width: 40, height: 40, fill: 'none' }} />, // blue
       color: 'blue'
     },
     {
@@ -210,7 +210,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱45.2M',
       change: '+₱2.1M',
       changeType: 'positive',
-      icon: <MoneyCheckIcon style={{ width: 40, height: 40 }} />, // green
+  icon: <MoneyCheckIcon style={{ width: 40, height: 40, fill: 'none' }} />, // green
       color: 'green'
     },
     {
@@ -218,7 +218,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱28.7M',
       change: '+₱890K',
       changeType: 'positive',
-      icon: <BankIcon style={{ width: 40, height: 40 }} />, // purple
+  icon: <BankIcon style={{ width: 40, height: 40, fill: 'none' }} />, // purple
       color: 'purple'
     },
     {
@@ -226,7 +226,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: loading ? '...' : pendingApplicationsCount.toString(),
       change: loading ? '...' : (pendingApplicationsCount > 0 ? `${pendingApplicationsCount} pending` : 'No pending'),
       changeType: pendingApplicationsCount > 20 ? 'warning' : pendingApplicationsCount > 0 ? 'neutral' : 'positive',
-      icon: <ClipboardIcon style={{ width: 40, height: 40 }} />, // orange
+  icon: <ClipboardIcon style={{ width: 40, height: 40, fill: 'none' }} />, // orange
       color: 'orange'
     }
   ];
