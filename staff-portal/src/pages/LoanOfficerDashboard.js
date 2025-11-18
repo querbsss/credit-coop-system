@@ -1,10 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { ReactComponent as HourglassIcon } from '../assets/icons/hourglass-svgrepo-com.svg';
-import { ReactComponent as MagnifyingGlassIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
-import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle-svgrepo-com.svg';
-import { ReactComponent as CrossIcon } from '../assets/icons/cross-svgrepo-com.svg';
-import './Dashboard.css';
-import '../status-badge.css';
+import React, { useState, useEffect } from 'react';
+import '../pages/Dashboard.css';
 
 const LoanOfficerDashboard = ({ setAuth }) => {
     const [userInfo, setUserInfo] = useState(null);
@@ -48,37 +43,37 @@ const LoanOfficerDashboard = ({ setAuth }) => {
             </div>
 
             <div className="stats-grid">
-                    <div className="stat-card warning">
-                        <div className="stat-icon"><HourglassIcon /></div>
-                        <div className="stat-info">
-                            <h3>Pending Applications</h3>
-                            <span className="stat-number">{stats.pendingApplications}</span>
-                        </div>
+                <div className="stat-card warning">
+                    <div className="stat-icon">📋</div>
+                    <div className="stat-info">
+                        <h3>Pending Applications</h3>
+                        <span className="stat-number">{stats.pendingApplications}</span>
                     </div>
+                </div>
 
-                    <div className="stat-card success">
-                        <div className="stat-icon"><MagnifierIcon /></div>
-                        <div className="stat-info">
-                            <h3>Approved This Month</h3>
-                            <span className="stat-number">{stats.approvedLoans}</span>
-                        </div>
+                <div className="stat-card success">
+                    <div className="stat-icon">✅</div>
+                    <div className="stat-info">
+                        <h3>Approved This Month</h3>
+                        <span className="stat-number">{stats.approvedLoans}</span>
                     </div>
+                </div>
 
-                    <div className="stat-card primary">
-                        <div className="stat-icon"><CheckCircleIcon /></div>
-                        <div className="stat-info">
-                            <h3>Loan Volume</h3>
-                            <span className="stat-number">₱{stats.loanVolume.toLocaleString()}</span>
-                        </div>
+                <div className="stat-card primary">
+                    <div className="stat-icon">💰</div>
+                    <div className="stat-info">
+                        <h3>Loan Volume</h3>
+                        <span className="stat-number">₱{stats.loanVolume.toLocaleString()}</span>
                     </div>
+                </div>
 
-                    <div className="stat-card info">
-                        <div className="stat-icon"><CrossIcon /></div>
-                        <div className="stat-info">
-                            <h3>Default Rate</h3>
-                            <span className="stat-number">{stats.defaultRate}%</span>
-                        </div>
+                <div className="stat-card info">
+                    <div className="stat-icon">📉</div>
+                    <div className="stat-info">
+                        <h3>Default Rate</h3>
+                        <span className="stat-number">{stats.defaultRate}%</span>
                     </div>
+                </div>
             </div>
 
             <div className="dashboard-grid">
@@ -86,19 +81,19 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     <h2>Loan Management</h2>
                     <div className="action-buttons">
                         <button className="action-btn warning">
-                            <span className="btn-icon"><ClipboardIcon /></span>
+                            <span className="btn-icon">📋</span>
                             Review Applications
                         </button>
                         <button className="action-btn success">
-                            <span className="btn-icon"><CheckCircleIcon /></span>
+                            <span className="btn-icon">✅</span>
                             Approve Loans
                         </button>
                         <button className="action-btn primary">
-                            <span className="btn-icon"><MagnifierIcon /></span>
+                            <span className="btn-icon">🔍</span>
                             Credit Assessment
                         </button>
                         <button className="action-btn info">
-                            <span className="btn-icon"><ReportsIcon /></span>
+                            <span className="btn-icon">📊</span>
                             Loan Portfolio
                         </button>
                     </div>
@@ -108,21 +103,21 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     <h2>Quick Actions</h2>
                     <div className="quick-actions">
                         <div className="quick-action-item">
-                            <span className="action-icon"><BankIcon style={{ width: 20, height: 20 }} /></span>
+                            <span className="action-icon">📝</span>
                             <div className="action-content">
                                 <h4>New Application</h4>
                                 <p>Process new loan request</p>
                             </div>
                         </div>
                         <div className="quick-action-item">
-                            <span className="action-icon"><MagnifierIcon style={{ width: 20, height: 20 }} /></span>
+                            <span className="action-icon">🔍</span>
                             <div className="action-content">
                                 <h4>Member Credit Check</h4>
                                 <p>Verify member creditworthiness</p>
                             </div>
                         </div>
                         <div className="quick-action-item">
-                            <span className="action-icon"><UserIcon style={{ width: 20, height: 20 }} /></span>
+                            <span className="action-icon">📞</span>
                             <div className="action-content">
                                 <h4>Follow-up Calls</h4>
                                 <p>Contact pending applicants</p>
