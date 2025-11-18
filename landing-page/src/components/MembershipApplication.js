@@ -73,9 +73,15 @@ const MembershipApplication = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
+    // enforce maximum length for Tax Identification Number
+    let newValue = value;
+    if (name === 'taxIdentificationNumber' && typeof newValue === 'string') {
+      newValue = newValue.slice(0, 15);
+    }
+
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : type === 'file' ? files[0] : value
+      [name]: type === 'checkbox' ? checked : type === 'file' ? files[0] : newValue
     });
   };
 
@@ -579,6 +585,7 @@ const MembershipApplication = () => {
                     name="taxIdentificationNumber"
                     value={formData.taxIdentificationNumber}
                     onChange={handleChange}
+                    maxLength={15}
                   />
                 </div>
                 <div className="form-group">
