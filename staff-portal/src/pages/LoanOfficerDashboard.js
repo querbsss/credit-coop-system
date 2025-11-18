@@ -3,6 +3,11 @@ import { ReactComponent as HourglassIcon } from '../assets/icons/hourglass-svgre
 import { ReactComponent as MagnifyingGlassIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
 import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle-svgrepo-com.svg';
 import { ReactComponent as CrossIcon } from '../assets/icons/cross-svgrepo-com.svg';
+// Add these missing imports - adjust paths as needed
+import { ReactComponent as ClipboardIcon } from '../assets/icons/clipboard-text-svgrepo-com.svg';
+import { ReactComponent as ReportsIcon } from '../assets/icons/reports-svgrepo-com.svg';
+import { ReactComponent as BankIcon } from '../assets/icons/bank-svgrepo-com.svg';
+import { ReactComponent as UserIcon } from '../assets/icons/user-svgrepo-com.svg';
 import './Dashboard.css';
 import '../status-badge.css';
 
@@ -57,7 +62,7 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     </div>
 
                     <div className="stat-card success">
-                        <div className="stat-icon"><MagnifierIcon style={{ width: 36, height: 36 }} /></div>
+                        <div className="stat-icon"><MagnifyingGlassIcon style={{ width: 36, height: 36 }} /></div>
                         <div className="stat-info">
                             <h3>Approved This Month</h3>
                             <span className="stat-number">{stats.approvedLoans}</span>
@@ -90,11 +95,11 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                             Review Applications
                         </button>
                         <button className="action-btn success">
-                            <span className="btn-icon"><CheckCircleIcon2 style={{ width: 20, height: 20 }} /></span>
+                            <span className="btn-icon"><CheckCircleIcon style={{ width: 20, height: 20 }} /></span>
                             Approve Loans
                         </button>
                         <button className="action-btn primary">
-                            <span className="btn-icon"><MagnifierIcon style={{ width: 20, height: 20 }} /></span>
+                            <span className="btn-icon"><MagnifyingGlassIcon style={{ width: 20, height: 20 }} /></span>
                             Credit Assessment
                         </button>
                         <button className="action-btn info">
@@ -115,7 +120,7 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                             </div>
                         </div>
                         <div className="quick-action-item">
-                            <span className="action-icon"><MagnifierIcon style={{ width: 20, height: 20 }} /></span>
+                            <span className="action-icon"><MagnifyingGlassIcon style={{ width: 20, height: 20 }} /></span>
                             <div className="action-content">
                                 <h4>Member Credit Check</h4>
                                 <p>Verify member creditworthiness</p>
