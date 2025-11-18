@@ -250,6 +250,22 @@ const Reports = () => {
                   </tbody>
                 </table>
               </div>
+
+              <div className="report-actions">
+                <button className="btn btn-primary">
+                  <span>📄</span>
+                  Export as PDF
+                </button>
+                <button className="btn btn-success">
+                  <span>📊</span>
+                  Export as Excel
+                </button>
+                <button className="btn btn-info">
+                  <span>📧</span>
+                  Email Report
+                </button>
+              </div>
+            </div>
           );
         };
         return (
