@@ -302,7 +302,7 @@ const Reports = () => {
                   Export as PDF
                 </button>
                 <button className="btn btn-success">
-                  <span><ReportsIcon style={{ width: 20, height: 20 }} /></span>
+                  <span>📊</span>
                   Export as Excel
                 </button>
                 <button className="btn btn-info">
