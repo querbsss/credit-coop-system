@@ -49,7 +49,7 @@ const LoanOfficerDashboard = ({ setAuth }) => {
 
             <div className="stats-grid">
                     <div className="stat-card warning">
-                        <div className="stat-icon"><HourglassIcon style={{ width: 36, height: 36 }} /></div>
+                        <div className="stat-icon"><HourglassIcon /></div>
                         <div className="stat-info">
                             <h3>Pending Applications</h3>
                             <span className="stat-number">{stats.pendingApplications}</span>
@@ -57,7 +57,7 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     </div>
 
                     <div className="stat-card success">
-                        <div className="stat-icon"><MagnifierIcon style={{ width: 36, height: 36 }} /></div>
+                        <div className="stat-icon"><MagnifierIcon /></div>
                         <div className="stat-info">
                             <h3>Approved This Month</h3>
                             <span className="stat-number">{stats.approvedLoans}</span>
@@ -65,7 +65,7 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     </div>
 
                     <div className="stat-card primary">
-                        <div className="stat-icon"><CheckCircleIcon style={{ width: 36, height: 36 }} /></div>
+                        <div className="stat-icon"><CheckCircleIcon /></div>
                         <div className="stat-info">
                             <h3>Loan Volume</h3>
                             <span className="stat-number">₱{stats.loanVolume.toLocaleString()}</span>
@@ -73,7 +73,7 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     </div>
 
                     <div className="stat-card info">
-                        <div className="stat-icon"><CrossIcon style={{ width: 36, height: 36 }} /></div>
+                        <div className="stat-icon"><CrossIcon /></div>
                         <div className="stat-info">
                             <h3>Default Rate</h3>
                             <span className="stat-number">{stats.defaultRate}%</span>
@@ -86,19 +86,19 @@ const LoanOfficerDashboard = ({ setAuth }) => {
                     <h2>Loan Management</h2>
                     <div className="action-buttons">
                         <button className="action-btn warning">
-                            <span className="btn-icon"><ClipboardIcon style={{ width: 20, height: 20 }} /></span>
+                            <span className="btn-icon"><ClipboardIcon /></span>
                             Review Applications
                         </button>
                         <button className="action-btn success">
-                            <span className="btn-icon"><CheckCircleIcon2 style={{ width: 20, height: 20 }} /></span>
+                            <span className="btn-icon"><CheckCircleIcon /></span>
                             Approve Loans
                         </button>
                         <button className="action-btn primary">
-                            <span className="btn-icon"><MagnifierIcon style={{ width: 20, height: 20 }} /></span>
+                            <span className="btn-icon"><MagnifierIcon /></span>
                             Credit Assessment
                         </button>
                         <button className="action-btn info">
-                            <span className="btn-icon"><ReportsIcon style={{ width: 20, height: 20 }} /></span>
+                            <span className="btn-icon"><ReportsIcon /></span>
                             Loan Portfolio
                         </button>
                     </div>
