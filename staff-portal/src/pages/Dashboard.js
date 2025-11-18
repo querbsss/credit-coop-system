@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
-import UserIcon from '../assets/icons/user-svgrepo-com.svg';
-import MoneyCheckIcon from '../assets/icons/money-check-dollar-svgrepo-com.svg';
-import BankIcon from '../assets/icons/bank-svgrepo-com.svg';
-import ClipboardIcon from '../assets/icons/clipboard-text-svgrepo-com.svg';
+import { ReactComponent as UserIcon } from '../assets/icons/user-svgrepo-com.svg';
+import { ReactComponent as MoneyCheckIcon } from '../assets/icons/money-check-dollar-svgrepo-com.svg';
+import { ReactComponent as BankIcon } from '../assets/icons/bank-svgrepo-com.svg';
+import { ReactComponent as ClipboardIcon } from '../assets/icons/clipboard-text-svgrepo-com.svg';
 
 const Dashboard = ({ setAuth, userRole }) => {
   const [pendingApplicationsCount, setPendingApplicationsCount] = useState(0);
