@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './Dashboard.css';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const Reports = () => {
   const [showReports, setShowReports] = useState(false);
@@ -104,6 +106,49 @@ const Reports = () => {
             depositsData[member.name.split(' ')[0]] = member.totalDeposits / 1000; // in thousands
             loansData[member.name.split(' ')[0]] = member.loanBalance / 1000; // in thousands
           });
+
+          // Export current report to PDF using jsPDF + autoTable
+          const exportPdf = () => {
+            try {
+              const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+              doc.setFontSize(16);
+              doc.text('Financial Report', 40, 48);
+
+              doc.setFontSize(10);
+              const yStart = 68;
+              doc.text(`Total Deposits: ₱${financialData.totalDeposits.toLocaleString()}`, 40, yStart);
+              doc.text(`Total Loan Balance: ₱${financialData.totalLoans.toLocaleString()}`, 300, yStart);
+              doc.text(`Active Members: ${financialData.activeMembers}`, 40, yStart + 16);
+              doc.text(`Average Deposit: ₱${Math.round(financialData.avgDeposit).toLocaleString()}`, 300, yStart + 16);
+
+              // table headers and rows
+              const headers = ['Member ID','Name','Status','Member Since','Total Deposits','Loan Balance','Net Position'];
+              const rows = members.map(m => [
+                m.id,
+                m.name,
+                m.status,
+                new Date(m.memberSince).toLocaleDateString(),
+                `₱${m.totalDeposits.toLocaleString()}`,
+                `₱${m.loanBalance.toLocaleString()}`,
+                `₱${(m.totalDeposits - m.loanBalance).toLocaleString()}`
+              ]);
+
+              doc.autoTable({
+                startY: yStart + 36,
+                head: [headers],
+                body: rows,
+                styles: { fontSize: 9 },
+                headStyles: { fillColor: [124,58,237], textColor: 255 },
+                margin: { left: 40, right: 40 }
+              });
+
+              const fileName = `financial_report_${new Date().toISOString().slice(0,10)}.pdf`;
+              doc.save(fileName);
+            } catch (err) {
+              console.error('Export PDF failed', err);
+              alert('Unable to export PDF. See console for details.');
+            }
+          };
 
           return (
             <div className="financial-reports-container">
@@ -252,12 +297,12 @@ const Reports = () => {
               </div>
 
               <div className="report-actions">
-                <button className="btn btn-primary">
+                <button className="btn btn-primary" onClick={() => exportPdf()}>
                   <span>📄</span>
                   Export as PDF
                 </button>
                 <button className="btn btn-success">
-                  <span>📊</span>
+                  <span><ReportsIcon style={{ width: 20, height: 20 }} /></span>
                   Export as Excel
                 </button>
                 <button className="btn btn-info">
