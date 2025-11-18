@@ -108,7 +108,7 @@ const Reports = () => {
           });
 
           // Export current report to PDF using jsPDF + autoTable
-          const exportPdf = () => {
+          const exportPdf = async () => {
             try {
               const doc = new jsPDF({ unit: 'pt', format: 'a4' });
               doc.setFontSize(16);
@@ -133,14 +133,36 @@ const Reports = () => {
                 `₱${(m.totalDeposits - m.loanBalance).toLocaleString()}`
               ]);
 
-              doc.autoTable({
+              const autoTableOptions = {
                 startY: yStart + 36,
                 head: [headers],
                 body: rows,
                 styles: { fontSize: 9 },
                 headStyles: { fillColor: [124,58,237], textColor: 255 },
                 margin: { left: 40, right: 40 }
-              });
+              };
+
+              // Some combinations of jsPDF + jspdf-autotable expose autoTable differently.
+              // Try doc.autoTable first, otherwise dynamically import jspdf-autotable and call the function form.
+              if (typeof doc.autoTable === 'function') {
+                doc.autoTable(autoTableOptions);
+              } else {
+                // dynamic-import the plugin and try to call it as autoTable(doc, options)
+                try {
+                  const mod = await import('jspdf-autotable');
+                  const autoTableFn = mod?.default || mod?.autoTable || mod;
+                  if (typeof autoTableFn === 'function') {
+                    autoTableFn(doc, autoTableOptions);
+                  } else if (typeof doc.autoTable === 'function') {
+                    doc.autoTable(autoTableOptions);
+                  } else {
+                    throw new Error('jspdf-autotable did not export a callable autoTable function');
+                  }
+                } catch (e) {
+                  console.error('Failed to load jspdf-autotable plugin', e);
+                  throw e;
+                }
+              }
 
               const fileName = `financial_report_${new Date().toISOString().slice(0,10)}.pdf`;
               doc.save(fileName);
