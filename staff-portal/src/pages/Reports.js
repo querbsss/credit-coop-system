@@ -323,14 +323,6 @@ const Reports = () => {
                   <span>📄</span>
                   Export as PDF
                 </button>
-                <button className="btn btn-success">
-                  <span>📊</span>
-                  Export as Excel
-                </button>
-                <button className="btn btn-info">
-                  <span>📧</span>
-                  Email Report
-                </button>
               </div>
             </div>
           );
