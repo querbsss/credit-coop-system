@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import HourglassIcon from '../assets/icons/hourglass-svgrepo-com.svg';
-import MagnifyingGlassIcon from '../assets/icons/magnifying-glass-svgrepo-com.svg';
-import CheckCircleIcon from '../assets/icons/check-circle-svgrepo-com.svg';
-import CrossIcon from '../assets/icons/cross-svgrepo-com.svg';
+import { ReactComponent as HourglassIcon } from '../assets/icons/hourglass-svgrepo-com.svg';
+import { ReactComponent as MagnifyingGlassIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
+import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle-svgrepo-com.svg';
+import { ReactComponent as CrossIcon } from '../assets/icons/cross-svgrepo-com.svg';
 import './Dashboard.css';
 import '../status-badge.css';
 
