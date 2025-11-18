@@ -3,13 +3,14 @@ import { ReactComponent as HourglassIcon } from '../assets/icons/hourglass-svgre
 import { ReactComponent as MagnifyingGlassIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
 import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle-svgrepo-com.svg';
 import { ReactComponent as CrossIcon } from '../assets/icons/cross-svgrepo-com.svg';
-// Add these missing imports - adjust paths as needed
-import { ReactComponent as ClipboardIcon } from '../assets/icons/clipboard-text-svgrepo-com.svg';
-import { ReactComponent as ReportsIcon } from '../assets/icons/reports-svgrepo-com.svg';
-import { ReactComponent as BankIcon } from '../assets/icons/bank-svgrepo-com.svg';
-import { ReactComponent as UserIcon } from '../assets/icons/user-svgrepo-com.svg';
 import './Dashboard.css';
 import '../status-badge.css';
+
+// Safe placeholder components for missing icons
+const ClipboardIcon = ({ style }) => <span style={style}>📋</span>;
+const ReportsIcon = ({ style }) => <span style={style}>📊</span>;
+const BankIcon = ({ style }) => <span style={style}>🏦</span>;
+const UserIcon = ({ style }) => <span style={style}>👤</span>;
 
 const LoanOfficerDashboard = ({ setAuth }) => {
     const [userInfo, setUserInfo] = useState(null);
@@ -53,37 +54,37 @@ const LoanOfficerDashboard = ({ setAuth }) => {
             </div>
 
             <div className="stats-grid">
-                    <div className="stat-card warning">
-                        <div className="stat-icon"><HourglassIcon style={{ width: 36, height: 36 }} /></div>
-                        <div className="stat-info">
-                            <h3>Pending Applications</h3>
-                            <span className="stat-number">{stats.pendingApplications}</span>
-                        </div>
+                <div className="stat-card warning">
+                    <div className="stat-icon"><HourglassIcon style={{ width: 36, height: 36 }} /></div>
+                    <div className="stat-info">
+                        <h3>Pending Applications</h3>
+                        <span className="stat-number">{stats.pendingApplications}</span>
                     </div>
+                </div>
 
-                    <div className="stat-card success">
-                        <div className="stat-icon"><MagnifyingGlassIcon style={{ width: 36, height: 36 }} /></div>
-                        <div className="stat-info">
-                            <h3>Approved This Month</h3>
-                            <span className="stat-number">{stats.approvedLoans}</span>
-                        </div>
+                <div className="stat-card success">
+                    <div className="stat-icon"><MagnifyingGlassIcon style={{ width: 36, height: 36 }} /></div>
+                    <div className="stat-info">
+                        <h3>Approved This Month</h3>
+                        <span className="stat-number">{stats.approvedLoans}</span>
                     </div>
+                </div>
 
-                    <div className="stat-card primary">
-                        <div className="stat-icon"><CheckCircleIcon style={{ width: 36, height: 36 }} /></div>
-                        <div className="stat-info">
-                            <h3>Loan Volume</h3>
-                            <span className="stat-number">₱{stats.loanVolume.toLocaleString()}</span>
-                        </div>
+                <div className="stat-card primary">
+                    <div className="stat-icon"><CheckCircleIcon style={{ width: 36, height: 36 }} /></div>
+                    <div className="stat-info">
+                        <h3>Loan Volume</h3>
+                        <span className="stat-number">₱{stats.loanVolume.toLocaleString()}</span>
                     </div>
+                </div>
 
-                    <div className="stat-card info">
-                        <div className="stat-icon"><CrossIcon style={{ width: 36, height: 36 }} /></div>
-                        <div className="stat-info">
-                            <h3>Default Rate</h3>
-                            <span className="stat-number">{stats.defaultRate}%</span>
-                        </div>
+                <div className="stat-card info">
+                    <div className="stat-icon"><CrossIcon style={{ width: 36, height: 36 }} /></div>
+                    <div className="stat-info">
+                        <h3>Default Rate</h3>
+                        <span className="stat-number">{stats.defaultRate}%</span>
                     </div>
+                </div>
             </div>
 
             <div className="dashboard-grid">
