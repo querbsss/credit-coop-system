@@ -7,6 +7,18 @@ import './Sidebar.css';
 const Sidebar = () => {
   const { userRole, loading } = useUserRole();
   const [open, setOpen] = useState(false);
+  
+  useEffect(() => {
+    const onToggle = () => setOpen(o => !o);
+    const onClose = () => setOpen(false);
+    window.addEventListener('toggleSidebar', onToggle);
+    window.addEventListener('closeSidebar', onClose);
+    // cleanup
+    return () => {
+      window.removeEventListener('toggleSidebar', onToggle);
+      window.removeEventListener('closeSidebar', onClose);
+    };
+  }, []);
 
   // Get menu items based on user role
   const menuItems = userRole ? getMenuItems(userRole) : [];
