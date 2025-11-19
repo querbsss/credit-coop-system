@@ -62,6 +62,14 @@ const Header = ({ setAuth }) => {
     <header className="staff-header">
       <div className="header-content">
         <div className="header-left">
+          {/* Mobile hamburger to toggle sidebar */}
+          <button
+            className="hamburger"
+            aria-label="Toggle menu"
+            onClick={() => window.dispatchEvent(new CustomEvent('toggleSidebar'))}
+          >
+            ☰
+          </button>
           <div className="logo-section">
             <img src="/logo192.png" alt="CreditCoop Logo" className="logo-image" />
             <div className="logo-text">
