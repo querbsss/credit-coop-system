@@ -57,6 +57,18 @@
   gap: 1rem;
 }
 
+/* Mobile hamburger button */
+.hamburger {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--white);
+  font-size: 1.25rem;
+  margin-right: 0.75rem;
+  cursor: pointer;
+}
+
+
 .staff-info {
   display: flex;
   align-items: center;
@@ -167,5 +179,15 @@
   
   .logo-subtitle {
     font-size: 0.7rem;
+  }
+
+  .hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
   }
 }
