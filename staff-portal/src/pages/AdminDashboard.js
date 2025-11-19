@@ -62,7 +62,7 @@ const AdminDashboard = ({ setAuth }) => {
                 </div>
 
                 <div className="stat-card warning">
-                    <div className="stat-icon">�</div>
+                    <div className="stat-icon">🆕</div>
                     <div className="stat-info">
                         <h3>New Members</h3>
                         <span className="stat-number">{stats.totalLoans}</span>
@@ -70,7 +70,7 @@ const AdminDashboard = ({ setAuth }) => {
                 </div>
 
                 <div className="stat-card info">
-                    <div className="stat-icon">�</div>
+                    <div className="stat-icon">👥</div>
                     <div className="stat-info">
                         <h3>Active Memberships</h3>
                         <span className="stat-number">{stats.totalTransactions}</span>
@@ -101,7 +101,7 @@ const AdminDashboard = ({ setAuth }) => {
                             Membership Applications
                         </button>
                         <button className="action-btn info">
-                            <span className="btn-icon">�</span>
+                            <span className="btn-icon">🔎</span>
                             Search Members
                         </button>
                     </div>
