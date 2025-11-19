@@ -1,515 +1,335 @@
-import React, { useState, useEffect } from 'react';
-import './LoanApproval.css';
+import React, { useEffect, useState } from 'react';
 import hourglassIcon from '../assets/icons/hourglass-svgrepo-com.svg';
 import magnifyingGlassIcon from '../assets/icons/magnifying-glass-svgrepo-com.svg';
 import checkCircleIcon from '../assets/icons/check-circle-svgrepo-com.svg';
 import crossIcon from '../assets/icons/cross-svgrepo-com.svg';
+import axios from 'axios';
+import './Dashboard.css';
+import '../status-badge.css';
 
-const LoanApproval = () => {
-    const [applications, setApplications] = useState([]);
-    const [selectedApplication, setSelectedApplication] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState({
-        status: 'under_review',
-        priority: 'all',
-        search: ''
-    });
-    const [approvalForm, setApprovalForm] = useState({
-        action: '',
-        notes: ''
-    });
-    const [showApprovalModal, setShowApprovalModal] = useState(false);
-    const [statistics, setStatistics] = useState({});
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
-    useEffect(() => {
-        fetchApplications();
-        fetchStatistics();
-    }, []);
+const CreditInvestigatorDashboard = () => {
+  const [loanApplications, setLoanApplications] = useState([]);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [userRole, setUserRole] = useState('');
+  const [statistics, setStatistics] = useState({});
+  const [filter, setFilter] = useState({
+    status: 'all',
+    priority: 'all',
+    search: ''
+  });
 
-    const API_BASE_URL = process.env.REACT_APP_API_URL;
-    const fetchApplications = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/loan-review/applications`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                setApplications(data.applications);
-            }
-        } catch (error) {
-            console.error('Error fetching applications:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchStatistics = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/loan-review/statistics`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                setStatistics(data.statistics);
-            }
-        } catch (error) {
-            console.error('Error fetching statistics:', error);
-        }
-    };
-
-    const fetchApplicationDetails = async (id) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/loan-review/applications/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            const data = await response.json();
-            if (data.success) {
-                setSelectedApplication(data);
-            }
-        } catch (error) {
-            console.error('Error fetching application details:', error);
-        }
-    };
-
-    const handleApproval = async () => {
-        if (!approvalForm.notes.trim()) {
-            alert('Please provide notes for your decision.');
-            return;
-        }
-
-        try {
-            const payload = {
-                action: approvalForm.action,
-                notes: approvalForm.notes,
-                reviewer_id: JSON.parse(localStorage.getItem('userInfo') || '{}').id
-            };
-
-            // Log payload for debugging
-            console.log('Approval Payload:', payload);
-
-            const response = await fetch(`${API_BASE_URL}/api/loan-review/applications/${selectedApplication.application.application_id}/approve`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorMessage = `Error: ${response.status} - ${response.statusText}`;
-                console.error(errorMessage);
-                alert(errorMessage);
-                return;
-            }
-
-            const parsedData = await response.json();
-
-            if (parsedData.success) {
-                alert(parsedData.message);
-                setShowApprovalModal(false);
-                fetchApplications();
-                setApprovalForm({
-                    action: '',
-                    notes: ''
-                });
-            } else {
-                alert(parsedData.message);
-            }
-        } catch (error) {
-            console.error('Error approving application:', error);
-            alert('An unexpected error occurred. Please try again later.');
-        }
-    };
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'pending_review': return 'status-pending';
-            case 'under_review': return 'status-warning';
-            case 'approved': return 'status-success';
-            case 'rejected': return 'status-danger';
-            case 'returned': return 'status-info';
-            default: return 'status-pending';
-        }
-    };
-
-    const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'urgent': return 'priority-urgent';
-            case 'high': return 'priority-high';
-            case 'medium': return 'priority-medium';
-            case 'low': return 'priority-low';
-            default: return 'priority-medium';
-        }
-    };
-
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-PH', {
-            style: 'currency',
-            currency: 'PHP'
-        }).format(amount || 0);
-    };
-
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    const filteredApplications = applications.filter(app => {
-        const matchesStatus = filter.status === 'all' || app.review_status === filter.status;
-        const matchesPriority = filter.priority === 'all' || app.priority_level === filter.priority;
-        const matchesSearch = app.applicant_name?.toLowerCase().includes(filter.search.toLowerCase()) ||
-                            app.application_id.toString().includes(filter.search);
-        
-        return matchesStatus && matchesPriority && matchesSearch;
-    });
-
-    if (loading) {
-        return (
-            <div className="loan-approval-container">
-                <div className="loading-state">
-                    <div className="loading-spinner"></div>
-                    <p>Loading loan applications...</p>
-                </div>
-            </div>
-        );
+  useEffect(() => {
+    const userInfoRaw = localStorage.getItem('userInfo');
+    if (userInfoRaw) {
+      try {
+        const userInfo = JSON.parse(userInfoRaw);
+        setUserRole(userInfo.role || '');
+      } catch {
+        setUserRole('');
+      }
     }
+  }, []);
 
+  useEffect(() => {
+    if (userRole === 'credit_investigator') {
+  axios.get(`${API_BASE_URL}/api/loan-review/applications?reviewer_role=credit_investigator`)
+        .then(res => {
+          if (res.data.success) {
+            setLoanApplications(res.data.applications);
+          } else {
+            setLoanApplications([]);
+          }
+        })
+        .catch(() => setLoanApplications([]));
+  axios.get(`${API_BASE_URL}/api/loan-review/statistics`)
+        .then(res => {
+          if (res.data.success) {
+            setStatistics(res.data.statistics);
+          }
+        });
+    }
+  }, [userRole]);
+
+  const handleReview = async (application) => {
+    try {
+  const res = await axios.get(`${API_BASE_URL}/api/loan-review/applications/${application.application_id}`);
+      if (res.data.success) {
+        setSelectedApplication(res.data.application);
+      } else {
+        setSelectedApplication(application);
+      }
+    } catch {
+      setSelectedApplication(application);
+    }
+  };
+
+  const handleSendToManager = async (applicationId) => {
+    setLoading(true);
+    try {
+  await axios.post(`${API_BASE_URL}/api/loan-review/applications/${applicationId}/review`, {
+        action: 'approve_for_manager',
+        notes: 'Reviewed by credit investigator',
+        reviewer_id: 'credit_investigator',
+      });
+      setSelectedApplication(null);
+  axios.get(`${API_BASE_URL}/api/loan-review/applications?reviewer_role=credit_investigator`)
+        .then(res => {
+          if (res.data.success) {
+            setLoanApplications(res.data.applications);
+          } else {
+            setLoanApplications([]);
+          }
+        })
+        .catch(() => setLoanApplications([]));
+    } catch (err) {}
+    setLoading(false);
+  };
+
+  const filteredApplications = loanApplications.filter(app => {
+    const matchesStatus = filter.status === 'all' || app.review_status === filter.status;
+    const matchesPriority = filter.priority === 'all' || app.priority_level === filter.priority;
+    const matchesSearch = (app.applicant_name || '').toLowerCase().includes(filter.search.toLowerCase()) ||
+      app.application_id.toString().includes(filter.search);
+    return matchesStatus && matchesPriority && matchesSearch;
+  });
+
+  if (userRole !== 'credit_investigator') {
     return (
-        <div className="loan-approval-container">
-            {/* Header */}
-            <div className="page-header">
-                <h1> Loan Approval Dashboard</h1>
-                <p>Review and approve loan applications recommended by loan officers</p>
-            </div>
-
-            {/* Statistics */}
-            <div className="stats-grid">
-                <div className="stat-card pending">
-                    <div className="stat-icon"><img src={hourglassIcon} alt="pending" style={{ width: 36, height: 36 }} /></div>
-                    <div className="stat-content">
-                        <h3>Pending Review</h3>
-                        <span className="stat-number">{statistics.pending_review || 0}</span>
-                    </div>
-                </div>
-                <div className="stat-card under-review">
-                    <div className="stat-icon"><img src={magnifyingGlassIcon} alt="awaiting" style={{ width: 36, height: 36 }} /></div>
-                    <div className="stat-content">
-                        <h3>Awaiting Approval</h3>
-                        <span className="stat-number">{statistics.under_review || 0}</span>
-                    </div>
-                </div>
-                <div className="stat-card approved">
-                    <div className="stat-icon"><img src={checkCircleIcon} alt="approved" style={{ width: 36, height: 36 }} /></div>
-                    <div className="stat-content">
-                        <h3>Approved</h3>
-                        <span className="stat-number">{statistics.approved || 0}</span>
-                    </div>
-                </div>
-                <div className="stat-card rejected">
-                    <div className="stat-icon"><img src={crossIcon} alt="rejected" style={{ width: 36, height: 36 }} /></div>
-                    <div className="stat-content">
-                        <h3>Rejected</h3>
-                        <span className="stat-number">{statistics.rejected || 0}</span>
-                    </div>
-                </div>
-                {/* Removed Urgent card to match requested style */}
-            </div>
-
-            {/* Filters */}
-            <div className="filters-section">
-                <div className="filter-group">
-                    <input
-                        type="text"
-                        placeholder="Search applications..."
-                        value={filter.search}
-                        onChange={(e) => setFilter({...filter, search: e.target.value})}
-                        className="search-input"
-                    />
-                    <select
-                        value={filter.status}
-                        onChange={(e) => setFilter({...filter, status: e.target.value})}
-                        className="filter-select"
-                    >
-                        <option value="all">All Status</option>
-                        <option value="pending_review">Pending Review</option>
-                        <option value="under_review">Awaiting Approval</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="returned">Returned</option>
-                    </select>
-                    <select
-                        value={filter.priority}
-                        onChange={(e) => setFilter({...filter, priority: e.target.value})}
-                        className="filter-select"
-                    >
-                        <option value="all">All Priority</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
-                </div>
-            </div>
-
-            {/* Applications Table */}
-            <div className="applications-section">
-                <div className="table-container">
-                    <table className="applications-table">
-                        <thead>
-                            <tr>
-                                <th>Application ID</th>
-                                <th>Applicant</th>
-                                <th>Application ID</th>
-                                <th>Member Number</th>
-                                <th>Applicant Name</th>
-                                <th>Status</th>
-                                <th>Submitted</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredApplications.map((app) => (
-                                <tr key={app.application_id}>
-                                    <td>
-                                        <div className="app-id">
-                                            <strong>#{app.application_id}</strong>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="applicant-info">
-                                            <div className="applicant-name">{app.applicant_name}</div>
-                                            <div className="applicant-email">{app.applicant_email}</div>
-                                        </div>
-                                    </td>
-                                    <td>{app.application_id}</td>
-                                    <td>{app.member_number}</td>
-                                    <td>{app.first_name} {app.middle_name} {app.last_name}</td>
-                                    <td>
-                                        <span className={`status-badge ${getStatusColor(app.review_status)}`}> 
-                                            {app.review_status.replace('_', ' ')}
-                                        </span>
-                                    </td>
-                                    <td>{formatDate(app.submitted_at)}</td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            {app.review_status === 'under_review' && (
-                                                <button
-                                                    className="btn btn-primary btn-sm"
-                                                    onClick={() => {
-                                                        fetchApplicationDetails(app.application_id);
-                                                        setShowApprovalModal(true);
-                                                    }}
-                                                >
-                                                    Review & Approve
-                                                </button>
-                                            )}
-                                            <button
-                                                className="btn btn-secondary btn-sm"
-                                                onClick={() => {
-                                                    fetchApplicationDetails(app.application_id);
-                                                    setShowApprovalModal(true);
-                                                }}
-                                            >
-                                                View Details
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* Approval Modal */}
-            {showApprovalModal && selectedApplication && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h2>Review Application #{selectedApplication.application.application_id}</h2>
-                            <button
-                                className="close-btn"
-                                onClick={() => setShowApprovalModal(false)}
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        
-                        <div className="modal-body">
-                            <div className="application-details">
-                                {/* Applicant Information */}
-                                <div className="detail-section">
-                                    <h3>Applicant Information</h3>
-                                    <div className="info-grid">
-                                        <div className="info-item">
-                                            <label>Name:</label>
-                                            <span>{selectedApplication.application.applicant_name}</span>
-                                        </div>
-                                        <div className="info-item">
-                                            <label>Email:</label>
-                                            <span>{selectedApplication.application.applicant_email}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                {/* Loan Information */}
-                                {/* Application Details */}
-                                <div className="detail-section">
-                                    <h3>Application Details</h3>
-                                    <div className="info-grid">
-                                        <div className="info-item"><label>Application ID:</label> <span>{selectedApplication.application.application_id}</span></div>
-                                        <div className="info-item"><label>Member Number:</label> <span>{selectedApplication.application.member_number}</span></div>
-                                        <div className="info-item"><label>Status:</label> <span>{selectedApplication.application.status}</span></div>
-                                        <div className="info-item"><label>Submitted At:</label> <span>{formatDate(selectedApplication.application.submitted_at)}</span></div>
-                                        <div className="info-item"><label>Reviewed At:</label> <span>{selectedApplication.application.reviewed_at ? formatDate(selectedApplication.application.reviewed_at) : 'Not reviewed'}</span></div>
-                                        <div className="info-item"><label>Reviewed By:</label> <span>{selectedApplication.application.reviewed_by || 'N/A'}</span></div>
-                                    </div>
-                                </div>
-                                {/* Applicant Information */}
-                                <div className="detail-section">
-                                    <h3>Applicant Information</h3>
-                                    <div className="info-grid">
-                                        <div className="info-item"><label>Name:</label> <span>{selectedApplication.application.first_name} {selectedApplication.application.middle_name} {selectedApplication.application.last_name}</span></div>
-                                        <div className="info-item"><label>Gender:</label> <span>{selectedApplication.application.gender}</span></div>
-                                        <div className="info-item"><label>Civil Status:</label> <span>{selectedApplication.application.civil_status}</span></div>
-                                        <div className="info-item"><label>Birth Date:</label> <span>{formatDate(selectedApplication.application.birth_date)}</span></div>
-                                        <div className="info-item"><label>Landline:</label> <span>{selectedApplication.application.landline}</span></div>
-                                        <div className="info-item"><label>Mobile Number:</label> <span>{selectedApplication.application.mobile_number}</span></div>
-                                        <div className="info-item"><label>Email Address:</label> <span>{selectedApplication.application.email_address}</span></div>
-                                    </div>
-                                </div>
-                                {/* Address Information */}
-                                <div className="detail-section">
-                                    <h3>Address Information</h3>
-                                    <div className="info-grid">
-                                        <div className="info-item"><label>Current Address:</label> <span>{selectedApplication.application.current_address}</span></div>
-                                        <div className="info-item"><label>Years of Stay (Current):</label> <span>{selectedApplication.application.years_of_stay_current}</span></div>
-                                        <div className="info-item"><label>Permanent Address:</label> <span>{selectedApplication.application.permanent_address}</span></div>
-                                        <div className="info-item"><label>Years of Stay (Permanent):</label> <span>{selectedApplication.application.years_of_stay_permanent}</span></div>
-                                        <div className="info-item"><label>Home Ownership:</label> <span>{selectedApplication.application.home_ownership}</span></div>
-                                    </div>
-                                </div>
-                                {/* Family Information */}
-                                <div className="detail-section">
-                                    <h3>Family Information</h3>
-                                    <div className="info-grid">
-                                        <div className="info-item"><label>Spouse Name:</label> <span>{selectedApplication.application.spouse_name}</span></div>
-                                        <div className="info-item"><label>Number of Children:</label> <span>{selectedApplication.application.number_of_children}</span></div>
-                                    </div>
-                                </div>
-                                {/* Employment Information */}
-                                <div className="detail-section">
-                                    <h3>Employment Information</h3>
-                                    <div className="info-grid">
-                                        <div className="info-item"><label>Date Hired:</label> <span>{formatDate(selectedApplication.application.date_hired)}</span></div>
-                                        <div className="info-item"><label>Company/Business:</label> <span>{selectedApplication.application.company_business}</span></div>
-                                        <div className="info-item"><label>Contract Period:</label> <span>{selectedApplication.application.contract_period}</span></div>
-                                        <div className="info-item"><label>Designation/Position:</label> <span>{selectedApplication.application.designation_position}</span></div>
-                                        <div className="info-item"><label>Years in Company:</label> <span>{selectedApplication.application.years_in_company}</span></div>
-                                    </div>
-                                </div>
-                                {/* Document File Paths */}
-                                <div className="detail-section">
-                                    <h3>Documents</h3>
-                                    <div className="info-grid">
-                                        <div className="info-item"><label>Gov ID File:</label> <span>{selectedApplication.application.gov_id_file_path}</span></div>
-                                        <div className="info-item"><label>Company ID File:</label> <span>{selectedApplication.application.company_id_file_path}</span></div>
-                                    </div>
-                                </div>
-                                {/* Notes and Comments */}
-                                <div className="detail-section">
-                                    <h3>Notes & Comments</h3>
-                                    <div className="info-grid">
-                                        <div className="info-item"><label>Application Notes:</label> <span>{selectedApplication.application.application_notes || 'None'}</span></div>
-                                        <div className="info-item"><label>Reviewer Comments:</label> <span>{selectedApplication.application.reviewer_comments || 'No comments provided'}</span></div>
-                                    </div>
-                                </div>
-                                
-                                {/* Review History */}
-                                {selectedApplication.reviewHistory && selectedApplication.reviewHistory.length > 0 && (
-                                    <div className="detail-section">
-                                        <h3>Review History</h3>
-                                        <div className="history-list">
-                                            {selectedApplication.reviewHistory.map((history, index) => (
-                                                <div key={index} className="history-item">
-                                                    <div className="history-header">
-                                                        <span className="history-action">{history.action_taken.replace('_', ' ')}</span>
-                                                        <span className="history-date">{formatDate(history.created_at)}</span>
-                                                    </div>
-                                                    <div className="history-reviewer">
-                                                        By: {history.reviewer_name} ({history.reviewer_role})
-                                                    </div>
-                                                    {history.notes && (
-                                                        <div className="history-notes">{history.notes}</div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                {/* Manager Decision */}
-                                {selectedApplication.application.review_status === 'under_review' && (
-                                    <div className="detail-section">
-                                        <h3>Manager Decision</h3>
-                                        <div className="form-group">
-                                            <label>Decision</label>
-                                            <select
-                                                value={approvalForm.action}
-                                                onChange={(e) => setApprovalForm({...approvalForm, action: e.target.value})}
-                                            >
-                                                <option value="">Select decision</option>
-                                                <option value="approve">Approve Loan</option>
-                                                <option value="reject">Reject Application</option>
-                                            </select>
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Manager Notes</label>
-                                            <textarea
-                                                value={approvalForm.notes}
-                                                onChange={(e) => setApprovalForm({...approvalForm, notes: e.target.value})}
-                                                placeholder="Enter your decision notes..."
-                                                rows="4"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        
-                        <div className="modal-footer">
-                            <button
-                                className="btn btn-secondary"
-                                onClick={() => setShowApprovalModal(false)}
-                            >
-                                Close
-                            </button>
-                            {selectedApplication.application.review_status === 'under_review' && (
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={handleApproval}
-                                    disabled={!approvalForm.action}
-                                >
-                                    Submit Decision
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+      <div className="dashboard-container">
+        <h2>Access Denied</h2>
+        <p>You do not have permission to view this dashboard.</p>
+      </div>
     );
+  }
+
+  return (
+    <div className="dashboard-container credit-investigator-dashboard">
+      <div className="page-header">
+        <h1> Credit Investigator Dashboard</h1>
+        <p>Review loan applications and send to manager for approval</p>
+      </div>
+      <div className="stats-grid">
+          <div className="stat-card pending">
+            <div className="stat-icon"><img src={hourglassIcon} alt="pending" className="stat-svg"/></div>
+            <div className="stat-content">
+              <h3>Pending Review</h3>
+              <span className="stat-number">{statistics.pending_review || 0}</span>
+            </div>
+          </div>
+          <div className="stat-card under-review">
+            <div className="stat-icon"><img src={magnifyingGlassIcon} alt="under review" className="stat-svg"/></div>
+            <div className="stat-content">
+              <h3>Awaiting Approval</h3>
+              <span className="stat-number">{statistics.under_review || 0}</span>
+            </div>
+          </div>
+          <div className="stat-card approved">
+            <div className="stat-icon"><img src={checkCircleIcon} alt="approved" className="stat-svg"/></div>
+            <div className="stat-content">
+              <h3>Approved</h3>
+              <span className="stat-number">{statistics.approved || 0}</span>
+            </div>
+          </div>
+          <div className="stat-card rejected">
+            <div className="stat-icon"><img src={crossIcon} alt="rejected" className="stat-svg"/></div>
+            <div className="stat-content">
+              <h3>Rejected</h3>
+              <span className="stat-number">{statistics.rejected || 0}</span>
+            </div>
+          </div>
+      </div>
+      <div className="filters-section">
+        <div className="filter-group">
+          <input
+            type="text"
+            placeholder="Search applications..."
+            value={filter.search}
+            onChange={e => setFilter({ ...filter, search: e.target.value })}
+            className="search-input"
+          />
+          <select
+            value={filter.status}
+            onChange={e => setFilter({ ...filter, status: e.target.value })}
+            className="filter-select"
+          >
+            <option value="all">All Status</option>
+            <option value="pending_review">Pending Review</option>
+            <option value="under_review">Awaiting Approval</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="returned">Returned</option>
+          </select>
+          <select
+            value={filter.priority}
+            onChange={e => setFilter({ ...filter, priority: e.target.value })}
+            className="filter-select"
+          >
+            <option value="all">All Priority</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div className="applications-section">
+        <div className="table-container">
+          <table className="applications-table">
+            <thead>
+              <tr>
+                <th>Application ID</th>
+                <th>Applicant Name</th>
+                <th>Member Number</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredApplications.length === 0 ? (
+                <tr><td colSpan={6}>No loan applications to review.</td></tr>
+              ) : (
+                filteredApplications.map(app => (
+                  <tr key={app.application_id}>
+                    <td>{app.application_id}</td>
+                    <td>{app.applicant_name || `${app.first_name} ${app.middle_name} ${app.last_name}`}</td>
+                    <td>{app.member_number}</td>
+                    <td>
+                      <span className={`status-badge ${app.review_status === 'active' ? 'status-active' : ''}`}> 
+                        {app.review_status.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </td>
+                    <td>{new Date(app.submitted_at).toLocaleDateString()}</td>
+                    <td>
+                      <button className="btn btn-primary btn-sm" onClick={() => handleReview(app)}>
+                        {app.review_status === 'approved' ? 'View Review' : 'Review'}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {selectedApplication && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Review Application #{selectedApplication.application_id}</h2>
+              <button className="close-btn" onClick={() => setSelectedApplication(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              {/* Application Details */}
+              <div className="detail-section">
+                <h3>Application Details</h3>
+                <div className="info-grid">
+                  <div className="info-item"><label>Application ID:</label> <span>{selectedApplication.application_id}</span></div>
+                  <div className="info-item"><label>Member Number:</label> <span>{selectedApplication.member_number}</span></div>
+                  <div className="info-item"><label>Status:</label> <span>{selectedApplication.status}</span></div>
+                  <div className="info-item"><label>Submitted At:</label> <span>{selectedApplication.submitted_at ? new Date(selectedApplication.submitted_at).toLocaleString() : 'N/A'}</span></div>
+                  <div className="info-item"><label>Reviewed At:</label> <span>{selectedApplication.reviewed_at ? new Date(selectedApplication.reviewed_at).toLocaleString() : 'N/A'}</span></div>
+                  <div className="info-item"><label>Reviewed By:</label> <span>{selectedApplication.reviewed_by || 'N/A'}</span></div>
+                </div>
+              </div>
+              {/* Applicant Information */}
+              <div className="detail-section">
+                <h3>Applicant Information</h3>
+                <div className="info-grid">
+                  <div className="info-item"><label>Name:</label> <span>{selectedApplication.applicant_name || `${selectedApplication.first_name} ${selectedApplication.middle_name} ${selectedApplication.last_name}`}</span></div>
+                  <div className="info-item"><label>Gender:</label> <span>{selectedApplication.gender}</span></div>
+                  <div className="info-item"><label>Civil Status:</label> <span>{selectedApplication.civil_status}</span></div>
+                  <div className="info-item"><label>Birth Date:</label> <span>{selectedApplication.birth_date ? new Date(selectedApplication.birth_date).toLocaleString() : 'N/A'}</span></div>
+                  <div className="info-item"><label>Landline:</label> <span>{selectedApplication.landline}</span></div>
+                  <div className="info-item"><label>Mobile Number:</label> <span>{selectedApplication.mobile_number}</span></div>
+                  <div className="info-item"><label>Email Address:</label> <span>{selectedApplication.email_address}</span></div>
+                  <div className="info-item"><label>Facebook Account:</label> <span>{selectedApplication.facebook_account ? (<a href={`https://facebook.com/${selectedApplication.facebook_account}`} target="_blank" rel="noopener noreferrer">{selectedApplication.facebook_account}</a>) : 'N/A'}</span></div>
+                </div>
+              </div>
+              {/* Address Information */}
+              <div className="detail-section">
+                <h3>Address Information</h3>
+                <div className="info-grid">
+                  <div className="info-item"><label>Current Address:</label> <span>{selectedApplication.current_address}</span></div>
+                  <div className="info-item"><label>Years of Stay (Current):</label> <span>{selectedApplication.years_of_stay_current}</span></div>
+                  <div className="info-item"><label>Permanent Address:</label> <span>{selectedApplication.permanent_address}</span></div>
+                  <div className="info-item"><label>Years of Stay (Permanent):</label> <span>{selectedApplication.years_of_stay_permanent}</span></div>
+                  <div className="info-item"><label>Home Ownership:</label> <span>{selectedApplication.home_ownership}</span></div>
+                </div>
+              </div>
+              {/* Family Information */}
+              <div className="detail-section">
+                <h3>Family Information</h3>
+                <div className="info-grid">
+                  <div className="info-item"><label>Spouse Name:</label> <span>{selectedApplication.spouse_name}</span></div>
+                  <div className="info-item"><label>Number of Children:</label> <span>{selectedApplication.number_of_children}</span></div>
+                </div>
+              </div>
+              {/* Employment Information */}
+              <div className="detail-section">
+                <h3>Employment Information</h3>
+                <div className="info-grid">
+                  <div className="info-item"><label>Date Hired:</label> <span>{selectedApplication.date_hired ? new Date(selectedApplication.date_hired).toLocaleString() : 'N/A'}</span></div>
+                  <div className="info-item"><label>Company/Business:</label> <span>{selectedApplication.company_business}</span></div>
+                  <div className="info-item"><label>Contract Period:</label> <span>{selectedApplication.contract_period}</span></div>
+                  <div className="info-item"><label>Designation/Position:</label> <span>{selectedApplication.designation_position}</span></div>
+                  <div className="info-item"><label>Years in Company:</label> <span>{selectedApplication.years_in_company}</span></div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              {selectedApplication.review_status !== 'approved' && (
+                <button className="btn btn-primary" onClick={() => handleSendToManager(selectedApplication.application_id)} disabled={loading}>
+                  {loading ? 'Sending...' : 'Send to Manager for Approval'}
+                </button>
+              )}
+              {/* Loan Officer can input loan amount if approved by manager */}
+              {selectedApplication.review_status === 'approved' && (
+                <div style={{width: '100%', marginTop: '1rem'}}>
+                  <h4>Set Loan Amount</h4>
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <label>Loan Amount:</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        style={{width: '120px'}}
+                        value={selectedApplication.loan_amount || ''}
+                        onChange={e => setSelectedApplication({...selectedApplication, loan_amount: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    style={{marginTop: '1rem'}}
+                    onClick={() => {
+                      const amount = parseFloat(selectedApplication.loan_amount) || 0;
+                      axios.post(`${API_BASE_URL}/api/loan-review/applications/${selectedApplication.application_id}/set-loan-amount`, {
+                        loan_amount: amount
+                      })
+                        .then(() => {
+                          alert('Loan amount saved!');
+                          setSelectedApplication(null);
+                        })
+                        .catch(() => {
+                          alert('Error saving loan amount');
+                        });
+                    }}
+                  >
+                    Save Loan Amount
+                  </button>
+                </div>
+              )}
+              <button className="btn btn-secondary" onClick={() => setSelectedApplication(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
-export default LoanApproval;
+export default CreditInvestigatorDashboard;
