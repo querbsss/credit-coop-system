@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './LoanApproval.css';
-import { ReactComponent as HourglassIcon } from '../assets/icons/hourglass-svgrepo-com.svg';
-import { ReactComponent as MagnifyingGlassIcon } from '../assets/icons/magnifying-glass-svgrepo-com.svg';
-import { ReactComponent as CheckCircleIcon } from '../assets/icons/check-circle-svgrepo-com.svg';
-import { ReactComponent as CrossIcon } from '../assets/icons/cross-svgrepo-com.svg';
+import hourglassIcon from '../assets/icons/hourglass-svgrepo-com.svg';
+import magnifyingGlassIcon from '../assets/icons/magnifying-glass-svgrepo-com.svg';
+import checkCircleIcon from '../assets/icons/check-circle-svgrepo-com.svg';
+import crossIcon from '../assets/icons/cross-svgrepo-com.svg';
 
 const LoanApproval = () => {
     const [applications, setApplications] = useState([]);
@@ -197,28 +197,28 @@ const LoanApproval = () => {
             {/* Statistics */}
             <div className="stats-grid">
                 <div className="stat-card pending">
-                    <div className="stat-icon"><HourglassIcon style={{ width: 36, height: 36 }}/></div>
+                    <div className="stat-icon"><img src={hourglassIcon} alt="pending" style={{ width: 36, height: 36 }} /></div>
                     <div className="stat-content">
                         <h3>Pending Review</h3>
                         <span className="stat-number">{statistics.pending_review || 0}</span>
                     </div>
                 </div>
                 <div className="stat-card under-review">
-                    <div className="stat-icon"><MagnifyingGlassIcon style={{ width: 36, height: 36 }}/></div>
+                    <div className="stat-icon"><img src={magnifyingGlassIcon} alt="awaiting" style={{ width: 36, height: 36 }} /></div>
                     <div className="stat-content">
                         <h3>Awaiting Approval</h3>
                         <span className="stat-number">{statistics.under_review || 0}</span>
                     </div>
                 </div>
                 <div className="stat-card approved">
-                    <div className="stat-icon"><CheckCircleIcon style={{ width: 36, height: 36 }}/></div>
+                    <div className="stat-icon"><img src={checkCircleIcon} alt="approved" style={{ width: 36, height: 36 }} /></div>
                     <div className="stat-content">
                         <h3>Approved</h3>
                         <span className="stat-number">{statistics.approved || 0}</span>
                     </div>
                 </div>
                 <div className="stat-card rejected">
-                    <div className="stat-icon"><CrossIcon style={{ width: 36, height: 36 }}/></div>
+                    <div className="stat-icon"><img src={crossIcon} alt="rejected" style={{ width: 36, height: 36 }} /></div>
                     <div className="stat-content">
                         <h3>Rejected</h3>
                         <span className="stat-number">{statistics.rejected || 0}</span>
