@@ -1,12 +1,60 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
+  const [userData, setUserData] = useState(user);
+  const [loading, setLoading] = useState(true); // Add a loading state to handle data fetching
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/user', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (!response.ok) {
+          console.error(`Error: ${response.status} ${response.statusText}`);
+          setLoading(false); // Stop loading even if the request fails
+          return;
+        }
+
+        const text = await response.text();
+        try {
+          const data = JSON.parse(text);
+          if (data.success) {
+            updateUser(data.user);
+            setUserData(data.user); // Trigger re-render
+            console.log('Fetched user data:', data.user);
+          } else {
+            console.error('API returned an error:', data);
+          }
+        } catch (parseError) {
+          console.error('Error parsing JSON response:', parseError);
+          console.error('Response text:', text);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setLoading(false); // Ensure loading state is updated
+      }
+    };
+
+    fetchUserData();
+  }, [updateUser]);
+
+  // Add an effect to synchronize local state with user context
+  useEffect(() => {
+    console.log('User data updated:', user);
+    setUserData(user); // Update local state whenever user context changes
+  }, [user]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
@@ -31,28 +79,16 @@ const Dashboard = () => {
     { icon: '🕐', label: 'History', color: 'secondary', onClick: () => navigate('/history') }
   ];
 
+  if (loading) {
+    return <div>Loading...</div>; // Display loading indicator
+  }
+
   return (
     <div className="dashboard">
       <Header />
       
       <main className="dashboard-main">
         <div className="container">
-          {/* Welcome Section */}
-          <div className="welcome-section">
-            <div className="welcome-card card">
-              <div className="welcome-content">
-                <div className="welcome-text">
-                  <h1>Welcome back, {user?.firstName} {user?.lastName}</h1>
-                  <span className="status-badge status-active">ACTIVE</span>
-                </div>
-                <div className="member-avatar">
-                  <div className="avatar-circle-lg">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Account Overview */}
           <div className="accounts-section">
@@ -70,28 +106,12 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="account-balance">
-                  <span className="balance-amount">{formatCurrency(user?.accounts?.savings?.balance)}</span>
+                  <span className="balance-amount">0.00</span>
                   <span className="balance-label">Current balance</span>
                 </div>
               </div>
 
-              {/* Checking Account */}
-              <div className="account-card card">
-                <div className="account-header">
-                  <div className="account-icon checking">💳</div>
-                  <div className="account-info">
-                    <h3>Checking</h3>
-                    <p className="account-number">{user?.accounts?.checking?.accountNumber}</p>
-                  </div>
-                  <div className="account-action">
-                    <button className="btn-icon">➤</button>
-                  </div>
-                </div>
-                <div className="account-balance">
-                  <span className="balance-amount">{formatCurrency(user?.accounts?.checking?.balance)}</span>
-                  <span className="balance-label">Available balance</span>
-                </div>
-              </div>
+              
             </div>
           </div>
 
@@ -118,11 +138,18 @@ const Dashboard = () => {
                 <span className="balance-label">Loan balance</span>
               </div>
               <div className="loan-action">
-                <button className="btn btn-primary btn-lg" onClick={() => navigate('/loans')}>
-                  🏷️ Need funds?<br />
-                  <span>Apply for a loan now!</span><br />
-                  <small>Starting from ₱500,000</small>
-                </button>
+                {user?.loan?.amount > 0 ? (
+                  <button className="btn btn-primary btn-lg" disabled>
+                    🚫 Loan Application Disabled<br />
+                    <span>You already have an active loan.</span>
+                  </button>
+                ) : (
+                  <button className="btn btn-primary btn-lg" onClick={() => navigate('/loans')}>
+                    🏷️ Need funds?<br />
+                    <span>Apply for a loan now!</span><br />
+                    <small>Starting from ₱500,000</small>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -144,10 +171,6 @@ const Dashboard = () => {
 
           {/* Recent Activity */}
           <div className="recent-activity-section">
-            <div className="activity-header">
-              <h3>🕐 Recent Activity</h3>
-              <a href="#all" className="view-all-link">View All</a>
-            </div>
             
             <div className="activity-list">
               {user?.recentTransactions?.slice(0, 4).map((transaction) => (
@@ -166,12 +189,6 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
-            </div>
-
-            <div className="add-transaction">
-              <button className="btn btn-primary btn-lg">
-                ➕ Add Transaction
-              </button>
             </div>
           </div>
         </div>

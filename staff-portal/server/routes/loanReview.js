@@ -395,7 +395,8 @@ router.post('/applications/:id/review', async (req, res) => {
 router.post('/applications/:id/approve', async (req, res) => {
     try {
         const { id } = req.params;
-        const { action, notes, reviewer_id } = req.body;
+        // manager_id is expected from the frontend (the manager performing the action)
+        const { action, notes, reviewer_id, manager_id } = req.body;
         let updateQuery = '';
         let status = '';
         if (action === 'approve') {
@@ -474,6 +475,28 @@ router.post('/applications/:id/approve', async (req, res) => {
             // Don't fail the main operation if history insertion fails
         }
         
+        // Try to create an in-app notification for the member (best-effort)
+        try {
+            const application = result.rows[0];
+            const memberNumber = application.member_number || application.applicants_membership_number || null;
+            if (memberNumber) {
+                const title = action === 'approve' ? 'Loan Approved' : 'Loan Rejected';
+                const message = action === 'approve'
+                    ? `Your loan application #${id} has been approved. Please check your account for details.`
+                    : `Your loan application #${id} has been rejected. Please contact support for details.`;
+
+                // Attempt to insert into a `member_notifications` table if it exists.
+                // This is best-effort: if the table or columns don't exist, log and continue.
+                const notifQuery = `
+                    INSERT INTO member_notifications (member_number, application_id, title, message, is_read, created_at)
+                    VALUES ($1, $2, $3, $4, false, NOW())
+                `;
+                await membersPool.query(notifQuery, [memberNumber, id, title, message]);
+            }
+        } catch (notifErr) {
+            console.warn('Member notification insert failed (non-fatal):', notifErr.message || notifErr);
+        }
+
         res.json({
             success: true,
             message: `Application ${action}d successfully`,
@@ -546,3 +569,23 @@ router.get('/loan-officers', async (req, res) => {
 });
 
 module.exports = router;
+
+// --- Notifications helper endpoint (for member-facing polling) ---
+// GET /notifications/member/:member_number
+router.get('/notifications/member/:member_number', async (req, res) => {
+    try {
+        const { member_number } = req.params;
+        const notifQuery = `
+            SELECT id, member_number, application_id, title, message, is_read, metadata, created_at
+            FROM member_notifications
+            WHERE member_number = $1
+            ORDER BY created_at DESC
+            LIMIT 100
+        `;
+        const result = await membersPool.query(notifQuery, [member_number]);
+        res.json({ success: true, notifications: result.rows });
+    } catch (err) {
+        console.error('Error fetching member notifications:', err);
+        res.status(500).json({ success: false, message: 'Error fetching notifications' });
+    }
+});

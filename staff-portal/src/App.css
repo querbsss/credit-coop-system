@@ -80,11 +80,16 @@ body {
   padding: 2rem;
   background: var(--gradient-background);
   min-height: calc(100vh - var(--header-height));
+  /* Ensure main content never exceeds viewport width */
+  max-width: calc(100vw - var(--sidebar-width));
+  /* Allow inner containers (like the membership table) to show their own
+    horizontal scrollbars instead of being clipped by the main container. */
+  overflow-x: auto;
 }
 
 /* Container */
 .container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -308,6 +313,171 @@ body {
   }
 }
 
+/* Mobile Responsiveness for Staff Portal */
+@media (max-width: 480px) {
+  .dashboard-header {
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-header .dashboard-subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+    margin: 0 auto;
+    width: 95%;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  .quick-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .activity-list .activity-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .dashboard-section {
+    padding: 1rem;
+    margin: 0 auto;
+    width: 95%;
+  }
+
+  .dashboard-section h2 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-section .application-list {
+    font-size: 0.9rem;
+  }
+
+  .dashboard-section .application-item {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+  }
+}
+
+/* Further reduce header height and paddings on very small devices to fit more content */
+@media (max-width: 420px) {
+  :root {
+    --header-height: 56px;
+  }
+
+  .header-content {
+    padding: 0 0.5rem;
+  }
+
+  .main-content {
+    padding-top: 0.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .dashboard-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .stats-grid {
+    gap: 0.6rem;
+  }
+
+  .stat-card {
+    padding: 0.6rem;
+    border-radius: 8px;
+  }
+
+  .stat-number {
+    font-size: 1.6rem;
+  }
+
+  .stat-icon {
+    width: 52px;
+    height: 52px;
+    font-size: 1.4rem;
+  }
+}
+
+/* Adjustments to fit content within screen */
+
+@media (max-width: 1366px) {
+  .dashboard-header {
+    padding: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+    margin: 0 auto;
+    width: 90%;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .dashboard-section {
+    padding: 1rem;
+    margin: 0 auto;
+    width: 95%;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .quick-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .activity-list .activity-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
 /* Utility classes */
 .text-center { text-align: center; }
 .text-right { text-align: right; }
@@ -480,3 +650,69 @@ body {
     gap: 0.5rem;
   }
 }
+
+/* Prevent horizontal overflow and ensure dashboard fits the viewport */
+html, body, #root {
+  overflow-x: hidden;
+}
+
+.staff-portal, .portal-content, .main-content {
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* When the screen is smaller, collapse the sidebar and allow the main content to use full width */
+@media (max-width: 1024px) {
+  .portal-content {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    /* keep sidebar available via .open class (already implemented in Sidebar.css) */
+    transform: translateX(-100%);
+    position: fixed;
+    left: 0;
+    top: var(--header-height);
+    width: 100%;
+    height: auto;
+    z-index: 1000;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+}
+
+/* Make the main content occupy full width for medium screens where sidebar is hidden by default */
+@media (max-width: 1366px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  /* ensure container doesn't add extra width */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    max-width: 100%;
+  }
+}
+
+/* Small tweak: ensure stat cards never exceed container width */
+.stat-card, .card {
+  max-width: 100%;
+}
+

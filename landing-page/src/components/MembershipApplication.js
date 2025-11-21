@@ -6,8 +6,7 @@ import { ReactComponent as CheckCircleIcon } from '../assets/icons/finance/check
 const MembershipApplication = () => {
   const [formData, setFormData] = useState({
     // Basic membership information
-    numberOfShares: '',
-    amountSubscribe: '',
+    // numberOfShares and amountSubscribe removed per request
     date: '',
     membershipType: '',
     
@@ -75,15 +74,81 @@ const MembershipApplication = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
+    let newValue = type === 'checkbox' ? checked : type === 'file' ? files[0] : value;
+
+    // Enforce max length of 11 characters for Tax Identification Number
+    if (name === 'taxIdentificationNumber' && typeof newValue === 'string') {
+      newValue = newValue.slice(0, 11);
+    }
+
+    // Helper to get max length for identification number based on type
+    const getIdNumberMaxLength = (idType) => {
+      if (!idType) return null;
+      switch (idType) {
+        case 'TIN ID':
+          return 11;
+        case 'SSS Card':
+          return 12;
+        case 'Philhealth Card':
+          return 14;
+        case 'UMID':
+          return 13;
+        default:
+          return null;
+      }
+    };
+
+    // If the user changed the identification type, trim existing identificationNumber to new max
+    if (name === 'identificationType') {
+      const newIdType = newValue;
+      const max = getIdNumberMaxLength(newIdType);
+      const currentIdNum = formData.identificationNumber || '';
+      const trimmedIdNum = (typeof currentIdNum === 'string' && max) ? currentIdNum.slice(0, max) : currentIdNum;
+      setFormData({
+        ...formData,
+        identificationType: newIdType,
+        identificationNumber: trimmedIdNum
+      });
+      return;
+    }
+
+    // If user is typing identificationNumber, enforce max according to currently selected type
+    if (name === 'identificationNumber' && typeof newValue === 'string') {
+      const max = getIdNumberMaxLength(formData.identificationType);
+      if (max) newValue = newValue.slice(0, max);
+    }
+
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : type === 'file' ? files[0] : value
+      [name]: newValue
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate Tax Identification Number length
+    if (formData.taxIdentificationNumber && String(formData.taxIdentificationNumber).length > 11) {
+      alert('Tax Identification Number must be at most 11 characters long.');
+      return;
+    }
+
+    // Validate identification number length according to selected ID type
+    const idTypeMax = (type => {
+      switch (type) {
+        case 'TIN ID': return 11;
+        case 'SSS Card': return 12;
+        case 'Philhealth Card': return 14;
+        case 'UMID': return 13;
+        default: return null;
+      }
+    })(formData.identificationType);
+
+    if (idTypeMax && formData.identificationNumber && String(formData.identificationNumber).length > idTypeMax) {
+      alert(`${formData.identificationType} number must be at most ${idTypeMax} characters long.`);
+      return;
+    }
+
     // Additional validation for ID document
     if (formData.identificationType && !formData.idDocument) {
       alert('Please upload an image of your selected ID type.');
@@ -119,8 +184,7 @@ const MembershipApplication = () => {
         // Reset form
         setFormData({
           // Basic membership information
-          numberOfShares: '',
-          amountSubscribe: '',
+          // numberOfShares and amountSubscribe removed per request
           date: '',
           membershipType: '',
           
@@ -272,26 +336,6 @@ const MembershipApplication = () => {
             <div className="form-section">
               <h4>Membership Information</h4>
               <div className="form-row">
-                <div className="form-group">
-                  <label>Number of Shares *</label>
-                  <input
-                    type="number"
-                    name="numberOfShares"
-                    value={formData.numberOfShares}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Amount Subscribe *</label>
-                  <input
-                    type="number"
-                    name="amountSubscribe"
-                    value={formData.amountSubscribe}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
                 <div className="form-group">
                   <label>Date *</label>
                   <input
@@ -594,6 +638,7 @@ const MembershipApplication = () => {
                     name="taxIdentificationNumber"
                     value={formData.taxIdentificationNumber}
                     onChange={handleChange}
+                    maxLength={11}
                   />
                 </div>
                 <div className="form-group">
@@ -605,12 +650,12 @@ const MembershipApplication = () => {
                     required
                   >
                     <option value="">Select ID Type</option>
-                    <option value="drivers license">Driver's License</option>
-                    <option value="passport">Passport</option>
-                    <option value="national id">National ID</option>
-                    <option value="voters id">Voter's ID</option>
-                    <option value="tin id">TIN ID</option>
-                    <option value="sss id">SSS ID</option>
+                    <option value="TIN ID">TIN ID</option>
+                    <option value="SSS Card">SSS Card</option>
+                    <option value="GSIS">GSIS</option>
+                    <option value="Philhealth Card">Philhealth Card</option>
+                    <option value="Senior citizen card">Senior citizen card</option>
+                    <option value="UMID">UMID</option>
                   </select>
                 </div>
                 <div className="form-group">
@@ -621,6 +666,15 @@ const MembershipApplication = () => {
                     value={formData.identificationNumber}
                     onChange={handleChange}
                     required
+                    maxLength={(() => {
+                      switch (formData.identificationType) {
+                        case 'TIN ID': return 11;
+                        case 'SSS Card': return 12;
+                        case 'Philhealth Card': return 14;
+                        case 'UMID': return 13;
+                        default: return undefined;
+                      }
+                    })()}
                   />
                 </div>
               </div>

@@ -38,10 +38,7 @@ const Header = () => {
             </ul>
             
             <div className="nav-actions">
-              <a href="/member-portal" className="btn-login">
-                <span className="login-icon">👤</span>
-                Member Login
-              </a>
+              {/* Member Login removed per request */}
               <a href="#membership" className="btn btn-primary btn-join">
                 Join Now
               </a>

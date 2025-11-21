@@ -62,6 +62,15 @@ const Header = ({ setAuth }) => {
     <header className="staff-header">
       <div className="header-content">
         <div className="header-left">
+          <button
+            className="hamburger-btn"
+            aria-label="Toggle menu"
+            onClick={() => {
+              document.body.classList.toggle('sidebar-open');
+            }}
+          >
+            ☰
+          </button>
           <div className="logo-section">
             <div className="logo-icon">⚛️</div>
             <div className="logo-text">

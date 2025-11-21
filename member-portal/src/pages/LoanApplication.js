@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
+import { toast } from 'react-toastify';
 import './LoanApplication.css';
 
 const LoanApplication = () => {
@@ -302,6 +303,11 @@ const LoanApplication = () => {
       const result = await response.json();
 
       if (result.success) {
+        toast.success('Loan application submitted successfully!', {
+          position: toast.POSITION.TOP_RIGHT,
+          autoClose: 5000,
+        });
+        
         setApplicationId(result.application_id);
         setShowSuccessModal(true);
         setSubmitStatus({

@@ -32,11 +32,19 @@ const Sidebar = () => {
           <ul className="nav-list">
             {menuItems.map((item) => (
               <li key={item.path} className="nav-item">
-                <NavLink 
-                  to={item.path} 
-                  className={({ isActive }) => 
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) =>
                     `nav-link ${isActive ? 'active' : ''}`
                   }
+                  onClick={() => {
+                    try {
+                      // close the sidebar if it was opened via the header hamburger
+                      document.body.classList.remove('sidebar-open');
+                    } catch (e) {
+                      // ignore when running in non-browser environments
+                    }
+                  }}
                 >
                   <span className="nav-icon">{item.icon}</span>
                   <div className="nav-content">

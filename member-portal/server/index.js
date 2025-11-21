@@ -459,6 +459,37 @@ app.post('/api/payment/reference-upload', paymentUpload.single('reference_image'
   }
 });
 
+// Restore original `/api/user` route
+app.get('/api/user', async (req, res) => {
+  try {
+    const userResult = await pool.query(
+      "SELECT user_id, user_name, user_email, member_number FROM member_users WHERE user_id = $1",
+      [req.user]
+    );
+    const user = userResult.rows[0];
+
+    if (!user) {
+      console.log('No user found for user_id:', req.user);
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Fetch loan data
+    const loanResult = await pool.query(
+      `SELECT amount, duration_months, review_status, application_id, monthly_payment
+       FROM loan_applications
+       WHERE member_number = $1 AND review_status = 'approved'
+       ORDER BY submitted_at DESC LIMIT 1`,
+      [user.member_number]
+    );
+    user.loan = loanResult.rows[0] || null;
+
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch user data' });
+  }
+});
+
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ 

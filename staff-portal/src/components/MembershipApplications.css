@@ -1,12 +1,30 @@
-/* Make Actions column wider for buttons */
+/* Make Actions column wider for buttons and sticky on the right */
+/* Use a CSS variable so the reserved width is consistent and easy to tweak. */
+.applications-table {
+  --actions-width: 220px; /* width reserved for the sticky actions column */
+}
+
 .applications-table th:last-child,
 .applications-table td:last-child {
-  min-width: 160px;
+  /* Actions are inline (not sticky) and use natural width with a minimum
+     so buttons remain clickable. */
+  width: auto;
+  min-width: 140px;
+  position: static;
+  right: auto;
+  background: transparent;
+  z-index: auto;
+  box-shadow: none;
 }
+
+/* Removed rigid per-column fixed widths so the table can stretch naturally */
 .membership-applications-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  /* Reduce outer paddings so the table can use more horizontal space */
+  padding: 1rem 0.5rem;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  overflow-x: visible;
 }
 
 .header {
@@ -35,17 +53,56 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+  /* allow horizontal scrolling when necessary */
+  overflow-x: auto;
+  position: relative;
+  /* no reserved right padding — disable sticky column to avoid overlay issues */
+  padding-right: 0;
 }
 
+/* Reduce the usable table width by the reserved actions width so the table content
+   doesn't flow underneath the sticky actions column. On smaller screens this is
+   disabled so the stacked mobile layout can take over. */
 .applications-table table {
+  /* Let the table size itself to fill the container and distribute column
+     widths naturally. */
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto;
+  min-width: 0;
+  /* Allow it to shrink but prefer not to wrap short content
+     such as ids, amounts and status so action buttons remain visible. */
+}
+
+/* Ensure any earlier fixed-width rules are overridden so columns can expand */
+.applications-table th,
+.applications-table td {
+  width: auto !important;
+}
+
+/* Prevent key columns from wrapping so the table can keep action buttons visible */
+.applications-table td:nth-child(1),
+.applications-table td:nth-child(5),
+.applications-table td:nth-child(8),
+.applications-table td:nth-child(9) {
+  white-space: nowrap;
+}
+
+/* Make action buttons slightly smaller so they fit better on narrower screens */
+.applications-table .action-buttons .btn {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+/* Ensure the actions column reserves a modest minimum so buttons don't wrap */
+.applications-table th:last-child,
+.applications-table td:last-child {
+  min-width: 100px;
 }
 
 .applications-table th {
   background: #f7fafc;
-  padding: 1rem;
+  padding: 0.6rem 0.75rem;
   text-align: left;
   font-weight: 600;
   color: #4a5568;
@@ -53,7 +110,7 @@
 }
 
 .applications-table td {
-  padding: 1rem;
+  padding: 0.6rem 0.75rem;
   border-bottom: 1px solid #e2e8f0;
   color: #2d3748;
 }
@@ -295,6 +352,37 @@
   font-size: 1rem;
 }
 
+/* Modal footer buttons: ensure accessible, tappable, and nicely stacked on small screens */
+.modal-footer .action-buttons {
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .modal-footer .action-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .modal-footer .action-buttons .btn {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 8px;
+  }
+
+  /* Make the primary action more prominent */
+  .modal-footer .action-buttons .btn-primary {
+    box-shadow: 0 6px 18px rgba(59,130,246,0.08);
+  }
+
+  .modal-footer .action-buttons .btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .membership-applications-container {
@@ -307,12 +395,94 @@
     gap: 1rem;
   }
 
+  /* Mobile: allow horizontal scroll but prefer stacked card layout */
   .applications-table {
     overflow-x: auto;
+    padding-right: 0;
   }
 
   .applications-table table {
-    min-width: 800px;
+    width: 100%;
+    min-width: 100%;
+    border-collapse: collapse;
+  }
+
+  .applications-table thead {
+    display: none;
+  }
+
+  .applications-table tbody tr {
+    display: block;
+    background: white;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+
+  .applications-table td {
+    display: flex;
+    justify-content: flex-start;
+    padding: 0.45rem 0;
+    border-bottom: none;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    word-break: break-word;
+  }
+
+  .applications-table td:last-child {
+    padding-top: 0.6rem;
+  }
+
+  .applications-table td:before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #4a5568;
+    margin-right: 0.5rem;
+    flex: 0 0 40%;
+    max-width: 40%;
+    text-align: left;
+  }
+
+  /* Fallback labels when `data-label` isn't set on td: map columns by position */
+  .applications-table td:nth-child(1):before { content: "Application ID"; }
+  .applications-table td:nth-child(2):before { content: "Full Name"; }
+  .applications-table td:nth-child(3):before { content: "Email"; }
+  .applications-table td:nth-child(4):before { content: "Membership Type"; }
+  .applications-table td:nth-child(5):before { content: "Amount"; }
+  .applications-table td:nth-child(6):before { content: "Membership #"; }
+  .applications-table td:nth-child(7):before { content: "Actions"; }
+  .applications-table td:nth-child(8):before { content: "Status"; }
+  .applications-table td:nth-child(9):before { content: "Submitted"; }
+
+  .applications-table td > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  /* When stacked on mobile, actions are inline; ensure they aren't sticky */
+  .applications-table th:last-child,
+  .applications-table td:last-child {
+    position: static;
+    right: auto;
+    box-shadow: none;
+    width: auto;
+    min-width: 0;
+    background: transparent;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  .action-buttons .btn {
+    width: 100%;
   }
 
   .modal-content {

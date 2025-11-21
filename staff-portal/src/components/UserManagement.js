@@ -1,4 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useUserRole } from '../hooks/useUserRole';
 import './UserManagement.css';
 
 const UserManagement = () => {
@@ -23,6 +28,10 @@ const UserManagement = () => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const location = useLocation();
+    const { userRole } = useUserRole();
+    const socketRef = useRef(null);
+    const fromApplicationIdRef = useRef(null);
 
     // Load members
     const loadMembers = async (page = 1, search = '', status = 'all') => {
@@ -59,6 +68,79 @@ const UserManagement = () => {
     useEffect(() => {
         loadMembers(currentPage, searchTerm, statusFilter);
     }, [currentPage, searchTerm, statusFilter]);
+
+    // Setup socket connection for receiving account-created events and joining role room
+    useEffect(() => {
+        try {
+            const socket = io('http://localhost:3002');
+            socketRef.current = socket;
+            socket.on('connect', () => {
+                try {
+                    const role = userRole || 'it_admin';
+                    socket.emit('join', { role });
+                } catch (e) { /* ignore */ }
+            });
+
+            socket.on('account-created', (payload) => {
+                try {
+                    const who = payload && (payload.member_name || payload.user_email || payload.member_number) ? (payload.member_name || payload.user_email || payload.member_number) : 'a member';
+                    toast.success(`Member account created: ${who}`, { position: 'top-right', autoClose: 6000 });
+                    // Optionally refresh members list
+                    loadMembers(currentPage, searchTerm, statusFilter);
+                } catch (e) {
+                    console.warn('Error handling account-created event in UserManagement:', e);
+                }
+            });
+
+            socket.on('connect_error', (err) => console.warn('Socket connect error (UserManagement):', err));
+
+            return () => {
+                try {
+                    if (socket && socket.disconnect) socket.disconnect();
+                } catch (e) { }
+            };
+        } catch (e) {
+            console.warn('Failed to initialize socket in UserManagement:', e);
+        }
+    }, [userRole]);
+
+    // If navigated here with prefill data (from MembershipApplications), open create form and populate
+    useEffect(() => {
+        try {
+            if (location && location.state && location.state.prefill) {
+                const p = location.state.prefill;
+                setFormData((fd) => ({
+                    ...fd,
+                    member_number: p.member_number || '',
+                    member_name: p.member_name || '',
+                    user_email: p.user_email || '',
+                    default_password: ''
+                }));
+                // remember originating application id so we can include it when emitting account-created
+                if (location.state.fromApplicationId) {
+                    fromApplicationIdRef.current = location.state.fromApplicationId;
+                }
+                setEditingMember(null);
+                setShowForm(true);
+                // clear the location.state to avoid re-triggering if user navigates back
+                try {
+                    if (window.history && window.history.replaceState) {
+                        const newState = { ...(window.history.state || {}) };
+                        if (newState && newState.usr && newState.usr.state) {
+                            // attempt safe clear (best-effort)
+                            // no-op for complex history shapes
+                        }
+                        // replace current history entry state to remove prefill (best-effort)
+                        window.history.replaceState({}, '');
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
+    }, [location]);
 
     // Handle search
     const handleSearch = (e) => {
@@ -120,6 +202,29 @@ const UserManagement = () => {
                 setEditingMember(null);
                 resetForm();
                 loadMembers(currentPage, searchTerm, statusFilter);
+                // Emit account-created event so other IT admins receive realtime notification
+                try {
+                    const basePayload = data.member || {
+                        member_number: body.member_number,
+                        member_name: body.member_name,
+                        user_email: body.user_email,
+                        created_at: new Date().toISOString()
+                    };
+                    // attach originating application id if available so other clients can correlate
+                    const payload = {
+                        ...basePayload,
+                        application_id: fromApplicationIdRef.current || null
+                    };
+                    if (socketRef.current && socketRef.current.connected) {
+                        socketRef.current.emit('account-created', payload);
+                    }
+                    // clear the ref after emitting
+                    fromApplicationIdRef.current = null;
+                    // Also show a toast locally (already setSuccess will render a message, but toast is more visible)
+                    toast.success(editingMember ? 'Member updated successfully' : 'Member created successfully', { position: 'top-right', autoClose: 4000 });
+                } catch (e) {
+                    console.warn('Error emitting account-created from UserManagement:', e);
+                }
             } else {
                 setError(data.message || `Failed to ${editingMember ? 'update' : 'create'} member`);
             }
@@ -213,6 +318,7 @@ const UserManagement = () => {
 
     return (
         <div className="user-management">
+            <ToastContainer position="top-right" newestOnTop style={{ zIndex: 2147483647 }} />
             <div className="um-header">
                 <h2>Member Account Management</h2>
                 <button 

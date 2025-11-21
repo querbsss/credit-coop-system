@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import { io } from 'socket.io-client';
+import 'react-toastify/dist/ReactToastify.css';
 import '../pages/Dashboard.css';
 
 const AdminDashboard = ({ setAuth }) => {
@@ -10,29 +13,75 @@ const AdminDashboard = ({ setAuth }) => {
         totalLoans: 0,
         totalTransactions: 0
     });
+    const [newApplications, setNewApplications] = useState([]); // State for new membership applications
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserInfo = async () => {
-            try {
-                const response = await fetch("http://localhost:5000/auth/profile", {
-                    method: "GET",
-                    headers: { 
-                        "Content-Type": "application/json",
-                        "token": localStorage.token 
+                try {
+                    const response = await fetch("http://localhost:5000/auth/profile", {
+                        method: "GET",
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "token": localStorage.token 
+                        }
+                    });
+
+                    if (response.ok) {
+                        const userData = await response.json();
+                        setUserInfo(userData);
+                        // initialize socket after we know the user's role
+                        try {
+                            const socket = io('http://localhost:3002');
+                            socket.on('connect', () => {
+                                const role = userData.role || userData.user_role || 'admin';
+                                socket.emit('join', { role });
+                            });
+
+                            socket.on('new-application', (newApp) => {
+                                const applicantName = `${newApp.first_name || ''} ${newApp.last_name || ''}`.trim();
+                                const message = applicantName ? `${applicantName} submitted a membership application.` : 'New membership application received.';
+                                console.log('AdminDashboard: showing toast ->', message);
+                                toast.info(message, { position: 'top-right', autoClose: 8000 });
+                                setNewApplications((prev) => [newApp, ...prev]);
+                            });
+
+                            socket.on('disconnect', () => {
+                                console.warn('Socket disconnected from landing-page server');
+                            });
+                        } catch (socketErr) {
+                            console.warn('Failed to initialize socket in AdminDashboard:', socketErr);
+                        }
                     }
-                });
-
-                if (response.ok) {
-                    const userData = await response.json();
-                    setUserInfo(userData);
+                } catch (err) {
+                    console.error("Error fetching user info:", err);
                 }
-            } catch (err) {
-                console.error("Error fetching user info:", err);
-            }
-        };
+            };
 
-        fetchUserInfo();
+            const loadInitialApplications = async () => {
+                try {
+                    const response = await fetch("http://localhost:3002/api/membership-applications", {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "token": localStorage.token
+                        }
+                    });
+                    if (response.ok) {
+                        const result = await response.json();
+                        setNewApplications(result && result.applications ? result.applications : []);
+                    }
+                } catch (err) {
+                    console.error('Error loading initial applications:', err);
+                }
+            };
+
+            fetchUserInfo();
+            loadInitialApplications();
+
+            return () => {
+                // nothing to clean up here (socket is local to fetchUserInfo)
+            };
     }, []);
 
     return (
@@ -151,7 +200,25 @@ const AdminDashboard = ({ setAuth }) => {
                         </div>
                     </div>
                 </div>
+
+                <div className="dashboard-section">
+                    <h2>New Membership Applications</h2>
+                    <div className="application-list">
+                        {newApplications.length > 0 ? (
+                            newApplications.map((application, index) => (
+                                <div key={index} className="application-item">
+                                    <span className="application-name">{`${application.first_name || ''} ${application.last_name || ''}`.trim()}</span>
+                                    <span className="application-date">{new Date(application.created_at || application.application_date || Date.now()).toLocaleString()}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <p>No new applications at the moment.</p>
+                        )}
+                    </div>
+                </div>
             </div>
+            {/* Toast container for react-toastify toasts */}
+            <ToastContainer />
         </div>
     );
 };
