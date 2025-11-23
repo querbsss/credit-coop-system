@@ -206,6 +206,25 @@ body {
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
+/* Reusable styled date input used across the staff portal */
+.styled-date-input {
+  height: 44px;
+  padding-left: 1rem;
+  padding-right: 2.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148,163,184,0.35);
+  background: var(--white);
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.95rem;
+  color: var(--gray-700);
+}
+
+/* make sure native date text is readable in webkit */
+.styled-date-input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  color: rgba(31,41,55,0.9);
+}
+
 .form-control.error {
   border-color: var(--error-red);
 }
