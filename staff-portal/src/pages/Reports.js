@@ -127,7 +127,7 @@ const Reports = () => {
           <label>
             Report type
             <br />
-            <select value={reportType} onChange={(e) => setReportType(e.target.value)}>
+            <select value={reportType} onChange={(e) => { setReportType(e.target.value); setData(null); }}>
               <option value="financial">Financial</option>
               <option value="members">Members</option>
             </select>
@@ -182,19 +182,19 @@ const Reports = () => {
                   {reportType === 'financial' ? (
                     <>
                       <td style={{ padding: '0.5rem' }}>{r.period}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.deposits.toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.loans.toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.interest.toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.expenses.toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.net.toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem' }}>{(r.deposits ?? 0).toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem' }}>{(r.loans ?? 0).toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem' }}>{(r.interest ?? 0).toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem' }}>{(r.expenses ?? 0).toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem' }}>{(r.net ?? 0).toLocaleString()}</td>
                     </>
                   ) : (
                     <>
                       <td style={{ padding: '0.5rem' }}>{r.id}</td>
                       <td style={{ padding: '0.5rem' }}>{r.name}</td>
                       <td style={{ padding: '0.5rem' }}>{r.joined}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.shares}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.contribution.toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem' }}>{r.shares ?? 0}</td>
+                      <td style={{ padding: '0.5rem' }}>{(r.contribution ?? 0).toLocaleString()}</td>
                     </>
                   )}
                 </tr>
