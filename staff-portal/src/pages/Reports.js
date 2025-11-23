@@ -174,9 +174,25 @@ const Reports = () => {
       const genWidth = doc.getTextWidth(generatedText);
       doc.text(generatedText, rightX - genWidth, y);
 
-  y += 18;
-  doc.setFontSize(10);
-  doc.text(`Period: ${from} — ${to}`, contentStartX, y);
+      // leave more vertical space after header
+      y += 28;
+
+      // Prepare table layout and center it horizontally (but avoid overlapping logo)
+      const headers = data.headers;
+      const fullUsable = pageWidth - margin * 2;
+      const maxColWidth = Math.floor(fullUsable / headers.length);
+      const colWidth = Math.max(70, Math.min(maxColWidth, 160));
+      const tableWidth = colWidth * headers.length;
+      let contentStartCentered = Math.floor((pageWidth - tableWidth) / 2);
+      // ensure content doesn't go outside left margin
+      if (contentStartCentered < margin) contentStartCentered = margin;
+      // if there's a logo, avoid overlapping it
+      const minContentX = finalLogo ? margin + logoW + 12 : margin;
+      const contentStart = contentStartCentered < minContentX ? minContentX : contentStartCentered;
+
+      // render period at contentStart
+      doc.setFontSize(10);
+      doc.text(`Period: ${from} — ${to}`, contentStart, y);
       y += 18;
 
       // compute summary stats for financial report
@@ -192,8 +208,8 @@ const Reports = () => {
         stats = { members: data.rows.length };
       }
 
-  // draw small stat boxes
-  const statX = contentStartX;
+      // draw small stat boxes starting at contentStart
+      const statX = contentStart;
       let statY = y;
       doc.setFontSize(9);
       if (reportType === 'financial') {
@@ -205,7 +221,7 @@ const Reports = () => {
           ['Net', stats.totalNet],
         ];
         let sx = statX;
-        const boxW = 110;
+        const boxW = Math.min(colWidth, 140);
         const boxH = 28;
         statLabels.forEach(([label, val], i) => {
           doc.setFillColor(245,245,250);
@@ -227,12 +243,10 @@ const Reports = () => {
         y += 36 + 12;
       }
 
-  // draw headers
-  const colX = [];
-  const usableWidth = pageWidth - contentStartX - margin;
-    const headers = data.headers;
-    const colWidth = usableWidth / headers.length;
-    headers.forEach((h, i) => colX.push(contentStartX + i * colWidth));
+      // draw headers
+      const colX = [];
+      const usableWidth = tableWidth;
+      headers.forEach((h, i) => colX.push(contentStart + i * colWidth));
 
       doc.setFontSize(9);
       doc.setFillColor(245, 245, 250);
