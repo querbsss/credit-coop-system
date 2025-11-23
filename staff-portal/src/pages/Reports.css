@@ -115,6 +115,31 @@
   color: var(--gray-800);
 }
 
+.reports-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.reports-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--card-shadow);
+}
+
+.reports-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 /* Make table visually lighter and easier to read */
 .reports-table-container {
   overflow: auto;

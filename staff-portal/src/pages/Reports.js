@@ -53,9 +53,10 @@ const Reports = () => {
   const [from, setFrom] = useState(() => fmt(new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)));
   const [to, setTo] = useState(() => fmt(new Date()));
   const [data, setData] = useState(null);
-  const [orgName, setOrgName] = useState('Credit Coop System');
-  const [reportTitle, setReportTitle] = useState('Automated Report');
+  const [orgName, setOrgName] = useState('SLZCoop');
+  const [reportTitle, setReportTitle] = useState('SLZCoop');
   const [logoUrl, setLogoUrl] = useState('');
+  const [logoDataUrl, setLogoDataUrl] = useState(null);
 
   // compute from/to when preset changes
   const applyPreset = (p) => {
@@ -125,39 +126,42 @@ const Reports = () => {
       const pageWidth = doc.internal.pageSize.getWidth();
       const rightX = pageWidth - margin;
 
-      // try to load logo (if provided) and convert to dataURL
-      let logoDataUrl = null;
-      if (logoUrl) {
+      // prefer in-memory uploaded logo; fallback to logoUrl
+      let finalLogo = logoDataUrl || null;
+      if (!finalLogo && logoUrl) {
         try {
           const res = await fetch(logoUrl);
           const blob = await res.blob();
-          logoDataUrl = await new Promise((resolve, reject) => {
+          finalLogo = await new Promise((resolve, reject) => {
             const fr = new FileReader();
             fr.onload = () => resolve(fr.result);
             fr.onerror = reject;
             fr.readAsDataURL(blob);
           });
         } catch (e) {
-          // ignore logo loading errors
           console.warn('Failed to load logo URL for PDF header', e);
-          logoDataUrl = null;
+          finalLogo = null;
         }
       }
 
       // draw logo left if available
-      if (logoDataUrl) {
+      if (finalLogo) {
         try {
-          doc.addImage(logoDataUrl, 'PNG', margin, 36, 48, 48);
+          // choose image type automatically (png/jpg) by data URL
+          doc.addImage(finalLogo, 'PNG', margin, 36, 56, 56);
         } catch (e) {
-          // addImage may fail for unknown formats; ignore
-          console.warn('addImage failed', e);
+          try {
+            doc.addImage(finalLogo, 'JPEG', margin, 36, 56, 56);
+          } catch (er) {
+            console.warn('addImage failed for logo', er);
+          }
         }
       }
 
-      doc.setFontSize(12);
+      // header text
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       const titleText = reportTitle || (reportType === 'financial' ? 'Financial Report' : 'Member Report');
-      // center title
       const titleWidth = doc.getTextWidth(titleText);
       doc.text(titleText, (pageWidth - titleWidth) / 2, y);
 
@@ -168,8 +172,57 @@ const Reports = () => {
       doc.text(generatedText, rightX - genWidth, y);
 
       y += 18;
+      doc.setFontSize(10);
       doc.text(`Period: ${from} — ${to}`, margin, y);
       y += 18;
+
+      // compute summary stats for financial report
+      let stats = {};
+      if (reportType === 'financial') {
+        const totalDeposits = data.rows.reduce((s, r) => s + (r.deposits || 0), 0);
+        const totalLoans = data.rows.reduce((s, r) => s + (r.loans || 0), 0);
+        const totalInterest = data.rows.reduce((s, r) => s + (r.interest || 0), 0);
+        const totalExpenses = data.rows.reduce((s, r) => s + (r.expenses || 0), 0);
+        const totalNet = data.rows.reduce((s, r) => s + (r.net || 0), 0);
+        stats = { totalDeposits, totalLoans, totalInterest, totalExpenses, totalNet };
+      } else {
+        stats = { members: data.rows.length };
+      }
+
+      // draw small stat boxes
+      const statX = margin;
+      let statY = y;
+      doc.setFontSize(9);
+      if (reportType === 'financial') {
+        const statLabels = [
+          ['Deposits', stats.totalDeposits],
+          ['Loans', stats.totalLoans],
+          ['Interest', stats.totalInterest],
+          ['Expenses', stats.totalExpenses],
+          ['Net', stats.totalNet],
+        ];
+        let sx = statX;
+        const boxW = 110;
+        const boxH = 28;
+        statLabels.forEach(([label, val], i) => {
+          doc.setFillColor(245,245,250);
+          doc.rect(sx, statY, boxW, boxH, 'F');
+          doc.setFont('helvetica', 'bold');
+          doc.text(label, sx + 6, statY + 10);
+          doc.setFont('helvetica', 'normal');
+          doc.text(String((val ?? 0)).toLocaleString(), sx + 6, statY + 22);
+          sx += boxW + 8;
+        });
+        y += boxH + 12;
+      } else {
+        doc.setFillColor(245,245,250);
+        doc.rect(statX, statY, 160, 36, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Members', statX + 8, statY + 12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(stats.members), statX + 8, statY + 28);
+        y += 36 + 12;
+      }
 
   // draw headers
   const colX = [];
@@ -246,6 +299,24 @@ const Reports = () => {
               <option value="ytd">Year to date</option>
               <option value="custom">Custom range</option>
             </select>
+          </label>
+
+          <label style={{ minWidth: 220 }}>
+            Report title
+            <br />
+            <input className="form-control" value={reportTitle} onChange={(e) => setReportTitle(e.target.value)} />
+          </label>
+
+          <label>
+            Logo (upload)
+            <br />
+            <input type="file" accept="image/*" onChange={(e) => {
+              const f = e.target.files && e.target.files[0];
+              if (!f) return;
+              const fr = new FileReader();
+              fr.onload = () => setLogoDataUrl(fr.result);
+              fr.readAsDataURL(f);
+            }} />
           </label>
 
           <label>
