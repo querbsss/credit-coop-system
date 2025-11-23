@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import './Reports.css';
 
 // Helper: format date as YYYY-MM-DD
 const fmt = (d) => d.toISOString().slice(0, 10);
