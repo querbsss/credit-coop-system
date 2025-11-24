@@ -14,7 +14,7 @@ const Payment = () => {
   const navigate = useNavigate();
 
   // PayMongo API key should be stored in environment variables
-// Add REACT_APP_PAYMONGO_SECRET_KEY to your .env file
+  // PayMongo secret must be set server-side (PAYMONGO_SECRET_KEY). The client should not contain secrets.
 
   useEffect(() => {
     if (user && user.loan && user.loan.monthly_payment) {
@@ -37,96 +37,50 @@ const Payment = () => {
       // Convert amount to cents (PayMongo expects amounts in centavos)
       const amountInCents = Math.round(parseFloat(amount) * 100);
 
-      const paymentIntentData = {
-        data: {
-          type: 'payment_intent',
-          attributes: {
-            amount: amountInCents,
-            currency: 'PHP',
-            description: 'Credit Cooperative Payment',
-            payment_method_allowed: [paymentMethod],
-            capture_type: 'automatic',
-            statement_descriptor: 'Credit Coop Payment'
-          }
-        }
+      // Call server to create payment intent + checkout session (server holds secret)
+      const payload = {
+        amount_in_cents: amountInCents,
+        payment_method: paymentMethod,
+        success_url: `${window.location.origin}/payment-success`,
+        cancel_url: `${window.location.origin}/payment`,
+        application_id: user?.loan?.application_id || null,
+        member_number: user?.member_number || user?.member_number || null
       };
 
-      const response = await fetch('https://api.paymongo.com/v1/payment_intents', {
+      const resp = await fetch('/api/payments/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(process.env.REACT_APP_PAYMONGO_SECRET_KEY + ':')}`
-        },
-        body: JSON.stringify(paymentIntentData)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.errors?.[0]?.detail || 'Failed to create payment intent');
+      // Parse response safely: handle non-JSON (HTML error pages) to give a readable message
+      const contentType = resp.headers.get('content-type') || '';
+      let data = null;
+      if (contentType.includes('application/json')) {
+        data = await resp.json();
+      } else {
+        const text = await resp.text();
+        // If response is not JSON, treat as error and surface text
+        throw new Error(text || 'Unexpected non-JSON response from server');
       }
 
-      // Create Checkout Session
-      await createCheckoutSession(data.data.id, amountInCents);
+      if (!resp.ok) {
+        throw new Error(data.message || 'Failed to create payment session');
+      }
+
+      // Redirect to checkout URL provided by server
+      setCheckoutUrl(data.checkout_url);
+      setSubmitStatus({ type: 'success', message: 'Payment session created! Redirecting...' });
+      setTimeout(() => {
+        if (data.checkout_url) window.location.href = data.checkout_url;
+      }, 700);
     } catch (error) {
       setSubmitStatus({ type: 'error', message: error.message || 'Payment creation failed.' });
       setIsProcessing(false);
     }
   };
 
-  // Create PayMongo Checkout Session
-  const createCheckoutSession = async (paymentIntentId, amountInCents) => {
-    try {
-      const checkoutData = {
-        data: {
-          type: 'checkout_session',
-          attributes: {
-            payment_intent_id: paymentIntentId,
-            success_url: `${window.location.origin}/payment-success`,
-            cancel_url: `${window.location.origin}/payment`,
-            line_items: [
-              {
-                name: 'Credit Cooperative Payment',
-                amount: amountInCents,
-                currency: 'PHP',
-                quantity: 1
-              }
-            ],
-            payment_method_types: [paymentMethod],
-            description: 'Payment to Credit Cooperative'
-          }
-        }
-      };
-
-      const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(process.env.REACT_APP_PAYMONGO_SECRET_KEY + ':')}`
-        },
-        body: JSON.stringify(checkoutData)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.errors?.[0]?.detail || 'Failed to create checkout session');
-      }
-
-      setCheckoutUrl(data.data.attributes.checkout_url);
-      setSubmitStatus({ type: 'success', message: 'Payment session created! Redirecting...' });
-      
-      // Redirect to PayMongo checkout page
-      setTimeout(() => {
-        window.location.href = data.data.attributes.checkout_url;
-      }, 1500);
-
-    } catch (error) {
-      setSubmitStatus({ type: 'error', message: error.message || 'Checkout creation failed.' });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  // Checkout session creation is handled on the server (/api/payments/create).
 
   return (
     <div className="payment-page">

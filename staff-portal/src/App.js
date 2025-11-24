@@ -18,6 +18,8 @@ import CreateInvoice from './pages/CreateInvoice';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import ImportDashboard from './pages/ImportDashboard';
+import LoanAmounts from './pages/LoanAmounts';
+import SavingsSetup from './pages/SavingsSetup';
 import './App.css';
 import UserManagement from './components/UserManagement';
 import MembershipApplications from './components/MembershipApplications';
@@ -371,6 +373,26 @@ function App() {
                 )
               } 
             />
+              <Route 
+                path="/loan-amounts" 
+                element={
+                  isAuthenticated ? (
+                    <div className="staff-portal">
+                      <Header setAuth={setAuth} />
+                      <div className="portal-content">
+                        <Sidebar />
+                        <main className="main-content">
+                          <ProtectedRoute requiredRoute="/loan-amounts">
+                            <LoanAmounts />
+                          </ProtectedRoute>
+                        </main>
+                      </div>
+                    </div>
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                } 
+              />
             <Route 
               path="/credit-investigator" 
               element={
@@ -382,6 +404,26 @@ function App() {
                       <main className="main-content">
                         <ProtectedRoute requiredRoute="/credit-investigator">
                           <CreditInvestigatorDashboard />
+                        </ProtectedRoute>
+                      </main>
+                    </div>
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/savings-setup" 
+              element={
+                isAuthenticated ? (
+                  <div className="staff-portal">
+                    <Header setAuth={setAuth} />
+                    <div className="portal-content">
+                      <Sidebar />
+                      <main className="main-content">
+                        <ProtectedRoute requiredRoute="/savings-setup">
+                          <SavingsSetup />
                         </ProtectedRoute>
                       </main>
                     </div>

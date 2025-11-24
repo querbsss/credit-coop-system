@@ -7,6 +7,7 @@ import LoanApplication from './pages/LoanApplication';
 import Payment from './pages/Payment';
 import PaymentDues from './pages/PaymentDues';
 import PaymentHistory from './pages/PaymentHistory';
+import PaymentSuccess from './pages/PaymentSuccess';
 import './App.css';
 // removed toastify
 
@@ -77,6 +78,11 @@ const AppRoutes = () => {
             <Payment />
           </ProtectedRoute>
         } 
+      />
+      {/* Payment success page: render directly so redirect from gateway with query params is handled */}
+      <Route
+        path="/payment-success"
+        element={<PaymentSuccess />}
       />
       <Route 
         path="/payment-dues" 

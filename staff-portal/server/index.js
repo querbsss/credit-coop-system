@@ -21,6 +21,8 @@ app.use('/api/loan-review', require('./routes/loanReview'));
 // payment reference routes
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/user-management', require('./routes/userManagement'));
+// accounts (savings/checking) routes
+app.use('/api/accounts', require('./routes/accounts'));
 
 // invoice routes
 app.use('/api/invoices', require('./routes/invoices'));

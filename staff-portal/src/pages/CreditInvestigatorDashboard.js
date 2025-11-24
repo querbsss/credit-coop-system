@@ -280,80 +280,10 @@ const CreditInvestigatorDashboard = () => {
                   {loading ? 'Sending...' : 'Send to Manager for Approval'}
                 </button>
               )}
-              {/* Loan Officer can input loan amount if approved by manager */}
+              {/* Loan amount assignment has moved to the Administrator dashboard. */}
               {selectedApplication.review_status === 'approved' && (
                 <div style={{width: '100%', marginTop: '1rem'}}>
-                  <h4>Set Loan Amount & Calculate Deductions</h4>
-                  <div className="info-grid">
-                    <div className="info-item">
-                      <label>Loan Amount:</label>
-                      <input type="number" min="0" step="0.01" style={{width: '120px'}} value={selectedApplication.loan_amount || ''}
-                        onChange={e => setSelectedApplication({...selectedApplication, loan_amount: e.target.value})} />
-                    </div>
-                    <div className="info-item">
-                      <label>Loan Duration:</label>
-                      <span>
-                        {selectedApplication.loan_type === 'quick' ? '6 months' : selectedApplication.loan_type === 'regular' ? '12 months' : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
-                  {/* Deductions Calculation Section */}
-                  {selectedApplication.loan_amount && (
-                    (() => {
-                      const amount = parseFloat(selectedApplication.loan_amount) || 0;
-                      const months = selectedApplication.loan_type === 'quick' ? 6 : 12;
-                      const serviceFee = amount * 0.03;
-                      const shareCapital = amount * 0.03;
-                      const insurance = (amount * months) / 1000;
-                      // Monthly Payment Calculation
-                      const annualInterestRate = 0.12; // Example: 12% annual
-                      const monthlyInterestRate = annualInterestRate / 12;
-                      const n = months;
-                      const P = amount;
-                      const r = monthlyInterestRate;
-                      const monthlyPayment = P * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-                      // Net proceeds
-                      const netProceeds = amount - serviceFee - shareCapital - insurance;
-                      return (
-                        <div className="deductions-section" style={{marginTop: '1rem'}}>
-                          <h5>Deductions</h5>
-                          <div>Service Fee (3%): ₱{serviceFee.toFixed(2)}</div>
-                          <div>Share Capital (3%): ₱{shareCapital.toFixed(2)}</div>
-                          <div>Insurance: ₱{insurance.toFixed(2)}</div>
-                          <div>Net Proceeds: <b>₱{netProceeds.toFixed(2)}</b></div>
-                          <h5 style={{marginTop: '1rem'}}>Monthly Payment</h5>
-                          <div>Monthly Payment: <b>₱{monthlyPayment.toFixed(2)}</b></div>
-                        </div>
-                      );
-                    })()
-                  )}
-                  <button className="btn btn-primary" style={{marginTop: '1rem'}} onClick={() => {
-                    // Save loan amount logic here (API call)
-                    const amount = parseFloat(selectedApplication.loan_amount) || 0;
-                    const months = selectedApplication.loan_type === 'quick' ? 6 : 12;
-                    const serviceFee = amount * 0.03;
-                    const shareCapital = amount * 0.03;
-                    const insurance = (amount * months) / 1000;
-                    const netProceeds = amount - serviceFee - shareCapital - insurance;
-                    const annualInterestRate = 0.12;
-                    const monthlyInterestRate = annualInterestRate / 12;
-                    const n = months;
-                    const P = amount;
-                    const r = monthlyInterestRate;
-                    const monthlyPayment = P * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-                    axios.post(`http://localhost:5000/api/loan-review/applications/${selectedApplication.application_id}/set-loan-amount`, {
-                      loan_amount: netProceeds,
-                      loan_duration: months,
-                      monthly_payment: monthlyPayment
-                    }).then(() => {
-                      alert('Loan amount and deductions saved!');
-                      setSelectedApplication(null);
-                    }).catch(() => {
-                      alert('Error saving loan amount');
-                    });
-                  }}>
-                    Save Loan Amount
-                  </button>
+                  <p><em>Loan amount assignment and deductions calculation are handled by administrators. Please forward this application to an admin for finalization.</em></p>
                 </div>
               )}
               <button className="btn btn-secondary" onClick={() => setSelectedApplication(null)}>Cancel</button>

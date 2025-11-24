@@ -2,7 +2,7 @@
 export const PERMISSIONS = {
   // Admin permissions - limited to member management and reports
   admin: {
-    allowedRoutes: ['/dashboard', '/members', '/reports', '/membership-applications'],
+    allowedRoutes: ['/dashboard', '/members', '/reports', '/membership-applications', '/loan-amounts'],
     menuItems: [
       {
         path: '/dashboard',
@@ -21,6 +21,18 @@ export const PERMISSIONS = {
         icon: '📝',
         label: 'Applications',
         description: 'Membership Applications'
+      },
+      {
+        path: '/savings-setup',
+        icon: '🏦',
+        label: 'Savings',
+        description: 'Setup Member Savings'
+      },
+      {
+        path: '/loan-amounts',
+        icon: '🏦',
+        label: 'Loan Amounts',
+        description: 'Assign Loan Amounts'
       },
       {
         path: '/reports',
@@ -119,7 +131,7 @@ export const PERMISSIONS = {
 
   // Cashier permissions - transactions and basic member info
   cashier: {
-    allowedRoutes: ['/dashboard', '/members', '/accounts', '/transactions', '/create-invoice'],
+    allowedRoutes: ['/dashboard', '/members', '/accounts', '/transactions', '/create-invoice', '/savings-setup'],
     menuItems: [
       {
         path: '/dashboard',
@@ -138,6 +150,12 @@ export const PERMISSIONS = {
         icon: '💰',
         label: 'Accounts',
         description: 'Account Services'
+      },
+      {
+        path: '/savings-setup',
+        icon: '🏦',
+        label: 'Savings',
+        description: 'Setup Member Savings'
       },
       {
         path: '/transactions',
@@ -220,24 +238,44 @@ export const PERMISSIONS = {
 
 // Helper function to check if user has permission for a route
 export const hasPermission = (userRole, route) => {
-  if (!userRole || !PERMISSIONS[userRole]) {
-    return false;
-  }
-  return PERMISSIONS[userRole].allowedRoutes.includes(route);
+  if (!userRole) return false;
+  // normalize role (case-insensitive, allow variants like 'Administrator' or 'ADMIN')
+  const normalized = normalizeRole(userRole);
+  if (!PERMISSIONS[normalized]) return false;
+  return PERMISSIONS[normalized].allowedRoutes.includes(route);
 };
 
 // Helper function to get menu items for a role
 export const getMenuItems = (userRole) => {
-  if (!userRole || !PERMISSIONS[userRole]) {
-    return [];
-  }
-  return PERMISSIONS[userRole].menuItems;
+  if (!userRole) return [];
+  const normalized = normalizeRole(userRole);
+  if (!PERMISSIONS[normalized]) return [];
+  return PERMISSIONS[normalized].menuItems;
 };
 
 // Helper function to get allowed routes for a role
 export const getAllowedRoutes = (userRole) => {
-  if (!userRole || !PERMISSIONS[userRole]) {
-    return [];
-  }
-  return PERMISSIONS[userRole].allowedRoutes;
+  if (!userRole) return [];
+  const normalized = normalizeRole(userRole);
+  if (!PERMISSIONS[normalized]) return [];
+  return PERMISSIONS[normalized].allowedRoutes;
 };
+
+// Normalize role string to match keys in PERMISSIONS
+function normalizeRole(role) {
+  if (!role) return '';
+  const r = String(role).trim().toLowerCase();
+  // common mappings
+  if (r === 'administrator' || r === 'admin' || r === 'administrator_role' || r === 'administrator_role') return 'admin';
+  if (r === 'it admin' || r === 'it_admin' || r === 'it-admin') return 'it_admin';
+  if (r === 'loan officer' || r === 'loan_officer' || r === 'loan-officer') return 'loan_officer';
+  if (r === 'cashier') return 'cashier';
+  if (r === 'manager') return 'manager';
+  if (r === 'credit investigator' || r === 'credit_investigator' || r === 'credit-investigator') return 'credit_investigator';
+  // fallback: if key exists directly, return it
+  if (PERMISSIONS[r]) return r;
+  // last attempt: try underscore form
+  const us = r.replace(/\s+/g, '_');
+  if (PERMISSIONS[us]) return us;
+  return r;
+}

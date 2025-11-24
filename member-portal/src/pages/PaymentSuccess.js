@@ -7,14 +7,16 @@ const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [confirmResult, setConfirmResult] = useState(null);
   const navigate = useNavigate();
 
-  // PayMongo API key should be stored in environment variables
-  // Add REACT_APP_PAYMONGO_SECRET_KEY to your .env file
+  // Payment details and verification are performed server-side to avoid exposing secret keys.
 
   useEffect(() => {
     const paymentIntentId = searchParams.get('payment_intent_id');
     const checkoutSessionId = searchParams.get('checkout_session_id');
+    const applicationId = searchParams.get('application_id');
+    const memberNumber = searchParams.get('member_number');
 
     if (paymentIntentId) {
       fetchPaymentDetails(paymentIntentId);
@@ -27,16 +29,43 @@ const PaymentSuccess = () => {
 
   const fetchPaymentDetails = async (paymentIntentId) => {
     try {
-      const response = await fetch(`https://api.paymongo.com/v1/payment_intents/${paymentIntentId}`, {
-        headers: {
-          'Authorization': `Basic ${btoa(process.env.REACT_APP_PAYMONGO_SECRET_KEY + ':')}`
+      // Fetch payment details from server (server will use secret)
+      const response = await fetch(`/api/payments/details?payment_intent_id=${encodeURIComponent(paymentIntentId)}`);
+      const ct = response.headers.get('content-type') || '';
+      let json = null;
+      if (ct.includes('application/json')) {
+        json = await response.json();
+      } else {
+        const txt = await response.text();
+        console.warn('Non-JSON response fetching payment details:', txt);
+        setLoading(false);
+        return;
+      }
+      if (response.ok && json.success && json.data) {
+        // The server returns paymongo payload at json.data
+        setPaymentDetails(json.data.data);
+        // Notify server to record and apply payment (wait for result)
+        try {
+          const appId = searchParams.get('application_id') || null;
+          const mNum = searchParams.get('member_number') || null;
+          const confResp = await fetch('/api/payments/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payment_intent_id: json.data.data.id, application_id: appId, member_number: mNum })
+          });
+          const confCt = confResp.headers.get('content-type') || '';
+          let confJson = null;
+          if (confCt.includes('application/json')) confJson = await confResp.json();
+          if (confResp.ok && confJson && confJson.success) {
+            setConfirmResult({ success: true, data: confJson });
+          } else {
+            setConfirmResult({ success: false, data: confJson || { message: 'Unknown error' }, status: confResp.status });
+            console.warn('Payment confirmation returned non-success:', confJson || await confResp.text());
+          }
+        } catch (err) {
+          console.warn('Server payment confirmation failed:', err);
+          setConfirmResult({ success: false, error: String(err) });
         }
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        setPaymentDetails(data.data);
       }
     } catch (error) {
       console.error('Error fetching payment details:', error);
@@ -47,16 +76,19 @@ const PaymentSuccess = () => {
 
   const fetchCheckoutSessionDetails = async (checkoutSessionId) => {
     try {
-      const response = await fetch(`https://api.paymongo.com/v1/checkout_sessions/${checkoutSessionId}`, {
-        headers: {
-          'Authorization': `Basic ${btoa(process.env.REACT_APP_PAYMONGO_SECRET_KEY + ':')}`
-        }
-      });
-
-      const data = await response.json();
-      
-      if (response.ok && data.data.attributes.payment_intent_id) {
-        await fetchPaymentDetails(data.data.attributes.payment_intent_id);
+      const response = await fetch(`/api/payments/details?checkout_session_id=${encodeURIComponent(checkoutSessionId)}`);
+      const ct = response.headers.get('content-type') || '';
+      let json = null;
+      if (ct.includes('application/json')) {
+        json = await response.json();
+      } else {
+        const txt = await response.text();
+        console.warn('Non-JSON response fetching checkout session details:', txt);
+        setLoading(false);
+        return;
+      }
+      if (response.ok && json.success && json.data && json.data.data?.attributes?.payment_intent_id) {
+        await fetchPaymentDetails(json.data.data.attributes.payment_intent_id);
       } else {
         setLoading(false);
       }
@@ -67,7 +99,12 @@ const PaymentSuccess = () => {
   };
 
   const handleGoToDashboard = () => {
+    // If we successfully applied the payment, navigate and reload so dashboard fetches updated loan data
     navigate('/dashboard', { replace: true });
+    if (confirmResult && confirmResult.success) {
+      // force reload to ensure latest user/loan data
+      setTimeout(() => window.location.reload(), 300);
+    }
   };
 
   const handleMakeAnotherPayment = () => {
@@ -147,6 +184,12 @@ const PaymentSuccess = () => {
                 Make Another Payment
               </button>
             </div>
+
+            {confirmResult && (
+              <div className={`status-message ${confirmResult.success ? 'success' : 'error'}`} style={{marginTop:12}}>
+                {confirmResult.success ? 'Payment applied to your loan successfully.' : `Payment not applied: ${confirmResult.data?.message || confirmResult.error || 'unknown'}`}
+              </div>
+            )}
 
             <div className="receipt-note">
               <p>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { io } from 'socket.io-client';
+import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
 import '../pages/Dashboard.css';
 
@@ -14,6 +15,9 @@ const AdminDashboard = ({ setAuth }) => {
         totalTransactions: 0
     });
     const [newApplications, setNewApplications] = useState([]); // State for new membership applications
+    const [loanApps, setLoanApps] = useState([]);
+    const [selectedLoanApp, setSelectedLoanApp] = useState(null);
+    const [loanLoading, setLoanLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -78,6 +82,23 @@ const AdminDashboard = ({ setAuth }) => {
 
             fetchUserInfo();
             loadInitialApplications();
+            // load approved loans for admin to assign amounts
+            const loadApprovedLoans = async () => {
+                try {
+                    const resp = await axios.get('http://localhost:5000/api/loan-review/applications?status=approved', {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            token: localStorage.token
+                        }
+                    });
+                    if (resp.data && resp.data.success) {
+                        setLoanApps(resp.data.applications || []);
+                    }
+                } catch (err) {
+                    console.error('Error loading approved loans:', err);
+                }
+            };
+            loadApprovedLoans();
 
             return () => {
                 // nothing to clean up here (socket is local to fetchUserInfo)
@@ -216,6 +237,120 @@ const AdminDashboard = ({ setAuth }) => {
                         )}
                     </div>
                 </div>
+                <div className="dashboard-section">
+                    <h2>Loan Amounts (Admin)</h2>
+                    <p>Assign final loan amounts and calculate deductions for approved applications.</p>
+                    <div className="application-list">
+                        {loanApps.length > 0 ? (
+                            loanApps.map((app) => (
+                                <div key={app.application_id} className="application-item">
+                                    <span className="application-name">{app.applicant_name || `${app.first_name || ''} ${app.last_name || ''}`}</span>
+                                    <span className="application-date">{new Date(app.submitted_at || Date.now()).toLocaleString()}</span>
+                                    <div style={{marginTop: '0.5rem'}}>
+                                        <button className="action-btn small" onClick={() => setSelectedLoanApp(app)}>Set Loan Amount</button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p>No approved loan applications awaiting amounts.</p>
+                        )}
+                    </div>
+                </div>
+
+                {selectedLoanApp && (
+                    <div className="modal-overlay">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h2>Set Loan Amount for #{selectedLoanApp.application_id}</h2>
+                                <button className="close-btn" onClick={() => setSelectedLoanApp(null)}>✕</button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <label>Requested Amount</label>
+                                        <div>{selectedLoanApp.requested_amount || selectedLoanApp.loan_amount || 'N/A'}</div>
+                                    </div>
+                                    <div className="info-item">
+                                        <label>Loan Type</label>
+                                        <div>{selectedLoanApp.loan_type || 'regular'}</div>
+                                    </div>
+                                    <div className="info-item">
+                                        <label>Final Loan Amount (gross)</label>
+                                        <input type="number" min="0" step="0.01" value={selectedLoanApp.loan_amount || ''}
+                                            onChange={e => setSelectedLoanApp({...selectedLoanApp, loan_amount: e.target.value})} />
+                                    </div>
+                                </div>
+
+                                {selectedLoanApp.loan_amount && (
+                                    (() => {
+                                        const amount = parseFloat(selectedLoanApp.loan_amount) || 0;
+                                        const months = selectedLoanApp.loan_type === 'quick' ? 6 : 12;
+                                        const serviceFee = amount * 0.03;
+                                        const shareCapital = amount * 0.03;
+                                        const insurance = (amount * months) / 1000;
+                                        const annualInterestRate = 0.12;
+                                        const monthlyInterestRate = annualInterestRate / 12;
+                                        const n = months;
+                                        const P = amount;
+                                        const r = monthlyInterestRate;
+                                        const monthlyPayment = P * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+                                        const netProceeds = amount - serviceFee - shareCapital - insurance;
+                                        return (
+                                            <div className="deductions-section" style={{marginTop: '1rem'}}>
+                                                <h5>Deductions</h5>
+                                                <div>Service Fee (3%): ₱{serviceFee.toFixed(2)}</div>
+                                                <div>Share Capital (3%): ₱{shareCapital.toFixed(2)}</div>
+                                                <div>Insurance: ₱{insurance.toFixed(2)}</div>
+                                                <div>Net Proceeds: <b>₱{netProceeds.toFixed(2)}</b></div>
+                                                <h5 style={{marginTop: '1rem'}}>Monthly Payment</h5>
+                                                <div>Monthly Payment: <b>₱{monthlyPayment.toFixed(2)}</b></div>
+                                            </div>
+                                        );
+                                    })()
+                                )}
+                            </div>
+                            <div className="modal-footer">
+                                <button className="btn btn-primary" disabled={loanLoading} onClick={async () => {
+                                    setLoanLoading(true);
+                                    try {
+                                        const amount = parseFloat(selectedLoanApp.loan_amount) || 0;
+                                        const months = selectedLoanApp.loan_type === 'quick' ? 6 : 12;
+                                        const annualInterestRate = 0.12;
+                                        const monthlyInterestRate = annualInterestRate / 12;
+                                        const n = months;
+                                        const P = amount;
+                                        const r = monthlyInterestRate;
+                                        const monthlyPayment = P * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+                                        const serviceFee = amount * 0.03;
+                                        const shareCapital = amount * 0.03;
+                                        const insurance = (amount * months) / 1000;
+                                        const netProceeds = amount - serviceFee - shareCapital - insurance;
+
+                                        await axios.post(`http://localhost:5000/api/loan-review/applications/${selectedLoanApp.application_id}/set-loan-amount`, {
+                                            loan_amount: netProceeds,
+                                            loan_duration: months,
+                                            monthly_payment: monthlyPayment
+                                        }, {
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                token: localStorage.token
+                                            }
+                                        });
+                                        alert('Loan amount saved');
+                                        // remove from list
+                                        setLoanApps(prev => prev.filter(a => a.application_id !== selectedLoanApp.application_id));
+                                        setSelectedLoanApp(null);
+                                    } catch (err) {
+                                        console.error('Error saving loan amount:', err);
+                                        alert('Failed to save loan amount');
+                                    }
+                                    setLoanLoading(false);
+                                }}>Save Loan Amount</button>
+                                <button className="btn btn-secondary" onClick={() => setSelectedLoanApp(null)}>Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
             {/* Toast container for react-toastify toasts */}
             <ToastContainer />

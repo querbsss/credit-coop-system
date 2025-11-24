@@ -1,3 +1,11 @@
+// Load environment variables from .env when present (development convenience)
+// This allows the server to pick up `jwtSecret`, `PAYMONGO_SECRET_KEY`, etc.
+try {
+  require('dotenv').config();
+} catch (e) {
+  // If dotenv is not installed, we silently continue; env vars can still be provided by the OS.
+}
+
 const express = require('express');
 const app = express();
 const multer = require('multer');
@@ -5,6 +13,23 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const pool = require('./db_members'); // Import database connection
+
+// Utility: resolve PayMongo secret from env with optional fallbacks for local dev
+function resolvePaymongoKey() {
+  const keysTried = [];
+  const primary = process.env.PAYMONGO_SECRET_KEY;
+  keysTried.push(primary ? 'PAYMONGO_SECRET_KEY' : null);
+  if (primary) return primary;
+
+  // Fallbacks (local/dev only) - prefer explicit server var
+  const alt = process.env.PAYMONGO_TEST_KEY || process.env.REACT_APP_PAYMONGO_SECRET_KEY || null;
+  if (alt) {
+    console.warn('Using fallback PayMongo key from environment (RECOMMENDED: set PAYMONGO_SECRET_KEY).');
+    return alt;
+  }
+
+  return null;
+}
 
 //middlewares
 app.use(express.json());
@@ -459,25 +484,287 @@ app.post('/api/payment/reference-upload', paymentUpload.single('reference_image'
   }
 });
 
+// Endpoint to confirm a payment (recommended: called by client after redirect OR by a webhook handler)
+// Expects JSON body: { payment_intent_id?, checkout_session_id?, application_id, member_number }
+app.post('/api/payments/confirm', async (req, res) => {
+  const { payment_intent_id, checkout_session_id, application_id, member_number } = req.body || {};
+
+  if (!payment_intent_id && !checkout_session_id) {
+    return res.status(400).json({ success: false, message: 'payment_intent_id or checkout_session_id required' });
+  }
+
+  const PAYMONGO_KEY = resolvePaymongoKey();
+  if (!PAYMONGO_KEY) {
+    console.error('PAYMONGO_SECRET_KEY not set in server environment. Set PAYMONGO_SECRET_KEY env var.');
+    return res.status(500).json({ success: false, message: 'Server misconfiguration: missing PayMongo secret. Set PAYMONGO_SECRET_KEY on the server.' });
+  }
+
+  try {
+    // Use server-side fetch to retrieve the payment details from PayMongo for verification
+    const authHeader = 'Basic ' + Buffer.from(`${PAYMONGO_KEY}:`).toString('base64');
+    let paymongoResp;
+    if (payment_intent_id) {
+      paymongoResp = await fetch(`https://api.paymongo.com/v1/payment_intents/${payment_intent_id}`, {
+        method: 'GET', headers: { Authorization: authHeader }
+      });
+    } else {
+      paymongoResp = await fetch(`https://api.paymongo.com/v1/checkout_sessions/${checkout_session_id}`, {
+        method: 'GET', headers: { Authorization: authHeader }
+      });
+    }
+
+    if (!paymongoResp.ok) {
+      const txt = await paymongoResp.text();
+      console.error('Failed to fetch PayMongo payment:', paymongoResp.status, txt);
+      return res.status(502).json({ success: false, message: 'Failed to verify payment with payment provider' });
+    }
+
+    const payData = await paymongoResp.json();
+    // PayMongo amounts are in cents (integer)
+    const attributes = payData.data && payData.data.attributes ? payData.data.attributes : {};
+    const providerAmountCents = attributes.amount || 0;
+    const providerCurrency = attributes.currency || 'PHP';
+    const providerStatus = attributes.status || attributes.payment_status || 'unknown';
+    const providerId = payData.data.id || null;
+    const paidAt = attributes.paid_at ? new Date(attributes.paid_at) : (attributes.updated_at ? new Date(attributes.updated_at) : new Date());
+
+    // Only process succeeded/paid status (adjust condition if provider uses a different status value)
+    if (!['succeeded', 'paid', 'paid_out'].includes(String(providerStatus).toLowerCase())) {
+      return res.status(400).json({ success: false, message: 'Payment not in a completed state', status: providerStatus });
+    }
+
+    const paidAmount = Number(providerAmountCents) / 100.0;
+
+    // Persist payment and deduct outstanding_balance atomically
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Insert payment record
+      const insertPayment = `INSERT INTO payments (payment_provider_id, application_id, member_number, amount, currency, status, paid_at, raw_payload)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`;
+      const insertValues = [providerId, application_id || null, member_number || null, paidAmount, providerCurrency, providerStatus, paidAt, JSON.stringify(payData)];
+      const insertResult = await client.query(insertPayment, insertValues);
+
+        console.log('Inserted payment record id=', insertResult.rows[0].id, 'providerId=', providerId, 'amount=', paidAmount);
+
+      // Deduct outstanding balance
+      const updateQuery = `UPDATE loan_applications
+        SET outstanding_balance = GREATEST(COALESCE(outstanding_balance, 0) - $1, 0)
+        WHERE application_id = $2
+        RETURNING application_id, outstanding_balance, review_status`;
+      const updateResult = await client.query(updateQuery, [paidAmount, application_id]);
+
+  console.log('Updated loan application result rows=', updateResult.rows);
+
+      if (updateResult.rows.length === 0) {
+        // No loan found to apply payment to — rollback and return error
+        await client.query('ROLLBACK');
+        return res.status(404).json({ success: false, message: 'Loan application not found for given application_id' });
+      }
+
+      const newBalance = updateResult.rows[0].outstanding_balance;
+      const appId = updateResult.rows[0].application_id;
+
+      // Optionally mark loan as paid if balance is zero
+      if (Number(newBalance) <= 0) {
+        await client.query(`UPDATE loan_applications SET review_status = 'paid' WHERE application_id = $1`, [appId]);
+      }
+
+      await client.query('COMMIT');
+
+      // Emit or log event here if you have sockets wired up (left as a TODO)
+
+      return res.json({ success: true, message: 'Payment recorded and applied', payment_id: insertResult.rows[0].id, application_id: appId, outstanding_balance: newBalance });
+    } catch (txErr) {
+      await client.query('ROLLBACK');
+      console.error('Transaction error applying payment:', txErr);
+      return res.status(500).json({ success: false, message: 'Failed to record payment' });
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('Error confirming payment:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error during payment confirmation' });
+  }
+});
+
+// Create a payment intent and checkout session via server (uses server-side secret)
+app.post('/api/payments/create', async (req, res) => {
+  const { amount_in_cents, payment_method, success_url, cancel_url, application_id, member_number } = req.body || {};
+  const PAYMONGO_KEY = resolvePaymongoKey();
+  if (!PAYMONGO_KEY) {
+    console.error('PAYMONGO_SECRET_KEY not set. Set PAYMONGO_SECRET_KEY on the server.');
+    return res.status(500).json({ success: false, message: 'Server misconfiguration: missing PayMongo secret. Set PAYMONGO_SECRET_KEY on the server.' });
+  }
+
+  if (!amount_in_cents || !payment_method) {
+    return res.status(400).json({ success: false, message: 'amount_in_cents and payment_method are required' });
+  }
+
+  try {
+    const authHeader = 'Basic ' + Buffer.from(`${PAYMONGO_KEY}:`).toString('base64');
+
+    // Ensure success_url and cancel_url include application identifiers so the client can tie the redirect
+    function appendQueryParams(url, params) {
+      if (!url) return url;
+      const hasQs = url.includes('?');
+      const parts = [];
+      for (const k in params) {
+        if (params[k] !== null && params[k] !== undefined) {
+          parts.push(`${encodeURIComponent(k)}=${encodeURIComponent(String(params[k]))}`);
+        }
+      }
+      if (parts.length === 0) return url;
+      return `${url}${hasQs ? '&' : '?'}${parts.join('&')}`;
+    }
+
+    const successUrlFinal = appendQueryParams(success_url || `${process.env.CLIENT_ORIGIN || ''}/payment-success`, { application_id, member_number });
+    const cancelUrlFinal = appendQueryParams(cancel_url || `${process.env.CLIENT_ORIGIN || ''}/payment`, { application_id, member_number });
+
+    // Create payment intent
+    const piPayload = {
+      data: {
+        type: 'payment_intent',
+        attributes: {
+          amount: amount_in_cents,
+          currency: 'PHP',
+          description: 'Credit Cooperative Payment',
+          payment_method_allowed: [payment_method],
+          capture_type: 'automatic',
+          statement_descriptor: 'Credit Coop Payment'
+        }
+      }
+    };
+
+    const piResp = await fetch('https://api.paymongo.com/v1/payment_intents', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify(piPayload)
+    });
+
+    if (!piResp.ok) {
+      const txt = await piResp.text();
+      console.error('PayMongo payment_intent creation failed:', txt);
+      return res.status(502).json({ success: false, message: 'Failed to create payment intent' });
+    }
+
+    const piData = await piResp.json();
+    const paymentIntentId = piData.data && piData.data.id;
+
+    // Create checkout session using the final URLs that include application identifiers
+    const checkoutPayload = {
+      data: {
+        type: 'checkout_session',
+        attributes: {
+          payment_intent_id: paymentIntentId,
+          success_url: successUrlFinal,
+          cancel_url: cancelUrlFinal,
+          line_items: [
+            { name: 'Credit Cooperative Payment', amount: amount_in_cents, currency: 'PHP', quantity: 1 }
+          ],
+          payment_method_types: [payment_method],
+          description: 'Payment to Credit Cooperative'
+        }
+      }
+    };
+
+    const csResp = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify(checkoutPayload)
+    });
+
+    if (!csResp.ok) {
+      const txt = await csResp.text();
+      console.error('PayMongo checkout_sessions creation failed:', txt);
+      return res.status(502).json({ success: false, message: 'Failed to create checkout session' });
+    }
+
+    const csData = await csResp.json();
+    const checkoutUrl = csData.data?.attributes?.checkout_url || null;
+
+    return res.json({ success: true, checkout_url: checkoutUrl, payment_intent_id: paymentIntentId, raw: { payment_intent: piData, checkout: csData } });
+  } catch (err) {
+    console.error('Error creating payment via PayMongo:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+// Get payment details (server-side) to avoid exposing secret in the client
+app.get('/api/payments/details', async (req, res) => {
+  const { payment_intent_id, checkout_session_id } = req.query || {};
+  const PAYMONGO_KEY = resolvePaymongoKey();
+  if (!PAYMONGO_KEY) return res.status(500).json({ success: false, message: 'Server misconfiguration: missing PayMongo secret. Set PAYMONGO_SECRET_KEY on the server.' });
+
+  try {
+    const authHeader = 'Basic ' + Buffer.from(`${PAYMONGO_KEY}:`).toString('base64');
+    let resp;
+    if (payment_intent_id) {
+      resp = await fetch(`https://api.paymongo.com/v1/payment_intents/${payment_intent_id}`, { headers: { Authorization: authHeader } });
+    } else if (checkout_session_id) {
+      resp = await fetch(`https://api.paymongo.com/v1/checkout_sessions/${checkout_session_id}`, { headers: { Authorization: authHeader } });
+    } else {
+      return res.status(400).json({ success: false, message: 'payment_intent_id or checkout_session_id required' });
+    }
+
+    if (!resp.ok) {
+      const txt = await resp.text();
+      console.error('Failed fetching payment details:', txt);
+      return res.status(502).json({ success: false, message: 'Failed to fetch payment details' });
+    }
+
+    const data = await resp.json();
+    return res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching payment details:', err);
+    return res.status(500).json({ success: false, message: 'Internal error' });
+  }
+});
+
 // Restore original `/api/user` route
 app.get('/api/user', async (req, res) => {
   try {
+    console.log('Incoming /api/user request, req.user=', req.user);
+
+    // Try to resolve JWT from either custom 'token' header or standard Authorization: Bearer <token>
+    let jwtToken = req.header('token');
+    if (!jwtToken) {
+      const authHeader = req.header('authorization') || req.header('Authorization');
+      if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+        jwtToken = authHeader.split(' ')[1];
+      }
+    }
+
+    let userIdFromToken = req.user || null;
+    if (!userIdFromToken) {
+      if (!jwtToken) {
+        console.warn('/api/user: no token provided');
+        return res.status(401).json({ success: false, message: 'No token provided' });
+      }
+      try {
+        const jwt = require('jsonwebtoken');
+        const jwtSecret = process.env.jwtSecret || 'default_jwt_secret_for_development_only_change_in_production';
+        const payload = jwt.verify(jwtToken, jwtSecret);
+        userIdFromToken = payload.user;
+      } catch (err) {
+        console.error('Token verification failed:', err.message || err);
+        return res.status(401).json({ success: false, message: 'Invalid token' });
+      }
+    }
+
     const userResult = await pool.query(
       "SELECT user_id, user_name, user_email, member_number FROM member_users WHERE user_id = $1",
-      [req.user]
+      [userIdFromToken]
     );
     const user = userResult.rows[0];
-
+    console.log('/api/user query result user=', user);
     if (!user) {
       console.log('No user found for user_id:', req.user);
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Fetch loan data
+    // Fetch loan data (include outstanding_balance so frontend can show remaining balance)
     const loanResult = await pool.query(
-      `SELECT amount, duration_months, review_status, application_id, monthly_payment
+      `SELECT amount, duration_months, review_status, application_id, monthly_payment, outstanding_balance
        FROM loan_applications
-       WHERE member_number = $1 AND review_status = 'approved'
+       WHERE member_number = $1 AND review_status IN ('approved','paid')
        ORDER BY submitted_at DESC LIMIT 1`,
       [user.member_number]
     );

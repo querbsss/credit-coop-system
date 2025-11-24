@@ -17,7 +17,7 @@ The payment system has been rewritten to use PayMongo's secure payment processin
 **Test API Keys (Currently Configured):**
 ```
 Public Key: pk_test_Ff7ikQQHTa3HjoAnuBZPDo4t
-Secret Key: sk_test_8kAzk7uz9eFZCXzMRAM7jVpH (Currently in use)
+Secret Key: sk_test_*************** (redacted - do NOT commit live secrets)
 ```
 
 ⚠️ **Important:** These are test keys for development. For production, you'll need to:

@@ -13,7 +13,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/user', {
+        const response = await fetch('/api/user', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -83,6 +83,8 @@ const Dashboard = () => {
     return <div>Loading...</div>; // Display loading indicator
   }
 
+  const displayedBalance = user?.loan?.outstanding_balance ?? user?.loan?.amount ?? 0;
+
   return (
     <div className="dashboard">
       <Header />
@@ -123,9 +125,9 @@ const Dashboard = () => {
                 <div className="loan-info">
                   <h3>Loan Balance</h3>
                   <p>
-                    {user?.loan?.amount
-                      ? `Loan Amount: ${formatCurrency(user.loan.amount)}`
-                      : 'No active loan'}
+                      {user?.loan
+                        ? `Loan Amount: ${formatCurrency(displayedBalance)}`
+                        : 'No active loan'}
                     <br />
                     {user?.loan?.duration_months
                       ? `Loan Term: ${user.loan.duration_months} months`
@@ -134,11 +136,11 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="loan-balance">
-                <span className="balance-amount">{formatCurrency(user?.loan?.amount || 0)}</span>
+                <span className="balance-amount">{formatCurrency(displayedBalance)}</span>
                 <span className="balance-label">Loan balance</span>
               </div>
               <div className="loan-action">
-                {user?.loan?.amount > 0 ? (
+                {displayedBalance > 0 ? (
                   <button className="btn btn-primary btn-lg" disabled>
                     🚫 Loan Application Disabled<br />
                     <span>You already have an active loan.</span>
