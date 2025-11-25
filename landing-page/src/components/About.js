@@ -9,7 +9,7 @@ const About = () => {
           <div className="about-text">
             <h2>About CreditCoop</h2>
             <p>
-              Founded in 1998, CreditCoop has been serving our community with integrity, 
+              Founded in 2021, CreditCoop has been serving our community with integrity, 
               transparency, and a commitment to financial empowerment. As a member-owned 
               financial cooperative, we're not just your bank – we're your financial partner.
             </p>

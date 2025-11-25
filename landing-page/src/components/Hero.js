@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './Hero.css';
 import moneyBagIcon from '../assets/icons/finance/money-bag-svgrepo-com.svg';
 import houseIcon from '../assets/icons/finance/house-svgrepo-com.svg';
@@ -8,6 +8,25 @@ import lightningIcon from '../assets/icons/finance/lightning-svgrepo-com.svg';
 import digitalIcon from '../assets/icons/finance/digital-content-content-read-look-at-pictures-svgrepo-com.svg';
 
 const Hero = () => {
+  useEffect(() => {
+    const elems = document.querySelectorAll('.fade-up');
+    if (!elems || elems.length === 0) return;
+
+    const obs = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+
+    elems.forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
   return (
     <section id="home" className="hero">
       <div className="hero-background">
@@ -18,7 +37,7 @@ const Hero = () => {
         <div className="hero-content">
           <div className="hero-text">
             <div className="hero-badge">
-              <span className="badge-text">Trusted by 5,000+ Members</span>
+              <span className="badge-text">Trusted by 1000+ Members</span>
             </div>
             
             <h1 className="hero-title">
@@ -66,7 +85,7 @@ const Hero = () => {
           
           <div className="hero-visual">
             <div className="hero-cards">
-              <div className="hero-card card-savings">
+              <div className="hero-card card-savings fade-up">
                 <div className="card-header">
                   <div className="card-icon">
                     <img src={moneyBagIcon} alt="Savings Account" />
@@ -77,7 +96,7 @@ const Hero = () => {
                 <div className="card-growth">+5.2% this month</div>
               </div>
               
-              <div className="hero-card card-loan">
+              <div className="hero-card card-loan fade-up">
                 <div className="card-header">
                   <div className="card-icon">
                     <img src={houseIcon} alt="Home Loan" />
@@ -88,7 +107,7 @@ const Hero = () => {
                 <div className="card-term">Up to 30 years</div>
               </div>
               
-              <div className="hero-card card-investment">
+              <div className="hero-card card-investment fade-up">
                 <div className="card-header">
                   <div className="card-icon">
                     <img src={investmentIcon} alt="Investment" />
@@ -104,19 +123,15 @@ const Hero = () => {
         
         <div className="hero-stats">
           <div className="stats-grid">
-            <div className="stat-item">
-              <div className="stat-number">₱2.5B+</div>
-              <div className="stat-label">Total Assets</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">5,000+</div>
+            <div className="stat-item fade-up">
+              <div className="stat-number">1000+</div>
               <div className="stat-label">Active Members</div>
             </div>
-            <div className="stat-item">
-              <div className="stat-number">25+</div>
+            <div className="stat-item fade-up">
+              <div className="stat-number">3+</div>
               <div className="stat-label">Years of Service</div>
             </div>
-            <div className="stat-item">
+            <div className="stat-item fade-up">
               <div className="stat-number">99.9%</div>
               <div className="stat-label">Uptime</div>
             </div>

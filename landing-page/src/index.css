@@ -6,6 +6,14 @@
   --primary-blue-dark: #002d61;
   --secondary-blue: #e8f4fd;
   
+  /* Purple palette (used by some landing components) */
+  --primary-purple: #7c3aed;
+  --primary-purple-dark: #5b21b6;
+  --primary-purple-light: #8b5cf6;
+  --primary-purple-extra-light: #a78bfa;
+  --gradient-primary: linear-gradient(135deg, #bda6cc 0%, #bda6cc 100%);
+  --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #c4b5fd 100%);
+  
   /* Accent Colors */
   --accent-orange: #ff6b35;
   --accent-green: #28a745;
@@ -26,6 +34,12 @@
   
   /* Typography */
   --font-primary: 'Segoe UI', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  /* Typographic scale */
+  --type-base: 16px;
+  --line-base: 1.6;
+  --h1-size: 3.5rem;
+  --h2-size: 2rem;
+  --h3-size: 1.5rem;
   --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -89,12 +103,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: var(--h1-size);
   font-weight: var(--font-weight-bold);
 }
 
 h2 {
-  font-size: 2rem;
+  font-size: var(--h2-size);
   font-weight: var(--font-weight-bold);
 }
 
@@ -111,6 +125,13 @@ h4 {
 p {
   margin: 0 0 var(--spacing-md) 0;
   color: var(--gray-600);
+}
+
+/* Improve paragraph measure for readability */
+.hero-description,
+.lead {
+  max-width: 60ch;
+  line-height: var(--line-base);
 }
 
 a {
@@ -152,17 +173,15 @@ a:hover {
 }
 
 .btn-primary {
-  background-color: var(--primary-blue);
+  background: linear-gradient(90deg, var(--primary-purple), var(--primary-blue));
   color: var(--white);
-  border-color: var(--primary-blue);
+  border-color: transparent;
+  box-shadow: 0 8px 20px rgba(11,59,111,0.08);
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-blue-light);
-  border-color: var(--primary-blue-light);
-  color: var(--white);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 36px rgba(11,59,111,0.12);
 }
 
 .btn-secondary {

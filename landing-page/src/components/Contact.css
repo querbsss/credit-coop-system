@@ -1,6 +1,7 @@
 .contact {
   padding: 5rem 0;
-  background: var(--gray-50);
+  /* slightly warmer/off-white to tone down the background while keeping a white feel */
+  background: #fbfbfd;
 }
 
 .contact-content {
@@ -10,8 +11,12 @@
   margin-top: 3rem;
 }
 
+.contact-info {
+  padding-left: 1rem;
+}
+
 .contact-info h3 {
-  color: var(--primary-purple);
+  color: #000;
   font-size: 1.8rem;
   margin-bottom: 2rem;
   font-weight: 600;
@@ -25,20 +30,42 @@
 }
 
 .contact-item .icon {
-  font-size: 1.5rem;
-  margin-top: 0.2rem;
+  font-size: 1.6rem;
+  margin-top: 0.1rem;
+  color: var(--primary-purple);
 }
 
 .contact-item h4 {
-  color: #6b46c1;
+  color: #000;
   margin-bottom: 0.5rem;
   font-size: 1.1rem;
 }
 
 .contact-item p {
-  color: #64748b;
+  color: #000;
+  font-weight: 600;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  opacity: 1;
+}
+
+/* Stronger specificity to override footer/global rules */
+.contact .contact-info p,
+.contact .contact-item p {
+  color: #000;
+}
+
+/* add subtle icon backgrounds for better separation */
+.contact-item .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(124,58,237,0.08);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  color: var(--primary-purple);
 }
 
 .contact-form {
