@@ -7,7 +7,7 @@ import './Dashboard.css';
 const Dashboard = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
-  const [userData, setUserData] = useState(user);
+  const [, setUserData] = useState(user);
   const [loading, setLoading] = useState(true); // Add a loading state to handle data fetching
 
   useEffect(() => {
