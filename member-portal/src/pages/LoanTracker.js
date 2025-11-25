@@ -62,6 +62,53 @@ const LoanTracker = () => {
       } finally { setLoading(false); }
     };
     fetchApps();
+    // Poll for updates while application exists and is not yet approved/assigned
+    let intervalId = null;
+    const startPolling = () => {
+      if (intervalId) return;
+      intervalId = setInterval(async () => {
+        try {
+          const query = `user_id=${encodeURIComponent(user.user_id)}`;
+          const relativeUrl = `/api/loan-application/list?${query}`;
+          const fallbackUrl = `http://localhost:5001/api/loan-application/list?${query}`;
+          const doFetch = async (url) => {
+            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+            if (!data.success) throw new Error(data.message || 'API returned success=false');
+            return data;
+          };
+          const data = await doFetch(relativeUrl).catch(async (e) => { return await doFetch(fallbackUrl); });
+          const apps = data.applications || [];
+          const latest = apps.length > 0 ? apps[0] : null;
+          // Only update application if something changed (simple shallow compare)
+          if (JSON.stringify(latest) !== JSON.stringify(application)) {
+            setApplication(latest);
+          }
+        } catch (err) {
+          console.warn('Polling fetch error', err.message || err);
+        }
+      }, 5000);
+    };
+
+    // Start polling after first fetch if application exists and not yet approved/assigned
+    const maybeStart = () => {
+      if (!application) return;
+      const currentStatus = application?.status ?? application?.review_status ?? null;
+      const isApprovedLocal = currentStatus === 'approved' || currentStatus === 'paid';
+      const amountAssignedLocal = !!(application?.loan_amount || application?.amount || application?.requested_amount || application?.monthly_payment);
+      if (!isApprovedLocal || (isApprovedLocal && !amountAssignedLocal)) {
+        startPolling();
+      }
+    };
+
+    // small timeout to allow initial fetch to populate `application`
+    const starter = setTimeout(maybeStart, 600);
+
+    return () => {
+      clearTimeout(starter);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [user]);
 
   // Step status helpers
@@ -96,14 +143,45 @@ const LoanTracker = () => {
     }
   ];
 
+  const handleRefresh = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const query = `user_id=${encodeURIComponent(user.user_id)}`;
+      const relativeUrl = `/api/loan-application/list?${query}`;
+      const fallbackUrl = `http://localhost:5001/api/loan-application/list?${query}`;
+      const doFetch = async (url) => {
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+        if (!data.success) throw new Error(data.message || 'API returned success=false');
+        return data;
+      };
+      const data = await doFetch(relativeUrl).catch(async (e) => { return await doFetch(fallbackUrl); });
+      const apps = data.applications || [];
+      setApplication(apps.length > 0 ? apps[0] : null);
+    } catch (err) {
+      console.error('Manual refresh failed', err);
+      setError('Error fetching loan application details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="loan-tracker-page">
       <Header />
       <main className="loan-application-main">
         <div className="container">
-          <div className="page-header">
-            <h1>📍 Loan Tracker</h1>
-            <p>Follow the steps below to see where your loan application is in the process.</p>
+          <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1>📍 Loan Tracker</h1>
+              <p>Follow the steps below to see where your loan application is in the process.</p>
+            </div>
+            <div>
+              <button className="btn btn-outline" onClick={handleRefresh} style={{ marginLeft: 12 }}>Refresh</button>
+            </div>
           </div>
 
           {loading && <div className="card"><p>Loading your loan application...</p></div>}
