@@ -305,8 +305,7 @@ app.get('/api/loan-application/list', async (req, res) => {
   -- Some deployments use amount while older code referenced loan_amount.
   -- Alias amount to loan_amount so the frontend that expects loan_amount continues to work.
         amount AS loan_amount,
-        amount,
-        requested_amount
+        amount
       FROM loan_applications
     `;
 
@@ -319,7 +318,47 @@ app.get('/api/loan-application/list', async (req, res) => {
 
     query += ' ORDER BY submitted_at DESC';
 
-    const result = await pool.query(query, params);
+    let result = await pool.query(query, params);
+
+    // If no rows returned, try a fallback: maybe the caller supplied a different identifier
+    // (for example the frontend sent a token user id that doesn't match loan_applications.user_id).
+    // Try resolving a member_number from member_users using the provided user_id (which may be a UUID, email, or member_number)
+    if ((result.rows || []).length === 0 && user_id) {
+      try {
+        const memberLookup = await pool.query(
+          `SELECT member_number FROM member_users WHERE user_id::text = $1 OR user_email = $1 OR member_number = $1 LIMIT 1`,
+          [String(user_id)]
+        );
+        if (memberLookup.rows.length > 0) {
+          const memberNumber = memberLookup.rows[0].member_number;
+          const byMemberQuery = `
+            SELECT
+              application_id,
+              user_id,
+              member_number,
+              loan_type,
+              membership_type,
+              first_name,
+              last_name,
+              status,
+              submitted_at,
+              reviewed_at,
+              date_filed,
+              mobile_number,
+              email_address,
+              amount AS loan_amount,
+              amount,
+              requested_amount
+            FROM loan_applications
+            WHERE member_number = $1
+            ORDER BY submitted_at DESC
+          `;
+          result = await pool.query(byMemberQuery, [memberNumber]);
+        }
+      } catch (lookupErr) {
+        console.warn('Fallback member_number lookup failed:', lookupErr.message || lookupErr);
+      }
+    }
 
     res.json({ success: true, applications: result.rows });
   } catch (error) {
