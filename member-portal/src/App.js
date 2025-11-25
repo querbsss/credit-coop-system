@@ -72,14 +72,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/loan-tracker" 
-        element={
-          <ProtectedRoute>
-            <LoanTracker />
-          </ProtectedRoute>
-        }
-      />
+         <Route 
+           path="/loan-tracker" 
+           element={
+             <ProtectedRoute>
+               <LoanTracker />
+             </ProtectedRoute>
+           }
+         />
       <Route 
         path="/payment" 
         element={
