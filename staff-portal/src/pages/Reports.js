@@ -56,8 +56,9 @@ const Reports = () => {
   const [orgName, setOrgName] = useState('SLZCoop');
   // reportTitle will be derived from orgName and embedded in PDF (no UI input)
   const reportTitle = orgName;
-  // use a default public path for the logo; users can place their logo at public/report-assets/logo.png
-  const [logoUrl, setLogoUrl] = useState('/report-assets/logo.png');
+  // use a default public path for the logo; prefer the site-specific filename if present
+  // try `/report-assets/slz_logo.png` (your uploaded file) first, then fall back to `/report-assets/logo.png`
+  const [logoUrl, setLogoUrl] = useState('/report-assets/slz_logo.png');
   // no upload UI, so we don't expect in-memory data URL for logo
   const [logoDataUrl, setLogoDataUrl] = useState(null);
 
@@ -129,22 +130,31 @@ const Reports = () => {
       const pageWidth = doc.internal.pageSize.getWidth();
       const rightX = pageWidth - margin;
 
-      // prefer in-memory uploaded logo; fallback to logoUrl
+      // prefer in-memory uploaded logo (if any); otherwise try configured logoUrl first.
+      // If that fails, attempt a fallback filename '/report-assets/logo.png'.
       let finalLogo = logoDataUrl || null;
-      if (!finalLogo && logoUrl) {
+      const tryFetchLogo = async (url) => {
         try {
-          const res = await fetch(logoUrl);
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('not ok');
           const blob = await res.blob();
-          finalLogo = await new Promise((resolve, reject) => {
+          return await new Promise((resolve, reject) => {
             const fr = new FileReader();
             fr.onload = () => resolve(fr.result);
             fr.onerror = reject;
             fr.readAsDataURL(blob);
           });
         } catch (e) {
-          console.warn('Failed to load logo URL for PDF header', e);
-          finalLogo = null;
+          return null;
         }
+      };
+
+      if (!finalLogo) {
+        finalLogo = logoUrl ? await tryFetchLogo(logoUrl) : null;
+      }
+      if (!finalLogo) {
+        // fallback to generic logo.png
+        finalLogo = await tryFetchLogo('/report-assets/logo.png');
       }
 
       // draw logo left if available and reserve content start X
