@@ -282,6 +282,49 @@ app.get('/api/loan-applications/user/:email', async (req, res) => {
     }
 });
 
+// Get loan applications (by user_id query) - compatibility endpoint used by frontend
+app.get('/api/loan-application/list', async (req, res) => {
+  try {
+    const { user_id } = req.query;
+
+    let query = `
+      SELECT
+        application_id,
+        user_id,
+        member_number,
+        loan_type,
+        membership_type,
+        first_name,
+        last_name,
+        status,
+        submitted_at,
+        reviewed_at,
+        date_filed,
+        mobile_number,
+        email_address,
+        loan_amount,
+        amount,
+        requested_amount
+      FROM loan_applications
+    `;
+
+    const params = [];
+    if (user_id) {
+      query += ' WHERE user_id = $1';
+      params.push(user_id);
+    }
+
+    query += ' ORDER BY submitted_at DESC';
+
+    const result = await pool.query(query, params);
+
+    res.json({ success: true, applications: result.rows });
+  } catch (error) {
+    console.error('Error in /api/loan-application/list:', error);
+    res.status(500).json({ success: false, message: 'Error fetching loan applications', error: error.message });
+  }
+});
+
 // Get detailed loan application by ID
 app.get('/api/loan-application/:application_id', async (req, res) => {
     try {
