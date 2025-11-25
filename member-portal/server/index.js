@@ -1,26 +1,24 @@
 // Load environment variables from .env when present (development convenience)
 // This allows the server to pick up `jwtSecret`, `PAYMONGO_SECRET_KEY`, etc.
-      SELECT
-        application_id,
-        user_id,
-        member_number,
-        loan_type,
-        membership_type,
-        first_name,
-        last_name,
-        status,
-        -- Include review_status (set by staff) so frontends can react to approvals
-        review_status,
-        submitted_at,
-        reviewed_at,
-        date_filed,
-        mobile_number,
-        email_address,
-        -- Some deployments use amount while older code referenced loan_amount.
-        -- Alias amount to loan_amount so the frontend that expects loan_amount continues to work.
-        amount AS loan_amount,
-        amount,
-        requested_amount
+try {
+  require('dotenv').config();
+} catch (e) {
+  // If dotenv is not installed, we silently continue; env vars can still be provided by the OS.
+}
+
+const express = require('express');
+const app = express();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const cors = require('cors');
+const pool = require('./db_members'); // Import database connection
+
+// Utility: resolve PayMongo secret from env with optional fallbacks for local dev
+function resolvePaymongoKey() {
+  const keysTried = [];
+  const primary = process.env.PAYMONGO_SECRET_KEY;
+  keysTried.push(primary ? 'PAYMONGO_SECRET_KEY' : null);
   if (primary) return primary;
 
   // Fallbacks (local/dev only) - prefer explicit server var
@@ -193,7 +191,25 @@ app.post('/api/loan-application/submit', loanUpload.fields([
         const submittedAt = result.rows[0].submitted_at;
 
         console.log(`Loan application submitted successfully. ID: ${applicationId}, Member: ${memberNumber}`);
-        
+        // Notify staff server about new application so connected staff clients get real-time updates
+        try {
+          const notifyPayload = {
+            application_id: applicationId,
+            member_number: memberNumber,
+            first_name: firstName,
+            last_name: lastName,
+            submitted_at: submittedAt,
+            status: 'pending',
+            notify_role: 'credit_investigator'
+          };
+          // fire-and-forget POST to staff server
+          fetch('http://localhost:5000/api/notify/new-application', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(notifyPayload)
+          }).then((r) => console.log('Notified staff server of new loan application, status=', r.status)).catch((e) => console.warn('Failed to notify staff server:', e));
+        } catch (notifyErr) {
+          console.warn('Notification to staff server failed:', notifyErr);
+        }
+
         res.json({
             success: true,
             message: 'Loan application submitted successfully!',
@@ -304,71 +320,20 @@ app.get('/api/loan-application/list', async (req, res) => {
         date_filed,
         mobile_number,
         email_address,
-  -- Some deployments use amount while older code referenced loan_amount.
-  -- Alias amount to loan_amount so the frontend that expects loan_amount continues to work.
-        amount AS loan_amount,
         amount
       FROM loan_applications
     `;
 
     const params = [];
     if (user_id) {
-      // Compare user_id as text to avoid type mismatch (some deployments use UUIDs, others integer ids)
-      query += ' WHERE user_id::text = $1';
-      params.push(String(user_id));
+      query += ' WHERE user_id = $1';
+      params.push(user_id);
     }
 
     query += ' ORDER BY submitted_at DESC';
 
-  console.log('/api/loan-application/list called with user_id=', String(user_id));
-  console.log('Initial query:', query.trim(), 'params=', params);
-  let result = await pool.query(query, params);
-  console.log('Initial query returned rows=', (result.rows || []).length);
+    const result = await pool.query(query, params);
 
-    // If no rows returned, try a fallback: maybe the caller supplied a different identifier
-    // (for example the frontend sent a token user id that doesn't match loan_applications.user_id).
-    // Try resolving a member_number from member_users using the provided user_id (which may be a UUID, email, or member_number)
-    if ((result.rows || []).length === 0 && user_id) {
-      try {
-        const memberLookup = await pool.query(
-          `SELECT member_number FROM member_users WHERE user_id::text = $1 OR user_email = $1 OR member_number = $1 LIMIT 1`,
-          [String(user_id)]
-        );
-        console.log('memberLookup rows=', (memberLookup.rows || []).length, 'rows=', memberLookup.rows);
-        if (memberLookup.rows.length > 0) {
-          const memberNumber = memberLookup.rows[0].member_number;
-          console.log('Resolved member_number=', memberNumber, ' — querying loan_applications by member_number');
-          const byMemberQuery = `
-            SELECT
-              application_id,
-              user_id,
-              member_number,
-              loan_type,
-              membership_type,
-              first_name,
-              last_name,
-              status,
-              submitted_at,
-              reviewed_at,
-              date_filed,
-              mobile_number,
-              email_address,
-              amount AS loan_amount,
-              amount,
-              requested_amount
-            FROM loan_applications
-            WHERE member_number = $1
-            ORDER BY submitted_at DESC
-          `;
-          result = await pool.query(byMemberQuery, [memberNumber]);
-          console.log('byMemberQuery returned rows=', (result.rows || []).length);
-        }
-      } catch (lookupErr) {
-        console.warn('Fallback member_number lookup failed:', lookupErr.message || lookupErr);
-      }
-    }
-
-    console.log('/api/loan-application/list final result rows=', (result.rows || []).length);
     res.json({ success: true, applications: result.rows });
   } catch (error) {
     console.error('Error in /api/loan-application/list:', error);

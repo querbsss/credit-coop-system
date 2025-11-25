@@ -1,10 +1,27 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
+
+// Create HTTP server so we can attach socket.io
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
 
 //middleware
 app.use(express.json()); //req body
 app.use(cors());
+
+// Socket.io connection logging
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id);
+  socket.on('join', (data) => {
+    try {
+      if (data && data.role) socket.join(String(data.role));
+    } catch (e) {}
+  });
+  socket.on('disconnect', () => console.log('Socket disconnected:', socket.id));
+});
 
 //ROUTES
 
@@ -29,8 +46,55 @@ app.use('/api/invoices', require('./routes/invoices'));
 
 // member import routes
 app.use('/api', require('./routes/importMembers'));
+// Notification endpoint used by other services (e.g., member portal) to notify staff
+app.post('/api/notify/new-application', (req, res) => {
+  try {
+    const payload = req.body || {};
+    console.log('Notify endpoint hit; payload:', JSON.stringify(payload));
+    // Emit to all connected staff clients; also emit to role-specific room if provided
+    io.emit('new_application', payload);
+    if (payload && payload.notify_role) {
+      io.to(String(payload.notify_role)).emit('new_application', payload);
+      try {
+        const roomSet = io.sockets.adapter.rooms.get(String(payload.notify_role));
+        const clientsInRoom = roomSet ? roomSet.size : 0;
+        console.log(`Emitted to room '${String(payload.notify_role)}' - clients in room: ${clientsInRoom}`);
+      } catch (e) {
+        console.warn('Could not inspect room set:', e);
+      }
+    }
+    try {
+      const totalClients = io.of('/').sockets.size;
+      console.log('Total connected socket clients:', totalClients);
+    } catch (e) {}
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Failed to emit new_application:', err);
+    return res.status(500).json({ success: false, message: 'Failed to notify' });
+  }
+});
 
-app.listen(5000, () => {
-  console.log('Server is running on port 5000');
-  console.log('Nodemon is working! Auto-restart enabled.');
-}); 
+// Debug endpoint: return socket state (connected clients and rooms)
+app.get('/api/debug/socket-state', (req, res) => {
+  try {
+    const totalClients = io.of('/').sockets.size;
+    const rooms = [];
+    for (const [roomName, sids] of io.sockets.adapter.rooms.entries()) {
+      rooms.push({ roomName, clients: sids.size });
+    }
+    return res.json({ success: true, totalClients, rooms });
+  } catch (err) {
+    console.error('Failed to get socket state:', err);
+    return res.status(500).json({ success: false, message: 'Failed to get socket state' });
+  }
+});
+
+// Serve a simple static test page for socket connectivity
+const path = require('path');
+app.get('/test-socket', (req, res) => {
+  res.sendFile(path.join(__dirname, 'test-socket.html'));
+});
+
+server.listen(5000, () => {
+  console.log('Server (with socket.io) is running on port 5000');
+});

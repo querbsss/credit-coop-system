@@ -40,12 +40,17 @@ const LoanTracker = () => {
       setLoading(true);
       setError(null);
 
-      const query = `user_id=${encodeURIComponent(user.user_id)}`;
+      // Prefer member_number when available (more stable) otherwise fall back to user_id
+      const identifierKey = user?.member_number ? 'member_number' : 'user_id';
+      const identifierValue = user?.member_number || user?.user_id || '';
+      const query = `${identifierKey}=${encodeURIComponent(identifierValue)}`;
       const relativeUrl = `/api/loan-application/list?${query}`;
       const fallbackUrl = `http://localhost:5001/api/loan-application/list?${query}`;
 
       const doFetch = async (url) => {
-        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+        // Server middleware expects token in header 'token' (not Authorization) and
+        // the client stores it under 'memberPortalToken' in localStorage.
+        const res = await fetch(url, { headers: { 'token': localStorage.getItem('memberPortalToken') } });
         let data;
         try { data = await res.json(); } catch (parseErr) { const text = await res.text().catch(() => '<no body>'); throw new Error(`Invalid JSON from ${url} - status ${res.status} - body: ${text}`); }
         if (!res.ok) throw new Error(data?.message || `HTTP ${res.status} from ${url}`);
@@ -56,7 +61,29 @@ const LoanTracker = () => {
       try {
         const data = await doFetch(relativeUrl).catch(async (e) => { console.warn('Relative fetch failed, trying fallback:', e.message); return await doFetch(fallbackUrl); });
         const apps = data.applications || [];
-        setApplication(apps.length > 0 ? apps[0] : null);
+        const basic = apps.length > 0 ? apps[0] : null;
+        // If the list item doesn't include review_status (older server responses),
+        // fetch the detailed application to get full fields (review_status, amount, etc.)
+        if (basic && basic.review_status === undefined) {
+          try {
+            const detailRes = await fetch(`/api/loan-application/${basic.application_id}`, { headers: { 'token': localStorage.getItem('memberPortalToken') } });
+            if (detailRes.ok) {
+              const detailData = await detailRes.json();
+              if (detailData?.success && detailData.application) {
+                setApplication(detailData.application);
+              } else {
+                setApplication(basic);
+              }
+            } else {
+              setApplication(basic);
+            }
+          } catch (detailErr) {
+            console.warn('Failed to fetch detailed application:', detailErr);
+            setApplication(basic);
+          }
+        } else {
+          setApplication(basic);
+        }
       } catch (err) {
         console.error('Failed to fetch loan applications', err);
         setError('Error fetching loan application details');
@@ -81,11 +108,13 @@ const LoanTracker = () => {
     let cancelled = false;
     const intervalId = setInterval(async () => {
       try {
-        const query = `user_id=${encodeURIComponent(user.user_id)}`;
+        const identifierKey = user?.member_number ? 'member_number' : 'user_id';
+        const identifierValue = user?.member_number || user?.user_id || '';
+        const query = `${identifierKey}=${encodeURIComponent(identifierValue)}`;
         const relativeUrl = `/api/loan-application/list?${query}`;
         const fallbackUrl = `http://localhost:5001/api/loan-application/list?${query}`;
         const doFetch = async (url) => {
-          const res = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+          const res = await fetch(url, { headers: { 'token': localStorage.getItem('memberPortalToken') } });
           const data = await res.json();
           if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
           if (!data.success) throw new Error(data.message || 'API returned success=false');
@@ -95,8 +124,26 @@ const LoanTracker = () => {
         const apps = data.applications || [];
         const latest = apps.length > 0 ? apps[0] : null;
         if (cancelled) return;
-        // update application unconditionally to reflect latest DB state
-        setApplication(latest);
+        if (latest && latest.review_status === undefined) {
+          try {
+            const detailRes = await fetch(`/api/loan-application/${latest.application_id}`, { headers: { 'token': localStorage.getItem('memberPortalToken') } });
+            if (detailRes.ok) {
+              const detailData = await detailRes.json();
+              if (detailData?.success && detailData.application) {
+                setApplication(detailData.application);
+              } else {
+                setApplication(latest);
+              }
+            } else {
+              setApplication(latest);
+            }
+          } catch (detailErr) {
+            console.warn('Failed to fetch detailed application during polling:', detailErr);
+            setApplication(latest);
+          }
+        } else {
+          setApplication(latest);
+        }
       } catch (err) {
         console.warn('Polling fetch error', err.message || err);
       }
@@ -146,11 +193,13 @@ const LoanTracker = () => {
     setLoading(true);
     setError(null);
     try {
-      const query = `user_id=${encodeURIComponent(user.user_id)}`;
+      const identifierKey = user?.member_number ? 'member_number' : 'user_id';
+      const identifierValue = user?.member_number || user?.user_id || '';
+      const query = `${identifierKey}=${encodeURIComponent(identifierValue)}`;
       const relativeUrl = `/api/loan-application/list?${query}`;
       const fallbackUrl = `http://localhost:5001/api/loan-application/list?${query}`;
       const doFetch = async (url) => {
-        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+        const res = await fetch(url, { headers: { 'token': localStorage.getItem('memberPortalToken') } });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
         if (!data.success) throw new Error(data.message || 'API returned success=false');
@@ -158,7 +207,27 @@ const LoanTracker = () => {
       };
       const data = await doFetch(relativeUrl).catch(async (e) => { return await doFetch(fallbackUrl); });
       const apps = data.applications || [];
-      setApplication(apps.length > 0 ? apps[0] : null);
+      const basic = apps.length > 0 ? apps[0] : null;
+      if (basic && basic.review_status === undefined) {
+        try {
+          const detailRes = await fetch(`/api/loan-application/${basic.application_id}`, { headers: { 'token': localStorage.getItem('memberPortalToken') } });
+          if (detailRes.ok) {
+            const detailData = await detailRes.json();
+            if (detailData?.success && detailData.application) {
+              setApplication(detailData.application);
+            } else {
+              setApplication(basic);
+            }
+          } else {
+            setApplication(basic);
+          }
+        } catch (detailErr) {
+          console.warn('Failed to fetch detailed application on manual refresh:', detailErr);
+          setApplication(basic);
+        }
+      } else {
+        setApplication(basic);
+      }
     } catch (err) {
       console.error('Manual refresh failed', err);
       setError('Error fetching loan application details');
