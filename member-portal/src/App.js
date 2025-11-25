@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import LoanApplication from './pages/LoanApplication';
+import LoanTracker from './pages/LoanTracker';
 import Payment from './pages/Payment';
 import PaymentDues from './pages/PaymentDues';
 import PaymentHistory from './pages/PaymentHistory';
@@ -70,6 +71,14 @@ const AppRoutes = () => {
             <LoanApplication />
           </ProtectedRoute>
         } 
+      />
+      <Route 
+        path="/loan-tracker" 
+        element={
+          <ProtectedRoute>
+            <LoanTracker />
+          </ProtectedRoute>
+        }
       />
       <Route 
         path="/payment" 
