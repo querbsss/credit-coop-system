@@ -63,11 +63,17 @@ const Reports = () => {
   const [logoDataUrl, setLogoDataUrl] = useState(null);
 
   const formatCurrencyPDF = (amount) => {
-    // Format amount with Philippine peso symbol and no decimal digits for the PDF
+    // Format amount for the PDF. Many PDF fonts used by jsPDF don't render the
+    // '₱' glyph correctly, so use a reliable ASCII prefix 'PHP ' to ensure
+    // the symbol appears correctly in generated PDFs. If you prefer the
+    // actual '₱' glyph we can embed a font that supports it (larger change).
     try {
-      return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amount ?? 0);
+      // use currency formatting but replace symbol with 'PHP '
+      const formatted = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amount ?? 0);
+      // formatted may include the ₱ glyph; replace it with ASCII 'PHP '
+      return formatted.replace(/[^0-9.,\s\-]+/g, 'PHP ');
     } catch (e) {
-      return `₱${Number(amount || 0).toLocaleString()}`;
+      return `PHP ${Number(amount || 0).toLocaleString()}`;
     }
   };
 
