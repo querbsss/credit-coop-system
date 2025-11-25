@@ -302,7 +302,9 @@ app.get('/api/loan-application/list', async (req, res) => {
         date_filed,
         mobile_number,
         email_address,
-        loan_amount,
+  -- Some deployments use amount while older code referenced loan_amount.
+  -- Alias amount to loan_amount so the frontend that expects loan_amount continues to work.
+        amount AS loan_amount,
         amount,
         requested_amount
       FROM loan_applications
