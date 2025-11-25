@@ -52,6 +52,7 @@ const Header = () => {
                 >
                   Loans
                 </Link>
+                <Link to="/loan-tracker" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Loan Tracker</Link>
                 <Link to="/payment-dues" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Payment Dues</Link>
                 <a href="#profile" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Profile</a>
                 <button onClick={handleLogout} className="btn btn-secondary btn-sm">
