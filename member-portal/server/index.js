@@ -310,8 +310,9 @@ app.get('/api/loan-application/list', async (req, res) => {
 
     const params = [];
     if (user_id) {
-      query += ' WHERE user_id = $1';
-      params.push(user_id);
+      // Compare user_id as text to avoid type mismatch (some deployments use UUIDs, others integer ids)
+      query += ' WHERE user_id::text = $1';
+      params.push(String(user_id));
     }
 
     query += ' ORDER BY submitted_at DESC';
