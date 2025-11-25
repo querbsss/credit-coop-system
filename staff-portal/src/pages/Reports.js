@@ -54,8 +54,11 @@ const Reports = () => {
   const [to, setTo] = useState(() => fmt(new Date()));
   const [data, setData] = useState(null);
   const [orgName, setOrgName] = useState('SLZCoop');
-  const [reportTitle, setReportTitle] = useState('SLZCoop');
-  const [logoUrl, setLogoUrl] = useState('');
+  // reportTitle will be derived from orgName and embedded in PDF (no UI input)
+  const reportTitle = orgName;
+  // use a default public path for the logo; users can place their logo at public/report-assets/logo.png
+  const [logoUrl, setLogoUrl] = useState('/report-assets/logo.png');
+  // no upload UI, so we don't expect in-memory data URL for logo
   const [logoDataUrl, setLogoDataUrl] = useState(null);
 
   // compute from/to when preset changes
@@ -318,23 +321,9 @@ const Reports = () => {
             </select>
           </label>
 
-          <label style={{ minWidth: 220 }}>
-            Report title
-            <br />
-            <input className="form-control" value={reportTitle} onChange={(e) => setReportTitle(e.target.value)} />
-          </label>
-
-          <label>
-            Logo (upload)
-            <br />
-            <input type="file" accept="image/*" onChange={(e) => {
-              const f = e.target.files && e.target.files[0];
-              if (!f) return;
-              const fr = new FileReader();
-              fr.onload = () => setLogoDataUrl(fr.result);
-              fr.readAsDataURL(f);
-            }} />
-          </label>
+          {/* Report title and logo are embedded into the PDF from a default asset path.
+              To change the logo, put a file named `logo.png` into `staff-portal/public/report-assets/`.
+              The UI no longer exposes title/logo inputs for downloads. */}
 
           <label>
             From
