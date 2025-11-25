@@ -62,6 +62,15 @@ const Reports = () => {
   // no upload UI, so we don't expect in-memory data URL for logo
   const [logoDataUrl, setLogoDataUrl] = useState(null);
 
+  const formatCurrencyPDF = (amount) => {
+    // Format amount with Philippine peso symbol and no decimal digits for the PDF
+    try {
+      return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amount ?? 0);
+    } catch (e) {
+      return `₱${Number(amount || 0).toLocaleString()}`;
+    }
+  };
+
   // compute from/to when preset changes
   const applyPreset = (p) => {
     const now = new Date();
@@ -246,7 +255,7 @@ const Reports = () => {
           doc.text(label, centerX, statY + 10, { align: 'center' });
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(9);
-          doc.text(String((val ?? 0)).toLocaleString(), centerX, statY + 22, { align: 'center' });
+          doc.text(formatCurrencyPDF(val), centerX, statY + 22, { align: 'center' });
           sx += boxW + 8;
         });
         y += boxH + 12;
@@ -281,7 +290,7 @@ const Reports = () => {
       for (let ri = 0; ri < data.rows.length; ri++) {
         const r = data.rows[ri];
         const cells = reportType === 'financial'
-          ? [r.period, r.deposits, r.loans, r.interest, r.expenses, r.net]
+          ? [r.period, formatCurrencyPDF(r.deposits), formatCurrencyPDF(r.loans), formatCurrencyPDF(r.interest), formatCurrencyPDF(r.expenses), formatCurrencyPDF(r.net)]
           : [r.id, r.name, r.joined, r.shares, r.contribution];
 
         cells.forEach((c, i) => {
