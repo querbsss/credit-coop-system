@@ -51,20 +51,46 @@ const LoanTracker = () => {
     const fetchApps = async () => {
       setLoading(true);
       setError(null);
-      try {
-        const url = `http://localhost:5001/api/loan-application/list?user_id=${encodeURIComponent(user.user_id)}`;
+
+      const query = `user_id=${encodeURIComponent(user.user_id)}`;
+      const relativeUrl = `/api/loan-application/list?${query}`;
+      const fallbackUrl = `http://localhost:5001/api/loan-application/list?${query}`;
+
+      const doFetch = async (url) => {
         const res = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message || 'Failed to load applications');
+        // Try to parse JSON safely
+        let data;
+        try {
+          data = await res.json();
+        } catch (parseErr) {
+          const text = await res.text().catch(() => '<no body>');
+          throw new Error(`Invalid JSON from ${url} - status ${res.status} - body: ${text}`);
+        }
+        if (!res.ok) {
+          throw new Error(data?.message || `HTTP ${res.status} from ${url}`);
+        }
+        if (!data.success) {
+          throw new Error(data.message || `API returned success=false from ${url}`);
+        }
+        return data;
+      };
+
+      try {
+        // Try relative URL first (works when backend is proxied or same-origin)
+        const data = await doFetch(relativeUrl).catch(async (e) => {
+          console.warn('Relative fetch failed, trying fallback:', e.message);
+          return await doFetch(fallbackUrl);
+        });
+
         const apps = data.applications || [];
         setApplication(apps.length > 0 ? apps[0] : null);
       } catch (err) {
         console.error('Failed to fetch loan applications', err);
-        setError(err.message || 'Failed to fetch loan application');
+        setError('Error fetching loan application details');
       } finally {
         setLoading(false);
       }
