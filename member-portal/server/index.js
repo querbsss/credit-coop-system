@@ -318,7 +318,10 @@ app.get('/api/loan-application/list', async (req, res) => {
 
     query += ' ORDER BY submitted_at DESC';
 
-    let result = await pool.query(query, params);
+  console.log('/api/loan-application/list called with user_id=', String(user_id));
+  console.log('Initial query:', query.trim(), 'params=', params);
+  let result = await pool.query(query, params);
+  console.log('Initial query returned rows=', (result.rows || []).length);
 
     // If no rows returned, try a fallback: maybe the caller supplied a different identifier
     // (for example the frontend sent a token user id that doesn't match loan_applications.user_id).
@@ -329,8 +332,10 @@ app.get('/api/loan-application/list', async (req, res) => {
           `SELECT member_number FROM member_users WHERE user_id::text = $1 OR user_email = $1 OR member_number = $1 LIMIT 1`,
           [String(user_id)]
         );
+        console.log('memberLookup rows=', (memberLookup.rows || []).length, 'rows=', memberLookup.rows);
         if (memberLookup.rows.length > 0) {
           const memberNumber = memberLookup.rows[0].member_number;
+          console.log('Resolved member_number=', memberNumber, ' — querying loan_applications by member_number');
           const byMemberQuery = `
             SELECT
               application_id,
@@ -354,12 +359,14 @@ app.get('/api/loan-application/list', async (req, res) => {
             ORDER BY submitted_at DESC
           `;
           result = await pool.query(byMemberQuery, [memberNumber]);
+          console.log('byMemberQuery returned rows=', (result.rows || []).length);
         }
       } catch (lookupErr) {
         console.warn('Fallback member_number lookup failed:', lookupErr.message || lookupErr);
       }
     }
 
+    console.log('/api/loan-application/list final result rows=', (result.rows || []).length);
     res.json({ success: true, applications: result.rows });
   } catch (error) {
     console.error('Error in /api/loan-application/list:', error);
