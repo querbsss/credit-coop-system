@@ -110,8 +110,9 @@ const LoanTracker = () => {
 
   // Step status helpers
   const hasApplication = !!application;
-  const status = application?.status ?? application?.review_status ?? application?.status;
-  const isApproved = status === 'approved' || status === 'paid';
+  // Prefer review_status (set by staff) over status when available
+  const status = application?.review_status ?? application?.status ?? null;
+  const isApproved = (application?.review_status === 'approved' || application?.review_status === 'paid') || (status === 'approved' || status === 'paid');
   const amountAssigned = !!(application?.loan_amount || application?.amount || application?.requested_amount || application?.monthly_payment);
 
   const steps = [
