@@ -351,16 +351,30 @@ const MembershipApplication = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label>Membership Type *</label>
-                  <select
-                    name="membershipType"
-                    value={formData.membershipType}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select Membership Type</option>
-                    <option value="regular">Regular</option>
-                    <option value="associate">Associate</option>
-                  </select>
+                  <div className="select-with-info">
+                    <select
+                      name="membershipType"
+                      value={formData.membershipType}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Membership Type</option>
+                      <option value="regular">Regular</option>
+                      <option value="associate">Associate</option>
+                    </select>
+                    <span
+                      className="info-icon"
+                      tabIndex="0"
+                      aria-label="More information about membership types"
+                      title="More information"
+                    >
+                      i
+                      <div className="tooltip" role="tooltip">
+                        <strong>Regular</strong>: Full member with voting rights. Required share capital and full access to loans and dividends.<br />
+                        <strong>Associate</strong>: Limited member; typically no voting rights. May have restricted access to certain benefits and services.
+                      </div>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
