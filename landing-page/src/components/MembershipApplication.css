@@ -11,7 +11,8 @@
 }
 
 .benefits-section h3 {
-  color: var(--primary-purple);
+  /* Use the global accessible text token so the heading is readable on the purple background */
+  color: var(--text-primary);
   font-size: 1.8rem;
   margin-bottom: 2rem;
   font-weight: 600;

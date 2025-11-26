@@ -31,6 +31,7 @@ function resolvePaymongoKey() {
   return null;
 }
 
+
 //middlewares
 app.use(express.json());
 app.use(cors());
@@ -38,6 +39,13 @@ app.use(cors());
 // Serve uploaded files
 app.use('/loan_applications', express.static('loan_applications'));
 app.use('/payment_references', express.static('payment_references'));
+
+// Set server port
+const PORT = process.env.PORT || 5002;
+
+app.listen(PORT, () => {
+  console.log(`Member portal backend server running on port ${PORT}`);
+});
 
 //routes
 
@@ -74,7 +82,7 @@ const loanUpload = multer({
     limits: {
         fileSize: 10 * 1024 * 1024 // 10MB limit
     }
-});
+    });
 
 // Loan application submission endpoint with database integration
 app.post('/api/loan-application/submit', loanUpload.fields([
@@ -84,12 +92,11 @@ app.post('/api/loan-application/submit', loanUpload.fields([
     try {
         // Extract form data
         const {
-            user_id, memberEmail, dateFiled, loanType, membershipType,
-            lastName, firstName, middleName, gender, civilStatus, birthDate,
-            landline, mobileNumber, emailAddress,
-            currentAddress, yearsOfStayCurrent, permanentAddress, yearsOfStayPermanent, homeOwnership,
-            spouseName, numberOfChildren,
-            dateHired, companyBusiness, contractPeriod, designationPosition, yearsInCompany
+          user_id, memberEmail, dateFiled, loanType, membershipType,
+          lastName, firstName, middleName, gender, civilStatus, birthDate,
+          landline, mobileNumber, emailAddress,
+          currentAddress, yearsOfStayCurrent, permanentAddress, yearsOfStayPermanent, homeOwnership,
+          spouseName, numberOfChildren
         } = req.body;
 
         // Get file paths (store relative paths for database)

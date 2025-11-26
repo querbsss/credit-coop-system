@@ -29,12 +29,13 @@
 }
 
 .service-card {
-  background: var(--white);
+  background: #fff;
   padding: 2rem;
   border-radius: var(--border-radius);
-  box-shadow: var(--card-shadow);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
   transition: all 0.3s ease;
-  border: 1px solid var(--gray-200);
+  border: 1px solid rgba(67,43,122,0.08);
+  color: #222;
 }
 
 .service-card:hover {
@@ -62,7 +63,7 @@
 }
 
 .service-card p {
-  color: var(--gray-600);
+  color: #222;
   margin-bottom: 1.5rem;
   line-height: 1.6;
 }

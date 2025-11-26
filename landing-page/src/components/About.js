@@ -17,7 +17,7 @@ const About = () => {
             <div className="mission-vision">
               <div className="mission">
                 <h4>🎯 Our Mission</h4>
-                <p>
+                  <p>
                   To provide exceptional financial services while fostering economic growth 
                   and financial literacy in our community. We exist to help our members 
                   achieve their financial goals through cooperative principles and personalized service.

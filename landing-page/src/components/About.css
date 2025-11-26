@@ -1,3 +1,6 @@
+.about .mission, .about .vision, .about .value, .about .mission *, .about .vision *, .about .value * {
+  color: #000 !important;
+}
 .about {
   padding: 5rem 0;
   background: var(--white);
@@ -12,14 +15,16 @@
 
 .about-text h2 {
   font-size: 2.5rem;
-  color: var(--primary-purple);
+  /* heading sits on purple background — use high-contrast token (overridden by global rules too) */
+  color: var(--text-primary);
   margin-bottom: 2rem;
   font-weight: 700;
 }
 
 .about-text p {
   font-size: 1.1rem;
-  color: var(--gray-600);
+  /* paragraph sits on purple background — use muted light token for readability */
+  color: var(--text-muted);
   line-height: 1.7;
   margin-bottom: 1.5rem;
 }
@@ -27,28 +32,41 @@
 .mission-vision {
   margin: 2rem 0;
   display: grid;
-  gap: 1.5rem;
-}
-
-.mission, .vision {
   padding: 1.5rem;
-  background: var(--gray-50);
+  background: #432b7a;
   border-radius: var(--border-radius);
   border-left: 4px solid var(--primary-purple-light);
   box-shadow: var(--card-shadow);
+  color: #fff;
+  background: var(--primary-purple-dark);
+  border-radius: var(--border-radius);
+  border-left: 4px solid var(--primary-purple-light);
+  color: #fff;
+  color: var(--white);
 }
+
 
 .mission h4, .vision h4 {
-  color: var(--primary-purple);
+  color: #fff;
   margin-bottom: 1rem;
-  font-size: 1.2rem;
-  font-weight: 600;
+  line-height: 1.6;
 }
 
-.mission p, .vision p {
+.mission, .vision, .value {
+  background: #fff;
+  color: #222;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--card-shadow);
+}
+.mission h4, .vision h4, .value h4 {
+  color: var(--primary-purple);
+}
+.mission p, .vision p, .value p {
+  color: #222;
   margin: 0;
   line-height: 1.6;
-  color: var(--gray-600);
 }
 
 .values {
@@ -56,7 +74,8 @@
 }
 
 .values h3 {
-  color: var(--primary-purple);
+  /* section heading on purple background should be readable */
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
   font-size: 1.4rem;
   font-weight: 600;
@@ -65,14 +84,15 @@
 .value {
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: var(--gray-50);
+  background: var(--primary-purple-dark);
   border-radius: var(--border-radius);
   border-left: 4px solid var(--primary-purple-light);
-  box-shadow: var(--card-shadow);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+  color: var(--white);
 }
 
 .value h4 {
-  color: var(--primary-purple);
+  color: var(--white);
   margin-bottom: 0.5rem;
   font-size: 1.1rem;
 }
@@ -80,7 +100,7 @@
 .value p {
   margin: 0;
   font-size: 0.95rem;
-  color: #64748b;
+  color: rgba(255,255,255,0.92);
 }
 
 .about-image {

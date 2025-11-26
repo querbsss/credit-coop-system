@@ -13,6 +13,13 @@
   --primary-purple-extra-light: #a78bfa;
   --gradient-primary: linear-gradient(135deg, #bda6cc 0%, #bda6cc 100%);
   --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #c4b5fd 100%);
+  /* Main hero/background purple gradient for darker hero look */
+  --bg-gradient-main: linear-gradient(135deg, #6b21a8 0%, #4338ca 100%);
+  /* Global text colors (will be chosen by contrast analysis) */
+  --text-primary: #ffffff; /* default fallback, replaced after analysis */
+  --text-secondary: rgba(255,255,255,0.92);
+  --text-muted: rgba(255,255,255,0.78);
+  --bg-solid-fallback: #5a2aa0;
   
   /* Accent Colors */
   --accent-orange: #ff6b35;
@@ -84,8 +91,13 @@ body {
   font-family: var(--font-primary);
   font-weight: var(--font-weight-normal);
   line-height: 1.6;
-  color: var(--gray-800);
-  background-color: var(--white);
+  color: var(--text-primary);
+  /* Apply the main page background across the whole document */
+  background: var(--bg-gradient-main);
+  background-color: var(--bg-solid-fallback);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -94,12 +106,74 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Ensure the purple background covers the entire app/root */
+html, #root, #root > div, .App {
+  min-height: 100vh;
+  background: var(--bg-gradient-main) !important;
+  background-color: var(--bg-solid-fallback) !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+}
+
+/* Make sections transparent by default so global background shows through */
+.section {
+  background: transparent !important;
+}
+
+/* Override component-level body/App backgrounds to ensure global purple shows through */
+body, .App {
+  background: var(--bg-gradient-main) !important;
+  background-color: var(--bg-solid-fallback) !important;
+}
+
+/* Make common section wrappers transparent so the purple background shows through */
+.about, .services, .contact, .membership, .membership-application, .hero, .section {
+  background: transparent !important;
+}
+
+/* Section headings and lead copy should use our accessible text tokens (but keep card internals untouched) */
+.section-header h2,
+.about-text h2,
+.contact-info h3,
+.hero h1,
+.hero h2,
+.section .lead {
+  color: var(--text-primary) !important;
+}
+
+.section-header p,
+.about-text p,
+.contact p {
+  color: var(--text-muted) !important;
+}
+
+/* Ensure cards retain their white backgrounds and original styling */
+.card, .service-card, .mission, .vision, .value, .contact-form {
+  background: var(--white) !important;
+}
+
+/* Ensure text inside white cards remains dark/readable (override section-level white text) */
+.card, .service-card, .mission, .vision, .value, .contact-form, .application-form, .benefit-item {
+  color: var(--gray-800) !important;
+}
+
+/* Force all direct text inside white cards to be dark for readability, but keep image-placeholder text white */
+.card, .card * {
+  color: var(--gray-800) !important;
+}
+
+.image-placeholder .placeholder-content h3,
+.image-placeholder .placeholder-content p {
+  color: var(--white) !important;
+}
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   margin: 0 0 var(--spacing-md) 0;
   font-weight: var(--font-weight-bold);
   line-height: 1.2;
-  color: var(--gray-900);
+  color: var(--text-primary);
 }
 
 h1 {
@@ -124,7 +198,7 @@ h4 {
 
 p {
   margin: 0 0 var(--spacing-md) 0;
-  color: var(--gray-600);
+  color: var(--text-muted);
 }
 
 /* Improve paragraph measure for readability */
@@ -135,13 +209,13 @@ p {
 }
 
 a {
-  color: var(--primary-blue);
+  color: var(--text-secondary);
   text-decoration: none;
   transition: var(--transition);
 }
 
 a:hover {
-  color: var(--primary-blue-light);
+  color: var(--white);
 }
 
 /* Container */

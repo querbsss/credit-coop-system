@@ -30,7 +30,8 @@ app.use('/api/invoices', require('./routes/invoices'));
 // member import routes
 app.use('/api', require('./routes/importMembers'));
 
-app.listen(5000, () => {
-  console.log('Server is running on port 5000');
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
   console.log('Nodemon is working! Auto-restart enabled.');
-}); 
+});
