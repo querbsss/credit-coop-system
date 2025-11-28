@@ -44,7 +44,6 @@ const Header = () => {
             <div className="header-right">
               <nav className={`nav ${mobileMenuOpen ? 'nav-open' : ''}`}>
                 <Link to="/dashboard" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                <a href="#accounts" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Accounts</a>
                 <Link
                   to="#"
                   className="nav-link"
@@ -54,7 +53,7 @@ const Header = () => {
                 </Link>
                 <Link to="/loan-tracker" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Loan Tracker</Link>
                 <Link to="/payment-dues" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Payment Dues</Link>
-                <a href="#profile" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Profile</a>
+                <Link to="/profile" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
                 <button onClick={handleLogout} className="btn btn-secondary btn-sm">
                   Logout
                 </button>

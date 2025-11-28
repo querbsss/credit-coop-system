@@ -12,6 +12,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
 const pool = require('./db_members'); // Import database connection
 
 // Utility: resolve PayMongo secret from env with optional fallbacks for local dev
@@ -303,7 +304,7 @@ app.get('/api/loan-applications/user/:email', async (req, res) => {
 // Get loan applications (by user_id query) - compatibility endpoint used by frontend
 app.get('/api/loan-application/list', async (req, res) => {
   try {
-    const { user_id } = req.query;
+    const { user_id, member_number } = req.query;
 
     let query = `
       SELECT
@@ -325,7 +326,11 @@ app.get('/api/loan-application/list', async (req, res) => {
     `;
 
     const params = [];
-    if (user_id) {
+    // Prefer filtering by member_number when provided (frontend may send member_number)
+    if (member_number) {
+      query += ' WHERE member_number = $1';
+      params.push(member_number);
+    } else if (user_id) {
       query += ' WHERE user_id = $1';
       params.push(user_id);
     }
@@ -774,6 +779,117 @@ app.get('/api/payments/details', async (req, res) => {
   } catch (err) {
     console.error('Error fetching payment details:', err);
     return res.status(500).json({ success: false, message: 'Internal error' });
+  }
+});
+
+// Update user profile (members may update name/email but NOT member_number)
+app.put('/api/user/update', async (req, res) => {
+  try {
+    // Resolve token from header or Authorization
+    let jwtToken = req.header('token');
+    if (!jwtToken) {
+      const authHeader = req.header('authorization') || req.header('Authorization');
+      if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+        jwtToken = authHeader.split(' ')[1];
+      }
+    }
+
+    if (!jwtToken) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
+    }
+
+    let userIdFromToken;
+    try {
+      const jwt = require('jsonwebtoken');
+      const jwtSecret = process.env.jwtSecret || 'default_jwt_secret_for_development_only_change_in_production';
+      const payload = jwt.verify(jwtToken, jwtSecret);
+      userIdFromToken = payload.user;
+    } catch (err) {
+      console.error('Token verification failed in /api/user/update:', err.message || err);
+      return res.status(401).json({ success: false, message: 'Invalid token' });
+    }
+
+    const { user_id, name, email } = req.body || {};
+    if (!user_id || !name || !email) {
+      return res.status(400).json({ success: false, message: 'user_id, name and email are required' });
+    }
+
+    if (String(userIdFromToken) !== String(user_id)) {
+      return res.status(403).json({ success: false, message: 'Cannot update another user\'s profile' });
+    }
+
+    // Perform the update (do NOT allow member_number changes here)
+    const updateRes = await pool.query(
+      `UPDATE member_users SET user_name = $1, user_email = $2, updated_at = NOW() WHERE user_id = $3 RETURNING user_id, user_name, user_email, member_number`,
+      [name, email, user_id]
+    );
+
+    if (updateRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    return res.json({ success: true, user: updateRes.rows[0] });
+  } catch (err) {
+    console.error('Error in /api/user/update:', err);
+    // Unique constraint on email
+    if (err && err.code === '23505') {
+      return res.status(409).json({ success: false, message: 'Email already in use' });
+    }
+    return res.status(500).json({ success: false, message: 'Failed to update user' });
+  }
+});
+
+// Change password endpoint
+app.post('/api/user/change-password', async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'currentPassword and newPassword are required' });
+    }
+
+    // Resolve token
+    let jwtToken = req.header('token');
+    if (!jwtToken) {
+      const authHeader = req.header('authorization') || req.header('Authorization');
+      if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+        jwtToken = authHeader.split(' ')[1];
+      }
+    }
+
+    if (!jwtToken) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
+    }
+
+    let userIdFromToken;
+    try {
+      const jwt = require('jsonwebtoken');
+      const jwtSecret = process.env.jwtSecret || 'default_jwt_secret_for_development_only_change_in_production';
+      const payload = jwt.verify(jwtToken, jwtSecret);
+      userIdFromToken = payload.user;
+    } catch (err) {
+      console.error('Token verification failed in /api/user/change-password:', err.message || err);
+      return res.status(401).json({ success: false, message: 'Invalid token' });
+    }
+
+    // Fetch stored password hash
+    const userRes = await pool.query('SELECT user_password FROM member_users WHERE user_id = $1', [userIdFromToken]);
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const storedHash = userRes.rows[0].user_password;
+    const match = await bcrypt.compare(currentPassword, storedHash);
+    if (!match) {
+      return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE member_users SET user_password = $1, updated_at = NOW() WHERE user_id = $2', [newHash, userIdFromToken]);
+
+    return res.json({ success: true, message: 'Password changed' });
+  } catch (err) {
+    console.error('Error in /api/user/change-password:', err);
+    return res.status(500).json({ success: false, message: 'Failed to change password' });
   }
 });
 

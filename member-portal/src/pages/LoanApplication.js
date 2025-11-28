@@ -147,34 +147,8 @@ const LoanApplication = () => {
     }
   };
 
-  // Real-time field validation
-  const validateField = (fieldName, value) => {
-    switch (fieldName) {
-      case 'emailAddress':
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(value) ? 'valid' : 'Please enter a valid email address';
-      
-      case 'mobileNumber':
-        const mobileRegex = /^(09|\+639)\d{9}$/;
-        return mobileRegex.test(value.replace(/\s+/g, '')) ? 'valid' : 'Please enter a valid Philippine mobile number';
-      
-      case 'birthDate':
-        if (!value) return 'required';
-        const today = new Date();
-        const birthDate = new Date(value);
-        const age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-          age--;
-        }
-        
-        return age >= 18 ? 'valid' : 'You must be at least 18 years old to apply';
-      
-      default:
-        return value ? 'valid' : 'required';
-    }
-  };
+  // Real-time field validation helper was removed to reduce unused code; validation
+  // is performed at submit time via `validateForm`.
 
   // Form validation helpers
   const validateForm = () => {
@@ -227,7 +201,7 @@ const LoanApplication = () => {
     if (formData.birthDate) {
       const today = new Date();
       const birthDate = new Date(formData.birthDate);
-      const age = today.getFullYear() - birthDate.getFullYear();
+      let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
       
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {

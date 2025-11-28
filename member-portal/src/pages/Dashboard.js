@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import './Dashboard.css';
+import { toast } from 'react-toastify';
 
 const Dashboard = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
-  const [userData, setUserData] = useState(user);
+  const [, setUserData] = useState(user);
   const [loading, setLoading] = useState(true); // Add a loading state to handle data fetching
+  const [approvedNotifications, setApprovedNotifications] = useState([]);
+  const notifiedRef = useRef(new Set(JSON.parse(localStorage.getItem('notifiedLoanApps') || '[]')));
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -49,6 +52,73 @@ const Dashboard = () => {
 
     fetchUserData();
   }, [updateUser]);
+
+  // Poll loan applications for approval status and notify the user once per application
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchApplications = async () => {
+      if (!user?.member_number) return;
+      try {
+        const res = await fetch(`/api/loan-application/list?member_number=${encodeURIComponent(user.member_number)}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (!res.ok) return;
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          console.error('Failed to parse loan applications response', err, text);
+          return;
+        }
+
+        const applications = data.applications || data.applications_list || data;
+        if (!Array.isArray(applications)) return;
+
+        const newlyApproved = [];
+
+        for (const app of applications) {
+          if (!app || !app.application_id) continue;
+          const id = String(app.application_id);
+          const status = (app.status || '').toLowerCase();
+          if (status === 'approved' && !notifiedRef.current.has(id)) {
+            notifiedRef.current.add(id);
+            newlyApproved.push(app);
+          }
+        }
+
+        if (newlyApproved.length && mounted) {
+          // persist notified ids
+          try {
+            localStorage.setItem('notifiedLoanApps', JSON.stringify(Array.from(notifiedRef.current)));
+          } catch (e) {
+            console.warn('Could not persist notifiedLoanApps', e);
+          }
+
+          // show toast for each approved application
+          newlyApproved.forEach((app) => {
+            const title = app.title || `Loan Application ${app.application_id}`;
+            toast.success(`${title} has been approved. Check your loan dashboard for details.`);
+          });
+
+          setApprovedNotifications((prev) => [...newlyApproved, ...prev]);
+        }
+      } catch (error) {
+        console.error('Error fetching loan applications for notifications:', error);
+      }
+    };
+
+    // initial fetch + polling every 30s
+    fetchApplications();
+    const iv = setInterval(fetchApplications, 30_000);
+    return () => {
+      mounted = false;
+      clearInterval(iv);
+    };
+  }, [user]);
 
   // Add an effect to synchronize local state with user context
   useEffect(() => {
@@ -120,6 +190,17 @@ const Dashboard = () => {
           {/* Loan Section */}
           <div className="loan-section">
             <div className="loan-card card">
+              {/* Inline banners for newly approved applications */}
+              {approvedNotifications.length > 0 && (
+                <div className="approved-banner">
+                  {approvedNotifications.map((a) => (
+                    <div key={a.application_id} className="approved-item">
+                      <strong>Application #{a.application_id} approved</strong>
+                      <div>{a.message || a.notes || 'Your loan application has been approved.'}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="loan-header">
                 <div className="loan-icon">🏦</div>
                 <div className="loan-info">

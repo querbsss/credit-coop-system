@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+// no navigation needed in this file currently
 import Header from '../components/Header';
 import './Payment.css';
 
@@ -10,8 +10,7 @@ const Payment = () => {
   const [paymentMethod, setPaymentMethod] = useState('gcash');
   const [isProcessing, setIsProcessing] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
-  const [checkoutUrl, setCheckoutUrl] = useState(null);
-  const navigate = useNavigate();
+  const [, setCheckoutUrl] = useState(null);
 
   // PayMongo API key should be stored in environment variables
   // PayMongo secret must be set server-side (PAYMONGO_SECRET_KEY). The client should not contain secrets.
@@ -196,5 +195,3 @@ const Payment = () => {
 };
 
 export default Payment;
-
-

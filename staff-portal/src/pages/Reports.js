@@ -175,53 +175,64 @@ const Reports = () => {
       // draw logo left if available and reserve content start X
       const logoW = 56;
       const logoH = 56;
+      // center the logo vertically with the title area
+      const headerCenterY = 48;
       if (finalLogo) {
         try {
           // try PNG first
-          doc.addImage(finalLogo, 'PNG', margin, 36, logoW, logoH);
+          doc.addImage(finalLogo, 'PNG', margin, headerCenterY - logoH / 2, logoW, logoH);
         } catch (e) {
           try {
-            doc.addImage(finalLogo, 'JPEG', margin, 36, logoW, logoH);
+            doc.addImage(finalLogo, 'JPEG', margin, headerCenterY - logoH / 2, logoW, logoH);
           } catch (er) {
             console.warn('addImage failed for logo', er);
           }
         }
       }
-      const contentStartX = finalLogo ? margin + logoW + 12 : margin;
+      const contentStartX = finalLogo ? margin + logoW + 18 : margin;
 
-      // header text
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      const titleText = reportTitle || (reportType === 'financial' ? 'Financial Report' : 'Member Report');
-      const titleWidth = doc.getTextWidth(titleText);
-      doc.text(titleText, (pageWidth - titleWidth) / 2, y);
+  // header text - larger title and timestamp aligned to right
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  const titleText = reportTitle || (reportType === 'financial' ? 'Financial Report' : 'Member Report');
+  const titleWidth = doc.getTextWidth(titleText);
+  // place title centered vertically with the logo
+  const titleY = headerCenterY;
+  doc.text(titleText, (pageWidth - titleWidth) / 2, titleY);
 
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       const generatedText = `Generated: ${new Date().toLocaleString()}`;
       const genWidth = doc.getTextWidth(generatedText);
-      doc.text(generatedText, rightX - genWidth, y);
+      doc.text(generatedText, rightX - genWidth, titleY);
 
-      // leave more vertical space after header
-      y += 28;
+  // horizontal divider under header (moved down further)
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.5);
+  // shift divider down more to give additional breathing room
+  doc.line(margin, titleY + 40, pageWidth - margin, titleY + 40);
+
+  // leave more vertical space after header (nudge down accordingly)
+  y = titleY + 56;
 
       // Prepare table layout and center it horizontally (but avoid overlapping logo)
       const headers = data.headers;
-      const fullUsable = pageWidth - margin * 2;
-      const maxColWidth = Math.floor(fullUsable / headers.length);
-      const colWidth = Math.max(70, Math.min(maxColWidth, 160));
-      const tableWidth = colWidth * headers.length;
-      let contentStartCentered = Math.floor((pageWidth - tableWidth) / 2);
-      // ensure content doesn't go outside left margin
-      if (contentStartCentered < margin) contentStartCentered = margin;
-      // if there's a logo, avoid overlapping it
-      const minContentX = finalLogo ? margin + logoW + 12 : margin;
-      const contentStart = contentStartCentered < minContentX ? minContentX : contentStartCentered;
+  const fullUsable = pageWidth - margin * 2;
+  const maxColWidth = Math.floor(fullUsable / headers.length);
+  const colWidth = Math.max(70, Math.min(maxColWidth, 160));
+  const tableWidth = colWidth * headers.length;
+  // center the table on the page (ignore logo horizontal area to keep
+  // table visually centered)
+  let contentStart = Math.floor((pageWidth - tableWidth) / 2);
+  if (contentStart < margin) contentStart = margin;
 
-      // render period at contentStart
-      doc.setFontSize(10);
-      doc.text(`Period: ${from} — ${to}`, contentStart, y);
-      y += 18;
+  // render period at contentStart; nudge it down slightly so it doesn't
+  // overlap the logo or header
+  doc.setFontSize(10);
+  const periodY = y + 12; // push period down
+  doc.text(`Period: ${from} — ${to}`, contentStart, periodY);
+  // advance y to after the period line
+  y = periodY + 12;
 
       // compute summary stats for financial report
       let stats = {};
@@ -236,78 +247,165 @@ const Reports = () => {
         stats = { members: data.rows.length };
       }
 
-      // draw small stat boxes starting at contentStart
-      const statX = contentStart;
-      let statY = y;
-      doc.setFontSize(9);
+      // removed stat/summary boxes for a cleaner report layout
+      // keep a small gap before the table
+      // y already advanced above
+
+      // For financial reports, render a statement-style layout with colored
+      // section bands (Assets / Liabilities / Net Assets) similar to the
+      // provided sample. For member reports, fall back to the simple table.
       if (reportType === 'financial') {
-        const statLabels = [
-          ['Deposits', stats.totalDeposits],
-          ['Loans', stats.totalLoans],
-          ['Interest', stats.totalInterest],
-          ['Expenses', stats.totalExpenses],
-          ['Net', stats.totalNet],
-        ];
-        let sx = statX;
-        const boxW = Math.min(colWidth, 140);
-        const boxH = 28;
-        statLabels.forEach(([label, val], i) => {
-          doc.setFillColor(245,245,250);
-          doc.rect(sx, statY, boxW, boxH, 'F');
-          // center label and value inside the box
-          const centerX = sx + boxW / 2;
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(10);
-          doc.text(label, centerX, statY + 10, { align: 'center' });
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(9);
-          doc.text(formatCurrencyPDF(val), centerX, statY + 22, { align: 'center' });
-          sx += boxW + 8;
-        });
-        y += boxH + 12;
-      } else {
-  const memberBoxW = 160;
-  doc.setFillColor(245,245,250);
-  doc.rect(statX, statY, memberBoxW, 36, 'F');
-  const memberCenterX = statX + memberBoxW / 2;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text('Members', memberCenterX, statY + 12, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text(String(stats.members), memberCenterX, statY + 28, { align: 'center' });
-        y += 36 + 12;
-      }
+        // title band similar to the sample
+        const bandX = margin;
+        const bandW = pageWidth - margin * 2;
+        const bandH = 34;
+        doc.setFillColor(178, 223, 238); // light blue
+        doc.rect(bandX, y - 6, bandW, bandH, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text('Financial Report', bandX + 12, y + 14);
+        // optional small org mark on the right of band
+        doc.setFontSize(9);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'normal');
+        const orgLabel = reportTitle || orgName || 'SLZCoop';
+        doc.text(orgLabel, bandX + bandW - 8 - doc.getTextWidth(orgLabel), y + 14);
+        // reset colors and move down
+        doc.setTextColor(0, 0, 0);
+        y += bandH + 8;
 
-      // draw headers
-      const colX = [];
-      const usableWidth = tableWidth;
-      headers.forEach((h, i) => colX.push(contentStart + i * colWidth));
+        // Render the generated report rows in a styled table so the PDF matches
+        // the preview context: colored header band + table header + rows + a
+        // bold colored totals row at the bottom.
+        const colX = [];
+        headers.forEach((h, i) => colX.push(contentStart + i * colWidth));
 
-      doc.setFontSize(9);
-      doc.setFillColor(245, 245, 250);
-      // header row
-      headers.forEach((h, i) => {
-        doc.text(String(h), colX[i] + 4, y);
-      });
-      y += 16;
-
-      // rows
-      for (let ri = 0; ri < data.rows.length; ri++) {
-        const r = data.rows[ri];
-        const cells = reportType === 'financial'
-          ? [r.period, formatCurrencyPDF(r.deposits), formatCurrencyPDF(r.loans), formatCurrencyPDF(r.interest), formatCurrencyPDF(r.expenses), formatCurrencyPDF(r.net)]
-          : [r.id, r.name, r.joined, r.shares, r.contribution];
-
-        cells.forEach((c, i) => {
-          const text = String(c ?? '');
-          doc.text(text, colX[i] + 4, y);
-        });
-        y += 14;
-        if (y > doc.internal.pageSize.getHeight() - 60) {
+        // table header band
+        const hdrH = 22;
+        // ensure there's enough room on the current page for header + rows + totals
+        const pageH = doc.internal.pageSize.getHeight();
+        const rowsNeededH = (data.rows.length * 18) + 20 + 40; // rows + totals + padding
+        if (y + hdrH + rowsNeededH > pageH - 60) {
           doc.addPage();
           y = 60;
         }
+        doc.setFillColor(102, 179, 217); // blue header
+        doc.rect(contentStart, y, tableWidth, hdrH, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        headers.forEach((h, i) => {
+          // align first column left, numeric columns right
+          const isNumeric = i > 0;
+          if (isNumeric) {
+            doc.text(String(h), colX[i] + colWidth - 6, y + 14, { align: 'right' });
+          } else {
+            doc.text(String(h), colX[i] + 6, y + 14);
+          }
+        });
+        y += hdrH + 4;
+
+        // rows
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        for (let ri = 0; ri < data.rows.length; ri++) {
+          const r = data.rows[ri];
+          // no alternating gray/box backgrounds: keep rows clean
+          // draw each cell with alignment
+          const cells = [r.period, formatCurrencyPDF(r.deposits), formatCurrencyPDF(r.loans), formatCurrencyPDF(r.interest), formatCurrencyPDF(r.expenses), formatCurrencyPDF(r.net)];
+          cells.forEach((c, i) => {
+            const isNumeric = i > 0;
+            if (isNumeric) {
+              doc.setTextColor(0, 0, 0);
+              doc.text(String(c), colX[i] + colWidth - 6, y + 8, { align: 'right' });
+            } else {
+              doc.setTextColor(0, 0, 0);
+              doc.text(String(c), colX[i] + 6, y + 8);
+            }
+          });
+          y += 18;
+          // page break handling
+          if (y > doc.internal.pageSize.getHeight() - 80) {
+            doc.addPage();
+            y = 60;
+          }
+        }
+
+        // totals row (darker blue)
+        const totalH = 20;
+        const totalFill = [0, 120, 160];
+        doc.setFillColor(...totalFill);
+        doc.rect(contentStart, y - 6, tableWidth, totalH, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        // left label
+        doc.text('Totals', colX[0] + 6, y + 10);
+        // numeric totals
+        doc.text(formatCurrencyPDF(stats.totalDeposits), colX[1] + colWidth - 6, y + 10, { align: 'right' });
+        doc.text(formatCurrencyPDF(stats.totalLoans), colX[2] + colWidth - 6, y + 10, { align: 'right' });
+        doc.text(formatCurrencyPDF(stats.totalInterest), colX[3] + colWidth - 6, y + 10, { align: 'right' });
+        doc.text(formatCurrencyPDF(stats.totalExpenses), colX[4] + colWidth - 6, y + 10, { align: 'right' });
+        doc.text(formatCurrencyPDF(stats.totalNet), colX[5] + colWidth - 6, y + 10, { align: 'right' });
+        y += totalH + 12;
+        doc.setTextColor(0, 0, 0);
+
+      } else {
+        // Use jsPDF-AutoTable for member reports to handle pagination and
+        // repeat headers automatically. This avoids missing rows when the
+        // header is near the page bottom.
+        if (!doc.autoTable) {
+          // load the plugin synchronously (downloaded earlier if needed)
+          // loadScript is available in this scope
+          // eslint-disable-next-line no-await-in-loop
+          await loadScript('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js');
+        }
+
+        const body = data.rows.map((r) => [
+          r.id,
+          r.name,
+          r.joined,
+          r.shares ?? 0,
+          (r.contribution ?? 0).toLocaleString(),
+        ]);
+
+        doc.autoTable({
+          startY: y,
+          head: [headers],
+          body,
+          theme: 'striped',
+          styles: { font: 'helvetica', fontSize: 10 },
+          headStyles: { fillColor: [102, 179, 217], textColor: 255, halign: 'center' },
+          columnStyles: {
+            0: { halign: 'left' },
+            1: { halign: 'left' },
+            2: { halign: 'left' },
+            3: { halign: 'right' },
+            4: { halign: 'right' },
+          },
+          margin: { left: contentStart, right: contentStart },
+          tableWidth: tableWidth,
+        });
+
+        // autoTable sets lastAutoTable.finalY for the next content start
+        const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : (y + (data.rows.length * 18));
+
+        // draw totals row after the table
+        const totalH = 20;
+        const totalFill = [0, 120, 160];
+        doc.setFillColor(...totalFill);
+        doc.rect(contentStart, finalY + 6, tableWidth, totalH, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        const totalShares = data.rows.reduce((s, r) => s + (Number(r.shares || 0)), 0);
+        const totalContribution = data.rows.reduce((s, r) => s + (Number(r.contribution || 0)), 0);
+        doc.text('Totals', contentStart + 6, finalY + 6 + 14);
+        // place member count under Joined column
+        doc.text(String(data.rows.length), contentStart + (2 * colWidth) + colWidth - 6, finalY + 6 + 14, { align: 'right' });
+        doc.text(String(totalShares), contentStart + (3 * colWidth) + colWidth - 6, finalY + 6 + 14, { align: 'right' });
+        doc.text(totalContribution.toLocaleString(), contentStart + (4 * colWidth) + colWidth - 6, finalY + 6 + 14, { align: 'right' });
+        y = finalY + totalH + 18;
+        doc.setTextColor(0, 0, 0);
       }
 
       const fileName = `${reportType}-report-${from}_to_${to}.pdf`;
@@ -324,10 +422,19 @@ const Reports = () => {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div className="page-title">
-          <h1>Reports</h1>
-          <p>Generate automated financial and member reports (dummy data)</p>
+      <div className="page-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* logo: prefer in-memory logoDataUrl, then configured logoUrl, then generic */}
+          <img
+            src={logoDataUrl || logoUrl || '/report-assets/logo.png'}
+            alt="SLZCoop logo"
+            style={{ width: 56, height: 56, objectFit: 'contain', borderRadius: 8, background: '#fff', padding: 6, boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}
+            onError={(e) => { e.currentTarget.src = '/report-assets/logo.png'; }}
+          />
+          <div>
+            <h1 style={{ margin: 0, fontSize: '1.6rem' }}>{orgName || 'SLZCoop'}</h1>
+            <p style={{ margin: 0, color: '#666' }}>Generate automated financial and member reports</p>
+          </div>
         </div>
       </div>
 

@@ -15,9 +15,7 @@ const PaymentSuccess = () => {
   useEffect(() => {
     const paymentIntentId = searchParams.get('payment_intent_id');
     const checkoutSessionId = searchParams.get('checkout_session_id');
-    const applicationId = searchParams.get('application_id');
-    const memberNumber = searchParams.get('member_number');
-
+    // application_id and member_number are read when confirming the payment later
     if (paymentIntentId) {
       fetchPaymentDetails(paymentIntentId);
     } else if (checkoutSessionId) {
@@ -25,6 +23,7 @@ const PaymentSuccess = () => {
     } else {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const fetchPaymentDetails = async (paymentIntentId) => {
@@ -191,12 +190,7 @@ const PaymentSuccess = () => {
               </div>
             )}
 
-            <div className="receipt-note">
-              <p>
-                📧 A receipt has been sent to your email address. 
-                Keep this for your records and contact us if you have any questions.
-              </p>
-            </div>
+
           </div>
         </div>
       </main>

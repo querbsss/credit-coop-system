@@ -92,10 +92,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('memberPortalToken');
   };
 
+  // Allow updating the user in context (e.g., after profile edits)
+  const updateUser = (updatedUser) => {
+    setUser((prev) => ({ ...(prev || {}), ...(updatedUser || {}) }));
+  };
+
   const value = {
     user,
     login,
     logout,
+    updateUser,
     loading
   };
 

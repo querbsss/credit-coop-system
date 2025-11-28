@@ -37,8 +37,10 @@ const LoanTracker = () => {
   useEffect(() => {
     if (!user) return;
     const fetchApps = async () => {
-      setLoading(true);
-      setError(null);
+  setLoading(true);
+  setError(null);
+  // Clear any previous application while we fetch to avoid showing stale data
+  setApplication(null);
 
       // Prefer member_number when available (more stable) otherwise fall back to user_id
       const identifierKey = user?.member_number ? 'member_number' : 'user_id';
@@ -60,7 +62,7 @@ const LoanTracker = () => {
 
       try {
         const data = await doFetch(relativeUrl).catch(async (e) => { console.warn('Relative fetch failed, trying fallback:', e.message); return await doFetch(fallbackUrl); });
-        const apps = data.applications || [];
+  const apps = data?.applications ?? data?.applications_list ?? [];
         const basic = apps.length > 0 ? apps[0] : null;
         // If the list item doesn't include review_status (older server responses),
         // fetch the detailed application to get full fields (review_status, amount, etc.)
@@ -121,7 +123,7 @@ const LoanTracker = () => {
           return data;
         };
         const data = await doFetch(relativeUrl).catch(async (e) => { return await doFetch(fallbackUrl); });
-        const apps = data.applications || [];
+  const apps = data?.applications ?? data?.applications_list ?? [];
         const latest = apps.length > 0 ? apps[0] : null;
         if (cancelled) return;
         if (latest && latest.review_status === undefined) {
@@ -206,7 +208,7 @@ const LoanTracker = () => {
         return data;
       };
       const data = await doFetch(relativeUrl).catch(async (e) => { return await doFetch(fallbackUrl); });
-      const apps = data.applications || [];
+  const apps = data?.applications ?? data?.applications_list ?? [];
       const basic = apps.length > 0 ? apps[0] : null;
       if (basic && basic.review_status === undefined) {
         try {

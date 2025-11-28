@@ -2,7 +2,7 @@
 export const PERMISSIONS = {
   // Admin permissions - limited to member management and reports
   admin: {
-    allowedRoutes: ['/dashboard', '/members', '/reports', '/membership-applications', '/loan-amounts'],
+    allowedRoutes: ['/dashboard', '/members', '/reports', '/membership-applications', '/loan-amounts', '/savings-setup'],
     menuItems: [
       {
         path: '/dashboard',
@@ -267,6 +267,7 @@ function normalizeRole(role) {
   const r = String(role).trim().toLowerCase();
   // common mappings
   if (r === 'administrator' || r === 'admin' || r === 'administrator_role' || r === 'administrator_role') return 'admin';
+  if (r === 'staff') return 'admin';
   if (r === 'it admin' || r === 'it_admin' || r === 'it-admin') return 'it_admin';
   if (r === 'loan officer' || r === 'loan_officer' || r === 'loan-officer') return 'loan_officer';
   if (r === 'cashier') return 'cashier';

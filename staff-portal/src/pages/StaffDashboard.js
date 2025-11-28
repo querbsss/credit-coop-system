@@ -4,9 +4,9 @@ import { toast, ToastContainer } from 'react-toastify';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
-import '../pages/Dashboard.css';
+import './Dashboard.css';
 
-const AdminDashboard = ({ setAuth }) => {
+const StaffDashboard = ({ setAuth }) => {
     const [userInfo, setUserInfo] = useState(null);
     const [stats, setStats] = useState({
         totalMembers: 0,
@@ -14,7 +14,7 @@ const AdminDashboard = ({ setAuth }) => {
         totalLoans: 0,
         totalTransactions: 0
     });
-    const [newApplications, setNewApplications] = useState([]); // State for new membership applications
+    const [newApplications, setNewApplications] = useState([]);
     const [loanApps, setLoanApps] = useState([]);
     const [selectedLoanApp, setSelectedLoanApp] = useState(null);
     const [loanLoading, setLoanLoading] = useState(false);
@@ -22,96 +22,104 @@ const AdminDashboard = ({ setAuth }) => {
 
     useEffect(() => {
         const fetchUserInfo = async () => {
-                try {
-                    const response = await fetch("http://localhost:5000/auth/profile", {
-                        method: "GET",
-                        headers: { 
-                            "Content-Type": "application/json",
-                            "token": localStorage.token 
-                        }
-                    });
-
-                    if (response.ok) {
-                        const userData = await response.json();
-                        setUserInfo(userData);
-                        // initialize socket after we know the user's role
-                        try {
-                            const socket = io('http://localhost:3002');
-                            socket.on('connect', () => {
-                                const role = userData.role || userData.user_role || 'admin';
-                                socket.emit('join', { role });
-                            });
-
-                            socket.on('new-application', (newApp) => {
-                                const applicantName = `${newApp.first_name || ''} ${newApp.last_name || ''}`.trim();
-                                const message = applicantName ? `${applicantName} submitted a membership application.` : 'New membership application received.';
-                                console.log('AdminDashboard: showing toast ->', message);
-                                toast.info(message, { position: 'top-right', autoClose: 8000 });
-                                setNewApplications((prev) => [newApp, ...prev]);
-                            });
-
-                            socket.on('disconnect', () => {
-                                console.warn('Socket disconnected from landing-page server');
-                            });
-                        } catch (socketErr) {
-                            console.warn('Failed to initialize socket in AdminDashboard:', socketErr);
-                        }
+            try {
+                const response = await fetch("http://localhost:5000/auth/profile", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "token": localStorage.token
                     }
-                } catch (err) {
-                    console.error("Error fetching user info:", err);
-                }
-            };
+                });
 
-            const loadInitialApplications = async () => {
-                try {
-                    const response = await fetch("http://localhost:3002/api/membership-applications", {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "token": localStorage.token
-                        }
-                    });
-                    if (response.ok) {
-                        const result = await response.json();
-                        setNewApplications(result && result.applications ? result.applications : []);
+                if (response.ok) {
+                    const userData = await response.json();
+                    setUserInfo(userData);
+                    try {
+                        const socket = io('http://localhost:3002');
+                        socket.on('connect', () => {
+                            const role = userData.role || userData.user_role || 'staff';
+                            socket.emit('join', { role });
+                        });
+
+                        socket.on('new-application', (newApp) => {
+                            const applicantName = `${newApp.first_name || ''} ${newApp.last_name || ''}`.trim();
+                            const message = applicantName ? `${applicantName} submitted a membership application.` : 'New membership application received.';
+                            toast.info(message, { position: 'top-right', autoClose: 8000 });
+                            setNewApplications((prev) => [newApp, ...prev]);
+                        });
+
+                        socket.on('disconnect', () => {
+                            console.warn('Socket disconnected');
+                        });
+                    } catch (socketErr) {
+                        console.warn('Failed to initialize socket in StaffDashboard:', socketErr);
                     }
-                } catch (err) {
-                    console.error('Error loading initial applications:', err);
                 }
-            };
+            } catch (err) {
+                console.error("Error fetching user info:", err);
+            }
+        };
 
-            fetchUserInfo();
-            loadInitialApplications();
-            // load approved loans for admin to assign amounts
-            const loadApprovedLoans = async () => {
-                try {
-                    const resp = await axios.get('http://localhost:5000/api/loan-review/applications?status=approved', {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            token: localStorage.token
-                        }
-                    });
-                    if (resp.data && resp.data.success) {
-                        setLoanApps(resp.data.applications || []);
+        const loadInitialApplications = async () => {
+            try {
+                const response = await fetch("http://localhost:3002/api/membership-applications", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "token": localStorage.token
                     }
-                } catch (err) {
-                    console.error('Error loading approved loans:', err);
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    setNewApplications(result && result.applications ? result.applications : []);
                 }
-            };
-            loadApprovedLoans();
+            } catch (err) {
+                console.error('Error loading initial applications:', err);
+            }
+        };
 
-            return () => {
-                // nothing to clean up here (socket is local to fetchUserInfo)
-            };
+        fetchUserInfo();
+        loadInitialApplications();
+
+        const loadApprovedLoans = async () => {
+            try {
+                const resp = await axios.get('http://localhost:5000/api/loan-review/applications?status=approved', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        token: localStorage.token
+                    }
+                });
+                if (resp.data && resp.data.success) {
+                    setLoanApps(resp.data.applications || []);
+                }
+            } catch (err) {
+                console.error('Error loading approved loans:', err);
+            }
+        };
+        loadApprovedLoans();
+
+        return () => {};
     }, []);
 
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
-                <h1>Administrator Dashboard</h1>
-                <p className="dashboard-subtitle">
-                    Welcome back, {userInfo?.name || 'Administrator'}! Manage members and system reports.
-                </p>
+                <div className="header-left">
+                    <div className="logo-circle">⚛️</div>
+                    <div>
+                        <h1>CreditCoop</h1>
+                        <div className="subline">STAFF PORTAL</div>
+                    </div>
+                </div>
+                <div className="header-right">
+                    <div className="role-badge">STAFF</div>
+                    <div className="user-avatar">{(userInfo && userInfo.name) ? userInfo.name.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase() : 'SU'}</div>
+                </div>
+            </div>
+
+            <div className="dashboard-header-sub">
+                <h2>Staff Dashboard</h2>
+                <p>Welcome back, {userInfo?.name || 'Staff'}! Use this panel to manage members, applications, and loans.</p>
             </div>
 
             <div className="stats-grid">
@@ -132,7 +140,7 @@ const AdminDashboard = ({ setAuth }) => {
                 </div>
 
                 <div className="stat-card warning">
-                    <div className="stat-icon">�</div>
+                    <div className="stat-icon">💼</div>
                     <div className="stat-info">
                         <h3>New Members</h3>
                         <span className="stat-number">{stats.totalLoans}</span>
@@ -140,7 +148,7 @@ const AdminDashboard = ({ setAuth }) => {
                 </div>
 
                 <div className="stat-card info">
-                    <div className="stat-icon">�</div>
+                    <div className="stat-icon">🔔</div>
                     <div className="stat-info">
                         <h3>Active Memberships</h3>
                         <span className="stat-number">{stats.totalTransactions}</span>
@@ -170,10 +178,6 @@ const AdminDashboard = ({ setAuth }) => {
                             <span className="btn-icon">📝</span>
                             Membership Applications
                         </button>
-                        <button className="action-btn info">
-                            <span className="btn-icon">�</span>
-                            Search Members
-                        </button>
                     </div>
                 </div>
 
@@ -187,20 +191,6 @@ const AdminDashboard = ({ setAuth }) => {
                                 <p>Generate membership statistics</p>
                             </div>
                         </div>
-                        <div className="quick-action-item">
-                            <span className="action-icon">�</span>
-                            <div className="action-content">
-                                <h4>Activity Report</h4>
-                                <p>Member activity analysis</p>
-                            </div>
-                        </div>
-                        <div className="quick-action-item">
-                            <span className="action-icon">�</span>
-                            <div className="action-content">
-                                <h4>Growth Report</h4>
-                                <p>Membership growth trends</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -210,14 +200,6 @@ const AdminDashboard = ({ setAuth }) => {
                         <div className="activity-item">
                             <span className="activity-time">2 hours ago</span>
                             <span className="activity-desc">New member registration - John Doe</span>
-                        </div>
-                        <div className="activity-item">
-                            <span className="activity-time">4 hours ago</span>
-                            <span className="activity-desc">Member profile updated - Jane Smith</span>
-                        </div>
-                        <div className="activity-item">
-                            <span className="activity-time">1 day ago</span>
-                            <span className="activity-desc">Monthly membership report generated</span>
                         </div>
                     </div>
                 </div>
@@ -237,9 +219,10 @@ const AdminDashboard = ({ setAuth }) => {
                         )}
                     </div>
                 </div>
+
                 <div className="dashboard-section">
-                    <h2>Loan Amounts (Admin)</h2>
-                    <p>Assign final loan amounts and calculate deductions for approved applications.</p>
+                    <h2>Loan Processing</h2>
+                    <p>Review approved loan applications and set final loan amounts or recommend for disbursement.</p>
                     <div className="application-list">
                         {loanApps.length > 0 ? (
                             loanApps.map((app) => (
@@ -337,7 +320,6 @@ const AdminDashboard = ({ setAuth }) => {
                                             }
                                         });
                                         alert('Loan amount saved');
-                                        // remove from list
                                         setLoanApps(prev => prev.filter(a => a.application_id !== selectedLoanApp.application_id));
                                         setSelectedLoanApp(null);
                                     } catch (err) {
@@ -352,10 +334,9 @@ const AdminDashboard = ({ setAuth }) => {
                     </div>
                 )}
             </div>
-            {/* Toast container for react-toastify toasts */}
             <ToastContainer />
         </div>
     );
 };
 
-export default AdminDashboard;
+export default StaffDashboard;
