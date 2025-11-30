@@ -23,7 +23,6 @@ const Header = () => {
               <span className="logo-text">CreditCoop</span>
             </div>
             <div className="user-info">
-              <span className="welcome-text">Welcome back, {user?.firstName} {user?.lastName}</span>
               <span className="status-badge status-active">ACTIVE</span>
             </div>
           </div>
