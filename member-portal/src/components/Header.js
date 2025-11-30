@@ -30,6 +30,7 @@ const Header = () => {
 
           <div className="header-right">
             <nav className={`nav ${mobileMenuOpen ? 'nav-open' : ''}`}>
+              <Link to="/loan-tracker" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Loan Tracker</Link>
               <Link to="/dashboard" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
               <Link to="/loans" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Loans</Link>
               <Link to="/payment-dues" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Payment Dues</Link>
