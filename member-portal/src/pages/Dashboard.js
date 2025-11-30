@@ -42,22 +42,6 @@ const Dashboard = () => {
       
       <main className="dashboard-main">
         <div className="container">
-          {/* Welcome Section */}
-          <div className="welcome-section">
-            <div className="welcome-card card">
-              <div className="welcome-content">
-                <div className="welcome-text">
-                  <h1>Welcome back, {user?.firstName} {user?.lastName}</h1>
-                  <span className="status-badge status-active">ACTIVE</span>
-                </div>
-                <div className="member-avatar">
-                  <div className="avatar-circle-lg">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Account Overview */}
           <div className="accounts-section">
@@ -77,7 +61,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="account-balance">
-                  <span className="balance-amount">{formatCurrency(user?.accounts?.savings?.balance)}</span>
+                  <span className="balance-amount">0.00</span>
                   <span className="balance-label">Current balance</span>
                 </div>
               </div>
