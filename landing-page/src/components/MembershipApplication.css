@@ -160,6 +160,29 @@
   gap: 0.5rem;
   width: 100%;
 }
+.select-with-info select {
+  flex: 1;
+  padding-right: 0; /* no extra inset, icon is outside */
+}
+
+.select-with-info .info-icon {
+  position: relative;
+  margin-left: 0;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon:hover .tooltip,
+.info-icon:focus .tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(2px);
+}
 
 .form-group input,
 .form-group select {
