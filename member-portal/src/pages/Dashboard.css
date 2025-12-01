@@ -224,6 +224,153 @@
   opacity: 0.9;
 }
 
+/* Notification/banner for loan approval (inline use) */
+.notification {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #e6fffa; /* subtle green for inline banners */
+  border: 1px solid #b7f0df;
+  color: #064e3b;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.notification.success {
+  /* keep inline banner style but for toast we style separately */
+  background: linear-gradient(90deg, rgba(16,185,129,0.08), rgba(16,185,129,0.04));
+  border-color: rgba(16,185,129,0.2);
+}
+
+.notification-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.notification-text {
+  margin-left: 0.25rem;
+  color: var(--gray-700);
+}
+
+.notification-amount {
+  margin-left: 0.5rem;
+  font-weight: 700;
+  color: var(--success-green);
+}
+
+.notification-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+@media (max-width: 480px) {
+  .notification {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .notification-close {
+    align-self: flex-end;
+  }
+}
+
+/* Toast-specific styles (fixed, top-right) */
+.toast {
+  position: fixed;
+  /* place toast below the header so it doesn't overlap nav elements */
+  top: 72px;
+  right: 1rem;
+  max-width: 360px;
+  min-width: 260px;
+  z-index: 2000;
+  box-shadow: 0 12px 35px rgba(16,24,40,0.18);
+  animation: toast-in 240ms ease-out;
+  background: #ffffff;
+  color: var(--gray-800);
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,0.06);
+  overflow: hidden;
+}
+
+/* Force completely opaque white toast (override any accidental transparent banner styles) */
+.toast, .toast.notification.success {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  backdrop-filter: none !important;
+}
+
+@keyframes toast-in {
+  from { transform: translateY(-8px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes toast-out {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to { transform: translateY(-8px) scale(0.98); opacity: 0; }
+}
+
+/* small screens: full width toast */
+@media (max-width: 480px) {
+  .toast {
+    left: 0.75rem;
+    right: 0.75rem;
+    top: 0.5rem;
+    max-width: none;
+  }
+}
+
+/* Toast success accent bar */
+.toast.notification.success::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(180deg,#10b981,#34d399);
+}
+
+.toast .notification-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+}
+
+.toast .notification-text {
+  margin-left: 0;
+  font-size: 0.95rem;
+}
+
+.toast .notification-amount {
+  margin-left: 0;
+  font-weight: 700;
+}
+
+.notification-close {
+  background: transparent;
+  border: none;
+  color: var(--gray-600);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin: 0.5rem;
+}
+
+.toast .notification-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
 /* Tooltip styles for disabled CTA */
 .tooltip-wrapper {
   display: inline-block;
