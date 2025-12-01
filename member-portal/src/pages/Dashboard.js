@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useLoanApprovalNotifications from '../hooks/useLoanApprovalNotifications';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
@@ -11,7 +12,7 @@ import clockIcon from '../assets/icons/dashboard/clock-ten-svgrepo-com.svg';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, fetchMembershipData } = useAuth();
   const navigate = useNavigate();
 
   // Determine if the member already has an active loan balance
@@ -19,6 +20,24 @@ const Dashboard = () => {
 
   // Notification state for approved loan (only show when backend indicates approval)
   const [showLoanApproved, setShowLoanApproved] = useState(false);
+  const [approvedPayload, setApprovedPayload] = useState(null);
+
+  // subscribe to real-time loan approval notifications using Socket.IO
+  useLoanApprovalNotifications(user?.memberNumber, async (payload) => {
+    try {
+      // keep the payload locally so the toast can show exact details immediately
+      setApprovedPayload(payload || null);
+
+      // refresh membership/dashboard data so `user` reflects the approved loan
+      if (typeof fetchMembershipData === 'function') {
+        try { await fetchMembershipData(); } catch (e) { /* ignore refresh errors */ }
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      setShowLoanApproved(true);
+    }
+  });
 
   // Detect various possible server fields that indicate approval
   const loanApprovedFlag = !!(user && user.loan && (
@@ -71,8 +90,8 @@ const Dashboard = () => {
           <div className="notification-content">
             <strong>Loan approved</strong>
             <span className="notification-text"> Your loan application has been approved.</span>
-            {user?.loan?.amount ? (
-              <span className="notification-amount"> Amount: {formatCurrency(user.loan.amount)}</span>
+            {((approvedPayload && approvedPayload.loan && approvedPayload.loan.amount) || user?.loan?.amount) ? (
+              <span className="notification-amount"> Amount: {formatCurrency((approvedPayload && approvedPayload.loan && approvedPayload.loan.amount) || user.loan.amount)}</span>
             ) : null}
           </div>
           <button className="notification-close" aria-label="Dismiss" onClick={() => setShowLoanApproved(false)}>✕</button>
