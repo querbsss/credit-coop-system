@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
@@ -16,6 +16,28 @@ const Dashboard = () => {
 
   // Determine if the member already has an active loan balance
   const hasActiveLoan = Number(user?.loan?.amount || 0) > 0;
+
+  // Notification state for approved loan (only show when backend indicates approval)
+  const [showLoanApproved, setShowLoanApproved] = useState(false);
+
+  // Detect various possible server fields that indicate approval
+  const loanApprovedFlag = !!(user && user.loan && (
+    (typeof user.loan.status === 'string' && user.loan.status.toLowerCase() === 'approved') ||
+    (typeof user.loan.application_status === 'string' && user.loan.application_status.toLowerCase() === 'approved') ||
+    user.loan.is_approved === true ||
+    user.loan.approved === true
+  ));
+
+  useEffect(() => {
+    if (loanApprovedFlag) setShowLoanApproved(true);
+  }, [loanApprovedFlag]);
+
+  // Auto-dismiss toast after 7 seconds when shown
+  useEffect(() => {
+    if (!showLoanApproved) return;
+    const timer = setTimeout(() => setShowLoanApproved(false), 7000);
+    return () => clearTimeout(timer);
+  }, [showLoanApproved]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
@@ -42,7 +64,21 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <Header />
-      
+
+      {/* Toast: loan approved (fixed, top-right) */}
+      {showLoanApproved && (
+        <div className="toast notification success" role="status" aria-live="polite">
+          <div className="notification-content">
+            <strong>Loan approved</strong>
+            <span className="notification-text"> Your loan application has been approved.</span>
+            {user?.loan?.amount ? (
+              <span className="notification-amount"> Amount: {formatCurrency(user.loan.amount)}</span>
+            ) : null}
+          </div>
+          <button className="notification-close" aria-label="Dismiss" onClick={() => setShowLoanApproved(false)}>✕</button>
+        </div>
+      )}
+
       <main className="dashboard-main">
         <div className="container">
 
