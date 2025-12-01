@@ -140,6 +140,15 @@ body {
   font-size: 1.1rem;
 }
 
+/* Disabled button styling for clarity */
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 /* Status badges */
 .status-badge {
   padding: 0.25rem 0.75rem;
