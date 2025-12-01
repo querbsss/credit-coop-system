@@ -14,6 +14,9 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Determine if the member already has an active loan balance
+  const hasActiveLoan = Number(user?.loan?.amount || 0) > 0;
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
@@ -93,10 +96,34 @@ const Dashboard = () => {
                 <span className="balance-amount">{formatCurrency(user?.loan?.amount || 0)}</span>
               </div>
               <div className="loan-action">
-                <button className="btn btn-primary btn-lg" onClick={() => navigate('/loans')}>
-                   Need funds?<br />
-                  <span>Apply for a loan now!</span><br />
-                </button>
+                {hasActiveLoan ? (
+                  <div
+                    className="tooltip-wrapper"
+                    tabIndex={0}
+                    aria-describedby="loan-tooltip"
+                    role="group"
+                  >
+                    <button
+                      className="btn btn-primary btn-lg"
+                      disabled={true}
+                      onClick={() => {}}
+                    >
+                      Active loan<br />
+                      <span>{formatCurrency(user.loan.amount)}</span>
+                    </button>
+                    <span className="tooltip-text" role="tooltip" id="loan-tooltip">
+                      You already have an active loan. You cannot apply again until it is cleared.
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    className="btn btn-primary btn-lg"
+                    onClick={() => navigate('/loans')}
+                  >
+                    Need funds?<br />
+                    <span>Apply for a loan now!</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
