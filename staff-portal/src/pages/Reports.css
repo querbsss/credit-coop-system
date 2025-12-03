@@ -36,6 +36,21 @@
   font-size: 0.95rem;
 }
 
+/* Hide the browser's native calendar picker icon so our custom SVG background icon
+   is the only visible indicator. Keep the native indicator accessible (clickable)
+   by using opacity:0 rather than display:none in WebKit-based browsers. */
+.reports-controls input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  filter: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Firefox calendar icon fix (best-effort) - hide the native dropmarker where supported */
+.reports-controls input[type="date"]::-moz-focus-inner {
+  border: 0;
+}
+
 /* compact variants to match screenshot: smaller inputs with subtle icon */
 .reports-controls select {
   /* visual style: rounded control with a colored left accent bar */
