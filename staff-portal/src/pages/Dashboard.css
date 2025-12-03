@@ -168,6 +168,13 @@
   color: white;
 }
 
+/* SVGs placed inside .stat-icon should scale to fit and inherit current color */
+.stat-icon .metric-icon-svg {
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
 .stat-card.primary .stat-icon {
   background: linear-gradient(135deg, #3b82f6, #60a5fa);
 }
@@ -378,6 +385,104 @@
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--gray-200);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .dashboard-page, .dashboard-container {
+    padding: 0 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .stat-icon .metric-icon-svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* stack main columns */
+    gap: 1rem;
+  }
+
+  .dashboard-section {
+    padding: 1rem;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr; /* stack action buttons vertically */
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .stat-number {
+    font-size: 1.6rem;
+  }
+
+  .stat-info h3 {
+    font-size: 0.9rem;
+  }
+
+  /* Reduce padding and make tables scroll horizontally */
+  .dashboard-section {
+    padding: 0.75rem;
+  }
+
+  .dashboard-section .table-container,
+  .applications-section .table-container {
+    overflow-x: auto;
+  }
+
+  /* Make recent transaction list more compact */
+  .activity-item {
+    padding: 0.75rem;
+  }
+
+  .activity-desc {
+    margin-left: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  /* Reduce spacing in cards */
+  .stat-card { gap: 0.75rem; }
+  .stat-icon { width: 48px; height: 48px; }
+  .stat-icon .metric-icon-svg { width: 24px; height: 24px; }
+}
+
+/* Very small screens: collapse stats to single column */
+@media (max-width: 420px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header h1 { font-size: 1.25rem; }
 }
 
 /* Import Dashboard specific tweaks to match Members layout */
