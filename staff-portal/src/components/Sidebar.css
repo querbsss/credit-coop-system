@@ -73,6 +73,14 @@
   flex-shrink: 0;
 }
 
+/* SVG icon when using SVGR imports */
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
 .nav-content {
   display: flex;
   flex-direction: column;

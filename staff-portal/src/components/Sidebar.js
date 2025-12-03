@@ -3,12 +3,40 @@ import { NavLink } from 'react-router-dom';
 import { useUserRole } from '../hooks/useUserRole';
 import { getMenuItems } from '../utils/permissions';
 import './Sidebar.css';
+// SVG icons (SVGR) - map menu paths to these components below
+import { ReactComponent as DashboardIcon } from '../pages/assets/dashboard-2-svgrepo-com.svg';
+import { ReactComponent as UserIcon } from '../pages/assets/user-svgrepo-com.svg';
+import { ReactComponent as ApplicationIcon } from '../pages/assets/clipboard-text-svgrepo-com.svg';
+import { ReactComponent as BankIcon } from '../pages/assets/bank-svgrepo-com.svg';
+import { ReactComponent as MoneyBagIcon } from '../pages/assets/money-bag-svgrepo-com.svg';
+import { ReactComponent as LoanIcon } from '../pages/assets/loan-round-svgrepo-com.svg';
+import { ReactComponent as CheckIcon } from '../pages/assets/check-circle-svgrepo-com.svg';
+import { ReactComponent as ReportsIcon } from '../pages/assets/reports-svgrepo-com.svg';
 
 const Sidebar = () => {
   const { userRole, loading } = useUserRole();
 
   // Get menu items based on user role
   const menuItems = userRole ? getMenuItems(userRole) : [];
+
+  // Map route paths to icon components. If a path isn't mapped we fall back to the
+  // existing `item.icon` value (emoji or text) so this change is low-risk.
+  const iconMap = {
+    '/dashboard': DashboardIcon,
+    '/members': UserIcon,
+    '/membership-applications': ApplicationIcon,
+    '/savings-setup': BankIcon,
+    '/loan-amounts': MoneyBagIcon,
+  '/reports': ReportsIcon,
+    '/loans': LoanIcon,
+    '/loan-approval': CheckIcon,
+    '/loan-applications': ApplicationIcon,
+    '/loan-review': LoanIcon,
+    '/loans-verified': CheckIcon,
+    '/create-invoice': ApplicationIcon,
+    '/user-management': UserIcon,
+    '/credit-investigator': CheckIcon
+  };
 
   if (loading) {
     return (
@@ -46,7 +74,15 @@ const Sidebar = () => {
                     }
                   }}
                 >
-                  <span className="nav-icon">{item.icon}</span>
+                  {/* prefer SVG component when available, otherwise render the existing icon value */}
+                  {(() => {
+                    const IconComp = iconMap[item.path];
+                    return IconComp ? (
+                      <IconComp className="sidebar-icon" />
+                    ) : (
+                      <span className="nav-icon">{item.icon}</span>
+                    );
+                  })()}
                   <div className="nav-content">
                     <span className="nav-label">{item.label}</span>
                     <span className="nav-description">{item.description}</span>
