@@ -40,15 +40,24 @@
    is the only visible indicator. Keep the native indicator accessible (clickable)
    by using opacity:0 rather than display:none in WebKit-based browsers. */
 .reports-controls input[type="date"]::-webkit-calendar-picker-indicator {
-  opacity: 0;
-  filter: none;
+  /* hide the native calendar icon (Chrome, Safari, Edge) */
+  display: none;
   -webkit-appearance: none;
   appearance: none;
+  pointer-events: none;
 }
 
-/* Firefox calendar icon fix (best-effort) - hide the native dropmarker where supported */
-.reports-controls input[type="date"]::-moz-focus-inner {
-  border: 0;
+/* IE/Edge legacy - hide the clear/expand controls where present */
+.reports-controls input[type="date"]::-ms-clear,
+.reports-controls input[type="date"]::-ms-expand {
+  display: none;
+}
+
+/* Firefox (best-effort): remove inner focus border and prefer textfield appearance */
+.reports-controls input[type="date"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+  -webkit-appearance: textfield;
 }
 
 /* compact variants to match screenshot: smaller inputs with subtle icon */
