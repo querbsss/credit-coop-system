@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './Dashboard.css';
+import './SavingsSetup.css';
 
 const SavingsSetup = () => {
   const [members, setMembers] = useState([]);
@@ -61,8 +62,8 @@ const SavingsSetup = () => {
         <div style={{ padding: '1rem' }}>
           <div style={{ marginBottom: '1rem' }}>
             <label>Member</label>
-            {members && members.length > 0 ? (
-              <select value={selectedMember ? selectedMember.member_number : ''}
+              {members && members.length > 0 ? (
+              <select className="savings-select" value={selectedMember ? selectedMember.member_number : ''}
                 onChange={e => {
                   const mn = e.target.value;
                   const m = members.find(x => String(x.member_number) === String(mn));
@@ -75,8 +76,8 @@ const SavingsSetup = () => {
                   <option key={m.member_number} value={m.member_number}>{m.member_number} — {m.user_name || m.full_name || m.user_email}</option>
                 ))}
               </select>
-            ) : (
-              <input placeholder="Enter member number" value={memberNumberInput} onChange={e => setMemberNumberInput(e.target.value)} style={{ marginLeft: '0.5rem' }} />
+              ) : (
+              <input className="savings-input" placeholder="Enter member number" value={memberNumberInput} onChange={e => setMemberNumberInput(e.target.value)} style={{ marginLeft: '0.5rem' }} />
             )}
             <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#666' }}>
               You can type a member number directly if the list is empty or the member is not listed.
@@ -85,7 +86,7 @@ const SavingsSetup = () => {
 
           <div style={{ marginBottom: '1rem' }}>
             <label>Initial Deposit</label>
-            <input style={{ marginLeft: '0.5rem' }} type="number" min="0" step="0.01" value={initialDeposit}
+            <input className="savings-number" style={{ marginLeft: '0.5rem' }} type="number" min="0" step="0.01" value={initialDeposit}
               onChange={e => setInitialDeposit(e.target.value)} />
           </div>
 
