@@ -1092,12 +1092,12 @@
     font-size: 1.75rem;
   }
 
-  /* Replace wide table with stacked cards on small screens */
-  .table {
+  /* Replace wide table with stacked cards on small screens (Dashboard only) */
+  .dashboard-page .table {
     display: none;
   }
 
-  .transactions-mobile-list {
+  .dashboard-page .transactions-mobile-list {
     display: block;
   }
 
