@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
     email: 'maria.santos@creditcoop.ph',
     role: 'manager',
     department: 'Operations',
-    permissions: ['members', 'accounts', 'loans', 'transactions', 'reports'],
+  permissions: ['members', 'loans', 'reports'],
     avatar: 'MS'
   };
 

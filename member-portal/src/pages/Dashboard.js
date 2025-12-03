@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import './Dashboard.css';
 import { toast } from 'react-toastify';
+import { io as socketClient } from 'socket.io-client';
 
 const Dashboard = () => {
   const { user, updateUser } = useAuth();
@@ -12,6 +13,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true); // Add a loading state to handle data fetching
   const [approvedNotifications, setApprovedNotifications] = useState([]);
   const notifiedRef = useRef(new Set(JSON.parse(localStorage.getItem('notifiedLoanApps') || '[]')));
+  // track last-seen statuses per application so we can detect transitions to 'approved'
+  const statusesRef = useRef(JSON.parse(localStorage.getItem('loanAppStatuses') || '{}'));
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -83,19 +86,33 @@ const Dashboard = () => {
         for (const app of applications) {
           if (!app || !app.application_id) continue;
           const id = String(app.application_id);
-          const status = (app.status || '').toLowerCase();
-          if (status === 'approved' && !notifiedRef.current.has(id)) {
+          // Consider either the legacy `status` field or the newer `review_status` field
+          const status = ((app.status || app.review_status) || '').toLowerCase();
+
+          const prevStatus = statusesRef.current[id] || null;
+
+          // Notify when we observe a transition into 'approved'
+          if (status === 'approved' && prevStatus !== 'approved') {
+            // mark notified and collect for UI update
             notifiedRef.current.add(id);
             newlyApproved.push(app);
           }
+
+          // always update our seen status map
+          statusesRef.current[id] = status;
         }
 
         if (newlyApproved.length && mounted) {
-          // persist notified ids
+          // persist notified ids and statuses
           try {
             localStorage.setItem('notifiedLoanApps', JSON.stringify(Array.from(notifiedRef.current)));
           } catch (e) {
             console.warn('Could not persist notifiedLoanApps', e);
+          }
+          try {
+            localStorage.setItem('loanAppStatuses', JSON.stringify(statusesRef.current));
+          } catch (e) {
+            console.warn('Could not persist loanAppStatuses', e);
           }
 
           // show toast for each approved application
@@ -117,6 +134,48 @@ const Dashboard = () => {
     return () => {
       mounted = false;
       clearInterval(iv);
+    };
+  }, [user]);
+
+  // Real-time: listen for staff-server emitted loan-approved events
+  useEffect(() => {
+    if (!user || !user.member_number) return;
+    let socket;
+    try {
+      socket = socketClient('http://localhost:5000');
+      socket.on('connect', () => {
+        // console.log('Connected to staff socket for loan-approved events');
+      });
+
+      socket.on('loan-approved', (payload) => {
+        try {
+          console.debug('socket loan-approved payload:', payload);
+          if (!payload) return;
+          const memberNumber = payload.member_number || (payload.application && payload.application.member_number) || null;
+          if (!memberNumber) return;
+          if (String(memberNumber) !== String(user.member_number)) return;
+
+          const app = payload.application || { application_id: payload.application_id, message: payload.message, notes: payload.notes };
+
+          // show toast and inline banner
+          const title = app.title || `Loan Application ${app.application_id}`;
+          toast.success(`${title} has been approved. Check your loan dashboard for details.`);
+
+          // ensure we don't double-notify
+          try { notifiedRef.current.add(String(app.application_id)); } catch (e) {}
+          try { statusesRef.current[String(app.application_id)] = 'approved'; } catch (e) {}
+
+          setApprovedNotifications((prev) => [app, ...prev]);
+        } catch (e) {
+          console.warn('Error handling loan-approved socket payload', e);
+        }
+      });
+    } catch (e) {
+      console.warn('Failed to initialize loan-approved socket client', e);
+    }
+
+    return () => {
+      try { if (socket && socket.disconnect) socket.disconnect(); } catch (e) {}
     };
   }, [user]);
 
@@ -171,14 +230,11 @@ const Dashboard = () => {
                   <div className="account-icon savings">💰</div>
                   <div className="account-info">
                     <h3>Total Savings</h3>
-                    <p className="account-number">{user?.accounts?.savings?.accountNumber}</p>
                   </div>
-                  <div className="account-action">
-                    <button className="btn-icon">➤</button>
-                  </div>
+                  
                 </div>
                 <div className="account-balance">
-                  <span className="balance-amount">0.00</span>
+                  <span className="balance-amount">{formatCurrency(user?.accounts?.savings?.balance || 0)}</span>
                   <span className="balance-label">Current balance</span>
                 </div>
               </div>
@@ -190,7 +246,7 @@ const Dashboard = () => {
           {/* Loan Section */}
           <div className="loan-section">
             <div className="loan-card card">
-              {/* Inline banners for newly approved applications */}
+                {/* Inline banners for newly approved applications */}
               {approvedNotifications.length > 0 && (
                 <div className="approved-banner">
                   {approvedNotifications.map((a) => (
@@ -201,6 +257,7 @@ const Dashboard = () => {
                   ))}
                 </div>
               )}
+                {/* debug UI removed */}
               <div className="loan-header">
                 <div className="loan-icon">🏦</div>
                 <div className="loan-info">

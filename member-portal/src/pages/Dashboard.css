@@ -1,403 +1,134 @@
+/* Dashboard - responsive, clean, professional styles */
+
 .dashboard {
   min-height: 100vh;
-  background: var(--gradient-background);
+  background: var(--gradient-background, #f5f7fb);
+  color: var(--gray-900);
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
 .dashboard-main {
-  padding: 2rem 0;
+  padding: 1.25rem 0 3rem;
 }
 
-/* Welcome Section */
-.welcome-section {
-  margin-bottom: 2rem;
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-.welcome-card {
-  background: var(--primary-purple) !important;
-  color: var(--white) !important;
-  padding: 2rem;
-  border: none;
+/* Card base */
+.card {
+  background: var(--white, #fff);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(28, 37, 55, 0.06);
+  border: 1px solid rgba(16,24,40,0.04);
 }
 
-.welcome-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* layout grid helpers */
+.grid { display: grid; gap: 1rem; }
+.grid-2 { grid-template-columns: 1fr; }
+@media (min-width: 880px) { .grid-2 { grid-template-columns: 1fr 420px; } }
+
+/* Top / Accounts */
+.accounts-section { margin: 1.25rem 0; }
+.account-card { padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.account-header { display:flex; align-items:center; gap:0.75rem }
+.account-icon { width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem }
+.account-icon.savings { background:#e6f8ef }
+.account-info h3 { font-size:1rem; margin:0; font-weight:700 }
+.account-number { color:var(--gray-600); font-size:0.9rem }
+.account-balance { margin-top:0.5rem }
+.balance-amount { font-size:1.4rem; font-weight:800; color:var(--success-green) }
+.balance-label { color:var(--gray-600); font-size:0.875rem }
+
+/* Loan card */
+.loan-card { padding:1rem }
+.loan-header { display:flex; gap:1rem; align-items:center }
+.loan-icon { width:48px;height:48px;border-radius:10px;background:#fff7e6;display:flex;align-items:center;justify-content:center }
+.loan-info h3 { margin:0; font-size:1rem; font-weight:700 }
+.loan-info p { margin:0; color:var(--gray-600); font-size:0.9rem }
+.loan-balance { margin-top:0.75rem }
+.loan-action { margin-top:1rem }
+.btn-primary { background: linear-gradient(90deg,#6a5cff,#9b6bff); color:white; border:none; padding:0.8rem 1rem; border-radius:8px; cursor:pointer }
+.btn-primary[disabled] { opacity:0.6; cursor:not-allowed }
+/* Hover style matching the 'Save changes' appearance: lighter purple and soft purple shadow */
+.btn-primary:hover {
+  background: linear-gradient(90deg,#7b72ff,#9b80ff);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(123,114,255,0.18);
+  transform: none; /* keep button steady instead of translating down */
 }
 
-.welcome-text {
-  color: white !important;
-  background: none !important;
+/* Stronger override scoped to the dashboard in case global styles are loaded after this file.
+   This ensures the hover uses the lighter purple + soft glow on the member portal pages. */
+.dashboard .btn-primary:hover {
+  background: linear-gradient(90deg,#7b72ff,#9b80ff) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(123,114,255,0.22) !important;
+  transform: none !important;
 }
-
-.welcome-text * {
-  color: white !important;
-  background: none !important;
-  text-decoration: none !important;
-  text-shadow: none !important;
-}
-
-.welcome-text h1 {
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: white !important;
-  text-shadow: none !important;
-  background: none !important;
-  text-decoration: none !important;
-}
-
-.member-avatar {
-  display: flex;
-  align-items: center;
-}
-
-.avatar-circle-lg {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--white);
-  color: var(--primary-purple);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.2rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* Account Cards */
-.accounts-section {
-  margin-bottom: 2rem;
-}
-
-.account-card {
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.account-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.account-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--border-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.account-icon.savings {
-  background: #dcfce7;
-}
-
-.account-icon.checking {
-  background: #dbeafe;
-}
-
-.account-info {
-  flex: 1;
-}
-
-.account-info h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 0.25rem;
-}
-
-.account-number {
-  font-size: 0.9rem;
-  color: var(--gray-700);
-  margin: 0;
-  font-weight: 500;
-}
-
-.account-action .btn-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--gray-100);
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.account-action .btn-icon:hover {
-  background: var(--primary-purple);
-  color: var(--white);
-}
-
-.account-balance {
-  display: flex;
-  flex-direction: column;
-}
-
-.balance-amount {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--success-green);
-  margin-bottom: 0.25rem;
-}
-
-.balance-label {
-  font-size: 0.9rem;
-  color: var(--gray-700);
-  font-weight: 500;
-}
-
-/* Loan Section */
-.loan-section {
-  margin-bottom: 2rem;
-}
-
-.loan-card {
-  padding: 1.5rem;
-}
-
-.loan-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.loan-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--border-radius);
-  background: #fef3c7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.loan-info h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 0.25rem;
-}
-
-.loan-info p {
-  font-size: 0.9rem;
-  color: var(--gray-700);
-  margin: 0;
-  font-weight: 500;
-}
-
-.loan-action {
-  margin-top: 1.5rem;
-}
-
-.loan-action .btn {
-  width: 100%;
-  background: var(--gradient-primary);
-  text-align: center;
-  line-height: 1.4;
-}
-
-.loan-action .btn span {
-  font-weight: 600;
-}
-
-.loan-action .btn small {
-  font-size: 0.8rem;
-  opacity: 0.9;
-}
-
-/* Quick Actions */
-.quick-actions-section {
-  margin-bottom: 2rem;
-}
-
-.quick-actions-card {
-  padding: 1.5rem;
-}
-
-.quick-actions-card h3 {
-  color: var(--gray-800);
-  margin-bottom: 1.5rem;
-  font-size: 1.2rem;
-}
-
+/* Quick actions */
+.quick-actions-card { padding:1rem }
+.quick-actions-card h3 { margin:0 0 0.75rem 0; font-size:1rem }
 .quick-actions-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  /* ensure every grid cell has the same row height so boxes are uniform */
+  grid-auto-rows: 92px;
 }
-
+@media (min-width:640px) {
+  .quick-actions-grid { grid-template-columns: repeat(4, 1fr); }
+}
 .quick-action-btn {
-  background: var(--white);
-  border: 2px solid var(--gray-200);
-  border-radius: var(--border-radius);
-  padding: 1.5rem 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center; /* center label and icon vertically */
   gap: 0.5rem;
-}
-
-.quick-action-btn:hover {
-  border-color: var(--primary-purple);
-  transform: translateY(-2px);
-  box-shadow: var(--card-shadow-hover);
-}
-
-.quick-action-btn.success:hover {
-  border-color: var(--success-green);
-}
-
-.quick-action-btn.info:hover {
-  border-color: var(--info-blue);
-}
-
-.quick-action-btn.warning:hover {
-  border-color: var(--warning-orange);
-}
-
-.action-icon {
-  font-size: 1.5rem;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--border-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.quick-action-btn.success .action-icon {
-  background: #dcfce7;
-}
-
-.quick-action-btn.info .action-icon {
-  background: #dbeafe;
-}
-
-.quick-action-btn.warning .action-icon {
-  background: #fef3c7;
-}
-
-.quick-action-btn.secondary .action-icon {
-  background: #f1f5f9;
-}
-
-.action-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--gray-700);
-}
-
-/* Recent Activity */
-.recent-activity-section {
-  margin-bottom: 2rem;
-}
-
-.activity-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-}
-
-.activity-header h3 {
-  color: var(--gray-800);
-  font-size: 1.2rem;
-  margin: 0;
-}
-
-.view-all-link {
-  color: var(--primary-purple);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.view-all-link:hover {
-  text-decoration: underline;
-}
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.activity-item {
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.activity-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--border-radius);
-  background: var(--gray-100);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-}
-
-.activity-info {
-  flex: 1;
-}
-
-.activity-info h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 0.25rem;
-}
-
-.activity-info p {
-  font-size: 0.85rem;
-  color: var(--gray-700);
-  margin: 0;
-  font-weight: 500;
-}
-
-.activity-amount {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.activity-amount.credit {
-  color: var(--success-green);
-}
-
-.activity-amount.debit,
-.activity-amount.transfer {
-  color: var(--error-red);
-}
-
-.add-transaction {
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: var(--white);
+  border: 1px solid rgba(15,23,42,0.04);
+  transition: all .18s ease;
+  height: 100%; /* fill the grid cell so all buttons match the grid row height */
   text-align: center;
 }
+.quick-action-btn:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(16,24,40,0.06) }
+.action-icon { width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.25rem }
+.action-label { font-weight:600; font-size:0.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
-/* Mobile Styles */
-@media (max-width: 768px) {
-  .dashboard-main {
-    padding: 1rem 0;
-  }
-  
-  .welcome-content {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
+/* Recent activity */
+.activity-list { display:flex; flex-direction:column; gap:0.75rem }
+.activity-item { display:flex; gap:0.75rem; align-items:center; padding:0.75rem }
+.activity-icon { width:40px;height:40px;border-radius:8px;background:#f3f4f6;display:flex;align-items:center;justify-content:center }
+.activity-info h4 { margin:0; font-size:0.98rem; font-weight:700 }
+.activity-info p { margin:0; color:var(--gray-600); font-size:0.85rem }
+.activity-amount { margin-left:auto; font-weight:800 }
+
+/* approved banner */
+.approved-banner { margin-bottom:0.75rem; display:flex; flex-direction:column; gap:0.5rem }
+.approved-item { background:#eefdf3; border:1px solid #d6f5df; padding:0.5rem 0.75rem; border-radius:8px }
+
+/* Mobile-first responsive tweaks */
+@media (max-width:639px) {
+  .container { padding: 0 0.75rem }
+  .dashboard-main { padding-top:0.75rem }
+  .balance-amount { font-size:1.2rem }
+  .account-header { gap:0.5rem }
+  /* On small screens, stack the activity header so the refresh button moves below the title */
+  .activity-header { flex-direction: column; align-items: flex-start; }
+}
+
+@media (min-width:640px) and (max-width:880px) {
+  .grid-2 { grid-template-columns: 1fr 320px }
+}
+
+@media (min-width:880px) {
+  .dashboard-main { padding-top:1.5rem }
+  .container { max-width:1200px }
+}
   
   .welcome-text h1 {
     font-size: 1.5rem;
@@ -421,10 +152,15 @@
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .activity-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+  /* Activity header - on larger screens place title on left and actions (Refresh) on the right */
+  @media (min-width:640px) {
+    .activity-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
   }
   
   .activity-item {
@@ -437,4 +173,4 @@
     height: 35px;
     font-size: 1rem;
   }
-}
+

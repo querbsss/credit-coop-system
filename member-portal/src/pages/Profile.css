@@ -51,3 +51,23 @@
   background: #f0f0f0;
   color: #333;
 }
+
+/* Ensure primary buttons on the Profile page use the lighter purple hover from the dashboard theme */
+.profile-card .btn-primary:hover,
+.profile-main .btn-primary:hover {
+  background: linear-gradient(90deg,#7b72ff,#9b80ff) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(123,114,255,0.18) !important;
+  transform: none !important;
+}
+
+/* Also ensure the secondary button used for 'Change password' gets the dashboard hover
+   appearance (some buttons on this page are btn-secondary by design). */
+.profile-card .btn-secondary:hover,
+.profile-main .btn-secondary:hover {
+  background: linear-gradient(90deg,#7b72ff,#9b80ff) !important;
+  color: #ffffff !important;
+  border-color: rgba(123,114,255,0.28) !important;
+  box-shadow: 0 8px 20px rgba(123,114,255,0.14) !important;
+  transform: none !important;
+}

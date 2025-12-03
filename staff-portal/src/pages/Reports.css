@@ -38,11 +38,27 @@
 
 /* compact variants to match screenshot: smaller inputs with subtle icon */
 .reports-controls select {
+  /* visual style: rounded control with a colored left accent bar */
   padding-right: 2.4rem; /* room for arrow */
+  padding-left: 0.9rem;
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 14px 14px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 20 20' fill='%237c3aed'%3E%3Cpath d='M5.23 7.21a.75.75 0 011.06-.02L10 10.7l3.71-3.51a.75.75 0 111.04 1.08l-4.25 4.02a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z'/%3E%3C/svg%3E");
+  /* left accent */
+  border-left: 6px solid #2563eb; /* blue accent */
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+  height: 44px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.reports-controls select:focus {
+  outline: none;
+  box-shadow: 0 8px 24px rgba(37,99,235,0.12);
+  border-left-color: #1e40af;
+  border-color: rgba(37,99,235,0.12);
 }
 
 /* date input: add calendar icon on right */

@@ -28,6 +28,35 @@ router.get('/', authorization, authorization, async (req, res) => {
         console.log('Loan query result:', loanResult.rows);
         user.loan = loanResult.rows[0] || null;
 
+        // Fetch accounts (savings/checking) for this member from member_accounts
+        try {
+            const accountsRes = await pool.query(
+                `SELECT account_id, member_number, account_type, balance, created_at
+                 FROM member_accounts
+                 WHERE member_number = $1`,
+                [user.member_number]
+            );
+
+            // Map accounts by type for easier consumption by the frontend
+            const accounts = {};
+            for (const a of accountsRes.rows) {
+                accounts[a.account_type] = {
+                    accountId: a.account_id,
+                    accountNumber: a.account_id, // fallback to id; adjust if you have a separate account number
+                    balance: Number(a.balance) || 0,
+                    createdAt: a.created_at
+                };
+            }
+
+            user.accounts = accounts;
+        } catch (acctErr) {
+            console.warn('Could not load member accounts for dashboard:', acctErr.message || acctErr);
+            user.accounts = {};
+        }
+
+        // Provide an empty recentTransactions array if none exists yet
+        if (!user.recentTransactions) user.recentTransactions = [];
+
         res.json(user);
     } catch (err){
         console.error(err.message);

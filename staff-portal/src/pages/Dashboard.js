@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 
 const Dashboard = ({ setAuth, userRole }) => {
@@ -39,11 +39,60 @@ const Dashboard = ({ setAuth, userRole }) => {
   };
 
   const roleInfo = getRoleInfo(userRole);
-  // Mock data for dashboard metrics
+  // live metrics (fallback to friendly placeholders while loading)
+  const [stats, setStats] = useState({
+    totalMembers: null,
+    pendingApplications: null
+  });
+
+  useEffect(() => {
+    const loadMetrics = async () => {
+      try {
+        // total members from staff server
+        const membersResp = await fetch('http://localhost:5000/api/user-management/members/count', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            token: localStorage.token
+          }
+        });
+        if (membersResp.ok) {
+          const body = await membersResp.json();
+          if (body && body.success) {
+            setStats(prev => ({ ...prev, totalMembers: body.totalMembers || 0 }));
+          }
+        }
+
+        // pending applications from member server
+        const appsResp = await fetch('http://localhost:3002/api/membership-applications', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            token: localStorage.token
+          }
+        });
+        if (appsResp.ok) {
+          const appsBody = await appsResp.json();
+          const apps = appsBody && Array.isArray(appsBody.applications) ? appsBody.applications : [];
+          const pendingCount = apps.filter(a => {
+            const s = (a.status || a.application_status || '').toString().toLowerCase();
+            return s === 'pending' || s === 'submitted' || s === 'new';
+          }).length;
+          setStats(prev => ({ ...prev, pendingApplications: pendingCount }));
+        }
+      } catch (err) {
+        console.warn('Failed to load dashboard metrics:', err);
+      }
+    };
+
+    loadMetrics();
+  }, []);
+
+  // Compose metrics array for rendering; keep deposit/loans placeholders until those endpoints exist
   const metrics = [
     {
       title: 'Total Members',
-      value: '2,547',
+      value: (stats.totalMembers !== null) ? String(stats.totalMembers) : '—',
       change: '+127',
       changeType: 'positive',
       icon: '👥',
@@ -67,7 +116,7 @@ const Dashboard = ({ setAuth, userRole }) => {
     },
     {
       title: 'Pending Applications',
-      value: '23',
+      value: (stats.pendingApplications !== null) ? String(stats.pendingApplications) : '—',
       change: '-5',
       changeType: 'negative',
       icon: '📋',

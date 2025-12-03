@@ -10,6 +10,7 @@ const StaffDashboard = ({ setAuth }) => {
     const [userInfo, setUserInfo] = useState(null);
     const [stats, setStats] = useState({
         totalMembers: 0,
+        pendingApplications: 0,
         totalAccounts: 0,
         totalLoans: 0,
         totalTransactions: 0
@@ -80,6 +81,47 @@ const StaffDashboard = ({ setAuth }) => {
 
         fetchUserInfo();
         loadInitialApplications();
+        // load counts/stats (members + pending applications)
+        const loadStats = async () => {
+            try {
+                // fetch total members from staff API
+                const membersResp = await fetch('http://localhost:5000/api/user-management/members/count', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        token: localStorage.token
+                    }
+                });
+                if (membersResp.ok) {
+                    const body = await membersResp.json();
+                    if (body && body.success) {
+                        setStats(prev => ({ ...prev, totalMembers: body.totalMembers || 0 }));
+                    }
+                }
+
+                // fetch membership applications and compute pending count
+                const appsResp = await fetch('http://localhost:3002/api/membership-applications', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        token: localStorage.token
+                    }
+                });
+                if (appsResp.ok) {
+                    const appsBody = await appsResp.json();
+                    const apps = appsBody && Array.isArray(appsBody.applications) ? appsBody.applications : [];
+                    const pendingCount = apps.filter(a => {
+                        const s = (a.status || a.application_status || '').toString().toLowerCase();
+                        // treat common pending-like statuses as pending
+                        return s === 'pending' || s === 'submitted' || s === 'new';
+                    }).length;
+                    setStats(prev => ({ ...prev, pendingApplications: pendingCount }));
+                }
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        };
+        loadStats();
 
         const loadApprovedLoans = async () => {
             try {
@@ -142,8 +184,8 @@ const StaffDashboard = ({ setAuth }) => {
                 <div className="stat-card warning">
                     <div className="stat-icon">💼</div>
                     <div className="stat-info">
-                        <h3>New Members</h3>
-                        <span className="stat-number">{stats.totalLoans}</span>
+                        <h3>Pending Applications</h3>
+                        <span className="stat-number">{stats.pendingApplications}</span>
                     </div>
                 </div>
 

@@ -316,6 +316,7 @@ app.get('/api/loan-application/list', async (req, res) => {
         first_name,
         last_name,
         status,
+        review_status,
         submitted_at,
         reviewed_at,
         date_filed,

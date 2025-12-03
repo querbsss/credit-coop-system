@@ -3,13 +3,13 @@ import './Login.css';
 
 const Login = ({ setAuth }) => {
   const [inputs, setInputs] = useState({
-    email: "",
+    employee_number: "",
     password: ""
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { email, password } = inputs;
+  const { employee_number, password } = inputs;
 
   const onChange = e => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
@@ -22,7 +22,7 @@ const Login = ({ setAuth }) => {
     setError('');
     
     try {
-      const body = { email, password };
+      const body = { employee_number, password };
       const response = await fetch("http://localhost:5000/auth/login", {
         method: "POST",
         headers: { "Content-type": "application/json" },
@@ -77,15 +77,15 @@ const Login = ({ setAuth }) => {
           )}
 
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="employee_number">Employee Number</label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={email}
+              type="text"
+              id="employee_number"
+              name="employee_number"
+              value={employee_number}
               onChange={onChange}
               className="form-control"
-              placeholder="Enter your email address"
+              placeholder="Enter your employee number"
               required
             />
           </div>

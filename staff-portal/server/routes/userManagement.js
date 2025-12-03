@@ -97,6 +97,19 @@ router.get('/members', staffAuthorize, async (req, res) => {
     }
 });
 
+// Any authenticated staff: lightweight endpoint to get total members count
+// This is intentionally permissive (any staff role) so dashboards can display counts
+router.get('/members/count', staffAuthorize, async (req, res) => {
+    try {
+        const countResult = await membersPool.query(`SELECT COUNT(*) FROM member_users`);
+        const total = parseInt(countResult.rows[0].count, 10) || 0;
+        return res.json({ success: true, totalMembers: total });
+    } catch (err) {
+        console.error('Error fetching members count:', err);
+        return res.status(500).json({ success: false, message: 'Failed to fetch members count' });
+    }
+});
+
 // IT Admin: Get single member by ID
 router.get('/members/:id', staffAuthorize, async (req, res) => {
     try {

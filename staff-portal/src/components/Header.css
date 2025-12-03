@@ -100,6 +100,25 @@
   margin-left: auto; /* pin right block to the far right */
 }
 
+/* Ensure the right block is visually pinned to the header's right edge (desktop)
+   and doesn't get centered with the header content container. Use absolute
+   positioning relative to the fixed .staff-header. On small screens keep the
+   inline behavior so mobile layout remains intact. */
+@media (min-width: 900px) {
+  .staff-header {
+    /* ensure positioning context for absolute children */
+    position: fixed;
+  }
+  .header-right {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 0;
+    z-index: 1500;
+  }
+}
+
 .staff-info {
   display: flex;
   align-items: center;

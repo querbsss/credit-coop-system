@@ -8,6 +8,13 @@ const { Server } = require('socket.io');
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
+// expose io so route handlers can emit events (small, temporary shim)
+try {
+  global.staffIo = io;
+} catch (e) {
+  // ignore
+}
+
 //middleware
 app.use(express.json()); //req body
 app.use(cors());
@@ -93,6 +100,29 @@ app.get('/api/debug/socket-state', (req, res) => {
 const path = require('path');
 app.get('/test-socket', (req, res) => {
   res.sendFile(path.join(__dirname, 'test-socket.html'));
+});
+
+// Debug: emit loan-approved for testing without modifying DB
+app.post('/api/debug/emit-loan-approved', (req, res) => {
+  try {
+    const { member_number, application_id, message } = req.body || {};
+    if (!member_number) return res.status(400).json({ success: false, message: 'member_number required' });
+    const payload = { application_id: application_id || Date.now(), member_number, title: 'Loan Approved (debug)', message: message || 'Debug emit' };
+    try {
+      if (global && global.staffIo) {
+        global.staffIo.emit('loan-approved', payload);
+        console.log('Debug emitted loan-approved to all clients for member', member_number);
+      } else {
+        console.warn('Debug emit: staffIo not available');
+      }
+    } catch (e) {
+      console.warn('Debug emit failed:', e && e.message ? e.message : e);
+    }
+    return res.json({ success: true, payload });
+  } catch (err) {
+    console.error('Error in debug emit endpoint:', err);
+    return res.status(500).json({ success: false, message: 'Internal error' });
+  }
 });
 
 server.listen(5000, () => {

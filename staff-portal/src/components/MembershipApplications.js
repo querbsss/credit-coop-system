@@ -561,7 +561,7 @@ const MembershipApplications = () => {
                     {selectedApplication.review_notes && (
                       <div><strong>Review Notes:</strong> {selectedApplication.review_notes}</div>
                     )}
-                    {selectedApplication.receipt_path && ( (userRole === 'admin' || userRole === 'manager' || userRole === 'it_admin') && (
+                    {selectedApplication.receipt_path && ( (userRole === 'admin' || userRole === 'staff' || userRole === 'manager' || userRole === 'it_admin') && (
                       <div><strong>Receipt:</strong> <a href={`http://localhost:3002/uploads/${selectedApplication.receipt_path}`} target="_blank" rel="noreferrer">View Receipt</a></div>
                     ))}
                     {selectedApplication.applicants_membership_number && (
@@ -570,8 +570,8 @@ const MembershipApplications = () => {
                   </div>
                 </div>
 
-                {/* Admin Membership Number Assignment */}
-                {userRole === 'admin' && (selectedApplication.status === 'pending' || selectedApplication.status === 'under_review') && (
+                {/* Admin/Staff Membership Number Assignment */}
+                {(userRole === 'admin' || userRole === 'staff') && (selectedApplication.status === 'pending' || selectedApplication.status === 'under_review') && (
                   <div className="detail-section">
                     <h4>Assign Membership Number</h4>
                     <div className="membership-number-input">
@@ -616,8 +616,8 @@ const MembershipApplications = () => {
                   </div>
                 )}
 
-                {/* Admin: Submit Receipt when reviewing an application */}
-                {userRole === 'admin' && (
+                {/* Admin/Staff: Submit Receipt when reviewing an application */}
+                {(userRole === 'admin' || userRole === 'staff') && (
                   <div className="detail-section">
                     <h4>Submit Receipt</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -666,7 +666,7 @@ const MembershipApplications = () => {
 
             <div className="modal-footer">
               <div className="action-buttons">
-                {userRole === 'admin' && (
+                {(userRole === 'admin' || userRole === 'staff') && (
                   <>
                     <button 
                       className="btn btn-primary"
@@ -762,7 +762,7 @@ const MembershipApplications = () => {
                   </div>
                 )}
                 
-                {(userRole !== 'admin' && userRole !== 'manager' && userRole !== 'it_admin') && (
+                {(userRole !== 'admin' && userRole !== 'staff' && userRole !== 'manager' && userRole !== 'it_admin') && (
                   <p className="no-actions">You don't have permission to modify applications.</p>
                 )}
               </div>

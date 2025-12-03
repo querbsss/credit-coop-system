@@ -46,33 +46,36 @@ router.post('/register', validinfo, async (req, res) => {
 //login route
 router.post('/login', validinfo, async (req, res) => {
     try {
-        //1. destructure the req.body
-        const { email, password } = req.body;
+        // Accept either employee_number or email for login
+        const { email, employee_number, password } = req.body;
 
-        //2. check if user doesn't exist (if not then we throw error)
-        const user = await pool.query("SELECT * FROM users WHERE user_email = $1", [email]);
-        
-        if (user.rows.length === 0) {
-            return res.status(401).json({ error: "Password or Email is incorrect" });
+        let userRes;
+        if (employee_number) {
+            userRes = await pool.query("SELECT * FROM users WHERE employee_number = $1", [employee_number]);
+        } else {
+            userRes = await pool.query("SELECT * FROM users WHERE user_email = $1", [email]);
         }
 
-        //3. check if incoming password is the same as the database password
-        const validPassword = await bcrypt.compare(password, user.rows[0].user_password);
-        
+        if (!userRes || userRes.rows.length === 0) {
+            return res.status(401).json({ error: "Password or credentials are incorrect" });
+        }
+
+        const userRow = userRes.rows[0];
+        const validPassword = await bcrypt.compare(password, userRow.user_password);
         if (!validPassword) {
-            return res.status(401).json({ error: "Password or Email is incorrect" });
+            return res.status(401).json({ error: "Password or credentials are incorrect" });
         }
 
-        //4. give them the jwt token
-        const token = jwtgenerator(user.rows[0].user_id, user.rows[0].user_role);
+        const token = jwtgenerator(userRow.user_id, userRow.user_role);
         return res.json({ 
-            token, 
-            user: { 
-                id: user.rows[0].user_id, 
-                name: user.rows[0].user_name, 
-                email: user.rows[0].user_email, 
-                role: user.rows[0].user_role 
-            } 
+            token,
+            user: {
+                id: userRow.user_id,
+                name: userRow.user_name,
+                email: userRow.user_email,
+                employee_number: userRow.employee_number || null,
+                role: userRow.user_role
+            }
         });
 
     } catch (err) {
@@ -94,7 +97,7 @@ router.get('/is-verify', authorization, async (req, res) => {
 router.get('/profile', authorization, async (req, res) => {
     try {
         const userId = typeof req.user === 'object' ? req.user.id : req.user;
-        const user = await pool.query("SELECT user_id, user_name, user_email, user_role FROM users WHERE user_id = $1", [userId]);
+            const user = await pool.query("SELECT user_id, user_name, user_email, user_role, employee_number FROM users WHERE user_id = $1", [userId]);
         
         if (user.rows.length === 0) {
             return res.status(404).json({ error: "User not found" });
@@ -104,6 +107,7 @@ router.get('/profile', authorization, async (req, res) => {
             id: user.rows[0].user_id,
             name: user.rows[0].user_name,
             email: user.rows[0].user_email,
+            employee_number: user.rows[0].employee_number || null,
             role: user.rows[0].user_role
         });
     } catch (err) {

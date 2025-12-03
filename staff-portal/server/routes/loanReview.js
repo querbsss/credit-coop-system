@@ -3,6 +3,9 @@ const { Pool } = require('pg');
 const { spawn } = require('child_process');
 const path = require('path');
 const router = express.Router();
+
+// Fixed system user id used as a fallback when the real user is missing.
+const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000001';
 router.post('/applications/:id/set-loan-amount', async (req, res) => {
     try {
         const { id } = req.params;
@@ -184,21 +187,35 @@ router.post('/applications/:id/assign', async (req, res) => {
                 console.warn(`Loan officer ID ${loan_officer_id} not found in members database.`);
                 
                 // Create a system user for staff operations if it doesn't exist
-                const systemUserId = '00000000-0000-0000-0000-000000000001'; // Fixed UUID for system user
+                // Ensure a system user exists in both `users` and `member_users` so FK constraints are satisfied.
                 await membersPool.query(
                     `INSERT INTO users (user_id, user_name, user_email, user_role, user_password)
                      VALUES ($1, 'Staff Portal System', 'system@staffportal.local', 'admin', 'system-hash')
                      ON CONFLICT (user_id) DO NOTHING`,
-                    [systemUserId]
+                    [SYSTEM_USER_ID]
                 );
-                
-                finalOfficerId = systemUserId;
+
+                // Also create a minimal entry in member_users so loan_review_history FK (which references member_users)
+                // will not fail when reviewer_id is the system id. Use a placeholder member_number 'SYSTEM'.
+                try {
+                    await membersPool.query(
+                        `INSERT INTO member_users (user_id, user_name, user_email, member_number, is_active, created_at)
+                         VALUES ($1, 'Staff Portal System', 'system@staffportal.local', 'SYSTEM', true, NOW())
+                         ON CONFLICT (user_id) DO NOTHING`,
+                        [SYSTEM_USER_ID]
+                    );
+                } catch (muErr) {
+                    // If member_users doesn't exist or has different columns, log but continue.
+                    console.warn('Could not create system entry in member_users (non-fatal):', muErr.message || muErr);
+                }
+
+                finalOfficerId = SYSTEM_USER_ID;
             }
             
             await membersPool.query(
                 `INSERT INTO loan_review_history (application_id, reviewer_id, reviewer_role, action_taken, notes)
                  VALUES ($1, $2, 'loan_officer', 'assigned', $3)`,
-                [id, finalOfficerId, finalOfficerId === systemUserId ? 
+                [id, finalOfficerId, finalOfficerId === SYSTEM_USER_ID ? 
                     `Application assigned for review (staff officer: ${loan_officer_id})` : 
                     'Application assigned for review']
             );
@@ -354,15 +371,25 @@ router.post('/applications/:id/review', async (req, res) => {
                 console.warn(`Reviewer ID ${historyReviewerId} not found in members database.`);
                 
                 // Create a system user for staff operations if it doesn't exist
-                const systemUserId = '00000000-0000-0000-0000-000000000001'; // Fixed UUID for system user
+                // Ensure system user exists in both users and member_users
                 await membersPool.query(
                     `INSERT INTO users (user_id, user_name, user_email, user_role, user_password)
                      VALUES ($1, 'Staff Portal System', 'system@staffportal.local', 'admin', 'system-hash')
                      ON CONFLICT (user_id) DO NOTHING`,
-                    [systemUserId]
+                    [SYSTEM_USER_ID]
                 );
-                
-                finalReviewerId = systemUserId;
+                try {
+                    await membersPool.query(
+                        `INSERT INTO member_users (user_id, user_name, user_email, member_number, is_active, created_at)
+                         VALUES ($1, 'Staff Portal System', 'system@staffportal.local', 'SYSTEM', true, NOW())
+                         ON CONFLICT (user_id) DO NOTHING`,
+                        [SYSTEM_USER_ID]
+                    );
+                } catch (muErr) {
+                    console.warn('Could not create system entry in member_users (non-fatal):', muErr.message || muErr);
+                }
+
+                finalReviewerId = SYSTEM_USER_ID;
                 reviewerNotes = `${reviewerNotes} (Review by staff portal officer: ${historyReviewerId})`;
             }
             
@@ -450,16 +477,25 @@ router.post('/applications/:id/approve', async (req, res) => {
                 // Manager doesn't exist in members database
                 console.warn(`Manager ID ${manager_id} not found in members database. Creating system entry.`);
                 
-                // Create a system user for staff operations if it doesn't exist
-                const systemUserId = '00000000-0000-0000-0000-000000000001'; // Fixed UUID for system user
+                // Create a system user for staff operations if it doesn't exist. Also ensure a minimal member_users entry exists
                 await membersPool.query(
                     `INSERT INTO users (user_id, user_name, user_email, user_role, user_password)
                      VALUES ($1, 'Staff Portal System', 'system@staffportal.local', 'admin', 'system-hash')
                      ON CONFLICT (user_id) DO NOTHING`,
-                    [systemUserId]
+                    [SYSTEM_USER_ID]
                 );
-                
-                reviewerId = systemUserId;
+                try {
+                    await membersPool.query(
+                        `INSERT INTO member_users (user_id, user_name, user_email, member_number, is_active, created_at)
+                         VALUES ($1, 'Staff Portal System', 'system@staffportal.local', 'SYSTEM', true, NOW())
+                         ON CONFLICT (user_id) DO NOTHING`,
+                        [SYSTEM_USER_ID]
+                    );
+                } catch (muErr) {
+                    console.warn('Could not create system entry in member_users (non-fatal):', muErr.message || muErr);
+                }
+
+                reviewerId = SYSTEM_USER_ID;
                 reviewerNotes = `${reviewerNotes} (Decision made by staff portal manager: ${manager_id})`;
             }
             
@@ -475,16 +511,17 @@ router.post('/applications/:id/approve', async (req, res) => {
             // Don't fail the main operation if history insertion fails
         }
         
+        // Prepare notification title/message so both DB insert and socket emit can reuse them.
+        const application = result.rows[0];
+        const memberNumber = application.member_number || application.applicants_membership_number || null;
+        let title = action === 'approve' ? 'Loan Approved' : 'Loan Rejected';
+        let message = action === 'approve'
+            ? `Your loan application #${id} has been approved. Please check your account for details.`
+            : `Your loan application #${id} has been rejected. Please contact support for details.`;
+
         // Try to create an in-app notification for the member (best-effort)
         try {
-            const application = result.rows[0];
-            const memberNumber = application.member_number || application.applicants_membership_number || null;
             if (memberNumber) {
-                const title = action === 'approve' ? 'Loan Approved' : 'Loan Rejected';
-                const message = action === 'approve'
-                    ? `Your loan application #${id} has been approved. Please check your account for details.`
-                    : `Your loan application #${id} has been rejected. Please contact support for details.`;
-
                 // Attempt to insert into a `member_notifications` table if it exists.
                 // This is best-effort: if the table or columns don't exist, log and continue.
                 const notifQuery = `
@@ -495,6 +532,26 @@ router.post('/applications/:id/approve', async (req, res) => {
             }
         } catch (notifErr) {
             console.warn('Member notification insert failed (non-fatal):', notifErr.message || notifErr);
+        }
+
+        // Emit a socket event so member clients can receive immediate notification (best-effort)
+        try {
+            if (memberNumber && global && global.staffIo) {
+                try {
+                    global.staffIo.emit('loan-approved', {
+                        application_id: application.application_id || id,
+                        member_number: memberNumber,
+                        title: title || (action === 'approve' ? 'Loan Approved' : 'Loan Update'),
+                        message: message || '' ,
+                        application
+                    });
+                    console.log('Emitted loan-approved socket for member', memberNumber);
+                } catch (e) {
+                    console.warn('Failed to emit loan-approved socket:', e && e.message ? e.message : e);
+                }
+            }
+        } catch (e) {
+            // non-fatal
         }
 
         res.json({

@@ -7,13 +7,11 @@ import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
 import RoleBasedDashboard from './pages/RoleBasedDashboard';
 import Members from './pages/Members';
-import Accounts from './pages/Accounts';
 import Loans from './pages/Loans';
 import LoanApplications from './pages/LoanApplications';
 import LoansVerified from './pages/LoansVerified';
 import LoanReview from './pages/LoanReview';
 import LoanApproval from './pages/LoanApproval';
-import Transactions from './pages/Transactions';
 import CreateInvoice from './pages/CreateInvoice';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
@@ -113,26 +111,7 @@ function App() {
                 )
               } 
             />
-            <Route 
-              path="/accounts" 
-              element={
-                isAuthenticated ? (
-                  <div className="staff-portal">
-                    <Header setAuth={setAuth} />
-                    <div className="portal-content">
-                      <Sidebar />
-                      <main className="main-content">
-                        <ProtectedRoute requiredRoute="/accounts">
-                          <Accounts setAuth={setAuth} />
-                        </ProtectedRoute>
-                      </main>
-                    </div>
-                  </div>
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              } 
-            />
+            {/* Accounts page removed */}
             <Route 
               path="/loans" 
               element={
@@ -153,26 +132,7 @@ function App() {
                 )
               } 
             />
-            <Route 
-              path="/transactions" 
-              element={
-                isAuthenticated ? (
-                  <div className="staff-portal">
-                    <Header setAuth={setAuth} />
-                    <div className="portal-content">
-                      <Sidebar />
-                      <main className="main-content">
-                        <ProtectedRoute requiredRoute="/transactions">
-                          <Transactions setAuth={setAuth} />
-                        </ProtectedRoute>
-                      </main>
-                    </div>
-                  </div>
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              } 
-            />
+            {/* Transactions page removed */}
             <Route 
               path="/create-invoice" 
               element={

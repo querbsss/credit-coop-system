@@ -45,7 +45,7 @@ export const PERMISSIONS = {
 
   // Manager permissions - access to most features except IT functions
   manager: {
-    allowedRoutes: ['/dashboard', '/members', '/accounts', '/loans', '/transactions', '/reports', '/loan-approval', '/membership-applications'],
+    allowedRoutes: ['/dashboard', '/members', '/loans', '/reports', '/loan-approval', '/membership-applications'],
     menuItems: [
       {
         path: '/dashboard',
@@ -65,12 +65,7 @@ export const PERMISSIONS = {
         label: 'Applications',
         description: 'Membership Applications'
       },
-      {
-        path: '/accounts',
-        icon: '💰',
-        label: 'Accounts',
-        description: 'Account Management'
-      },
+      
       {
         path: '/loans',
         icon: '🏦',
@@ -83,12 +78,7 @@ export const PERMISSIONS = {
         label: 'Loan Approval',
         description: 'Approve/Reject Loans'
       },
-      {
-        path: '/transactions',
-        icon: '💳',
-        label: 'Transactions',
-        description: 'Transaction History'
-      },
+      
       {
         path: '/reports',
         icon: '📈',
@@ -131,7 +121,7 @@ export const PERMISSIONS = {
 
   // Cashier permissions - transactions and basic member info
   cashier: {
-    allowedRoutes: ['/dashboard', '/members', '/accounts', '/transactions', '/create-invoice', '/savings-setup'],
+    allowedRoutes: ['/dashboard', '/members', '/create-invoice', '/savings-setup'],
     menuItems: [
       {
         path: '/dashboard',
@@ -145,25 +135,14 @@ export const PERMISSIONS = {
         label: 'Members',
         description: 'Member Lookup'
       },
-      {
-        path: '/accounts',
-        icon: '💰',
-        label: 'Accounts',
-        description: 'Account Services'
-      },
+      
       {
         path: '/savings-setup',
         icon: '🏦',
         label: 'Savings',
         description: 'Setup Member Savings'
       },
-      {
-        path: '/transactions',
-        icon: '💳',
-        label: 'Transactions',
-        description: 'Process Transactions'
-      }
-      ,
+      
       {
         path: '/create-invoice',
         icon: '🧾',
