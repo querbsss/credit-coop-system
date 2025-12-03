@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './LoanApproval.css';
+import { ReactComponent as HourglassIcon } from './assets/hourglass-svgrepo-com.svg';
+import { ReactComponent as MagnifyIcon } from './assets/magnifying-glass-svgrepo-com.svg';
+import { ReactComponent as CheckCircleIcon } from './assets/check-circle-svgrepo-com.svg';
+import { ReactComponent as CrossIcon } from './assets/cross-svgrepo-com.svg';
 
 const LoanApproval = () => {
     const [applications, setApplications] = useState([]);
@@ -166,35 +170,35 @@ const LoanApproval = () => {
         <div className="loan-approval-container">
             {/* Header */}
             <div className="page-header">
-                <h1>👔 Loan Approval Dashboard</h1>
+                <h1>Loan Approval Dashboard</h1>
                 <p>Review and approve loan applications recommended by loan officers</p>
             </div>
 
             {/* Statistics */}
             <div className="stats-grid">
                 <div className="stat-card pending">
-                    <div className="stat-icon">⏳</div>
+                    <div className="stat-icon"><HourglassIcon className="stat-icon-svg" /></div>
                     <div className="stat-content">
                         <h3>Pending Review</h3>
                         <span className="stat-number">{statistics.pending_review || 0}</span>
                     </div>
                 </div>
                 <div className="stat-card under-review">
-                    <div className="stat-icon">🔍</div>
+                    <div className="stat-icon"><MagnifyIcon className="stat-icon-svg" /></div>
                     <div className="stat-content">
                         <h3>Awaiting Approval</h3>
                         <span className="stat-number">{statistics.under_review || 0}</span>
                     </div>
                 </div>
                 <div className="stat-card approved">
-                    <div className="stat-icon">✅</div>
+                    <div className="stat-icon"><CheckCircleIcon className="stat-icon-svg" /></div>
                     <div className="stat-content">
                         <h3>Approved</h3>
                         <span className="stat-number">{statistics.approved || 0}</span>
                     </div>
                 </div>
                 <div className="stat-card rejected">
-                    <div className="stat-icon">❌</div>
+                    <div className="stat-icon"><CrossIcon className="stat-icon-svg" /></div>
                     <div className="stat-content">
                         <h3>Rejected</h3>
                         <span className="stat-number">{statistics.rejected || 0}</span>
@@ -317,8 +321,9 @@ const LoanApproval = () => {
                             <button
                                 className="close-btn"
                                 onClick={() => setShowApprovalModal(false)}
+                                aria-label="Close"
                             >
-                                ✕
+                                <CrossIcon className="close-icon" />
                             </button>
                         </div>
                         
