@@ -716,6 +716,44 @@
   overflow-x: auto;
 }
 
+/* Mobile stacked transaction list (hidden on desktop) */
+.transactions-mobile-list {
+  display: none; /* shown on small screens via media query */
+}
+
+.txn-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--gray-100);
+  background: var(--white);
+}
+
+.txn-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.txn-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.txn-amount {
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.txn-time {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -1052,6 +1090,22 @@
   
   .metric-value {
     font-size: 1.75rem;
+  }
+
+  /* Replace wide table with stacked cards on small screens */
+  .table {
+    display: none;
+  }
+
+  .transactions-mobile-list {
+    display: block;
+  }
+
+  .transactions-mobile-list .txn-card.card {
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(16,24,40,0.04);
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
   }
 }
 

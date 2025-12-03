@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { ReactComponent as UserIcon } from './assets/user-svgrepo-com.svg';
+import { ReactComponent as DepositIcon } from './assets/money-bag-svgrepo-com.svg';
+import { ReactComponent as LoanIcon } from './assets/loan-round-svgrepo-com.svg';
+import { ReactComponent as ApplicationIcon} from './assets/clipboard-text-svgrepo-com.svg';
 import './Dashboard.css';
 
 const Dashboard = ({ setAuth, userRole }) => {
@@ -95,7 +99,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: (stats.totalMembers !== null) ? String(stats.totalMembers) : '—',
       change: '+127',
       changeType: 'positive',
-      icon: '👥',
+      icon: (<UserIcon />),
       color: 'blue'
     },
     {
@@ -103,7 +107,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱45.2M',
       change: '+₱2.1M',
       changeType: 'positive',
-      icon: '💰',
+      icon: (<DepositIcon />),
       color: 'green'
     },
     {
@@ -111,7 +115,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: '₱28.7M',
       change: '+₱890K',
       changeType: 'positive',
-      icon: '🏦',
+      icon: (<LoanIcon />),
       color: 'purple'
     },
     {
@@ -119,7 +123,7 @@ const Dashboard = ({ setAuth, userRole }) => {
       value: (stats.pendingApplications !== null) ? String(stats.pendingApplications) : '—',
       change: '-5',
       changeType: 'negative',
-      icon: '📋',
+      icon: (<ApplicationIcon />),
       color: 'orange'
     }
   ];
@@ -197,16 +201,6 @@ const Dashboard = ({ setAuth, userRole }) => {
           <h1>{roleInfo.title}</h1>
           <p>{roleInfo.description}</p>
         </div>
-        <div className="page-actions">
-          <button className="btn btn-secondary">
-            <span>📊</span>
-            Export Report
-          </button>
-          <button className="btn btn-primary">
-            <span>📈</span>
-            Generate Analytics
-          </button>
-        </div>
       </div>
 
       {/* Key Metrics Cards */}
@@ -282,6 +276,28 @@ const Dashboard = ({ setAuth, userRole }) => {
                   ))}
                 </tbody>
               </table>
+            </div>
+            {/* Mobile-friendly stacked list — visible only on small screens */}
+            <div className="transactions-mobile-list" aria-hidden="false">
+              {recentTransactions.map((transaction) => (
+                <div key={transaction.id} className="txn-card card">
+                  <div className="txn-top">
+                    <div className="member-info">
+                      <div className="member-avatar">{transaction.member.split(' ').map(n => n[0]).join('')}</div>
+                      <div>
+                        <div className="member-name">{transaction.member}</div>
+                        <div className="text-muted transaction-id">#{transaction.id}</div>
+                      </div>
+                    </div>
+                    <div className="txn-amount">{transaction.amount}</div>
+                  </div>
+                  <div className="txn-meta">
+                    <span className={`type-badge type-${transaction.type.toLowerCase().replace(' ', '-')}`}>{transaction.type}</span>
+                    <span className={`status-badge status-${transaction.status}`}>{transaction.status}</span>
+                    <span className="text-muted txn-time">{transaction.time}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
