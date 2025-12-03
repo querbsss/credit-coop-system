@@ -31,7 +31,7 @@ const Sidebar = () => {
   '/reports': ReportsIcon,
     '/loan-approval': CheckIcon,
     '/loan-applications': ApplicationIcon,
-    '/loan-review': LoanIcon,
+  '/loan-review': ApplicationIcon,
     '/loans-verified': CheckIcon,
     '/create-invoice': ApplicationIcon,
     '/user-management': UserIcon,
