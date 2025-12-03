@@ -4,7 +4,8 @@
 .savings-input,
 .savings-number {
   width: 100%;
-  max-width: 100%;
+  /* limit length so controls are a little shorter on wide screens */
+  max-width: 640px;
   padding: 0.75rem 1rem;
   border: 1px solid #e6e9ee;
   border-radius: 6px;
