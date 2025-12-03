@@ -439,7 +439,7 @@ const Reports = () => {
       </div>
 
       <div className="card" style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="reports-controls">
           <label>
             Report type
             <br />
