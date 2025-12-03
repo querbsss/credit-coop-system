@@ -214,6 +214,41 @@
   flex-wrap: wrap;
 }
 
+/* Mobile stacked report cards (hidden on desktop) */
+.reports-mobile-list {
+  display: none;
+}
+
+.report-card {
+  background: var(--white);
+  border: 1px solid var(--gray-100);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: var(--card-shadow);
+}
+
+.report-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.report-row-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--gray-700);
+  font-size: 0.95rem;
+}
+
+.report-period { font-weight: 700; }
+.report-net { font-weight: 800; color: var(--primary-purple-dark); }
+.report-member { font-weight: 700; }
+.report-contribution { font-weight: 800; color: var(--primary-purple-dark); }
+
 .report-stat {
   background: linear-gradient(135deg, rgba(124,58,237,0.06), rgba(167,139,250,0.03));
   padding: 0.75rem 1rem;
@@ -246,5 +281,14 @@
   .report-stat {
     min-width: 120px;
     flex: 1 1 calc(50% - 1rem);
+  }
+
+  /* On small screens: hide the wide table and show stacked cards */
+  .reports-preview .reports-table-container table {
+    display: none;
+  }
+
+  .reports-preview .reports-mobile-list {
+    display: block;
   }
 }

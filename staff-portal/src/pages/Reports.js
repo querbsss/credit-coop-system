@@ -486,41 +486,78 @@ const Reports = () => {
       </div>
 
       {preview ? (
-        <div className="card" style={{ marginTop: '1rem', overflowX: 'auto' }}>
+        <div className="card reports-preview" style={{ marginTop: '1rem' }}>
           <h3 style={{ marginTop: 0 }}>{reportType === 'financial' ? 'Financial report (preview)' : 'Member report (preview)'}</h3>
-          <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                {preview.headers.map((h) => (
-                  <th key={h} style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '1px solid #ddd' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {preview.rows.map((r, idx) => (
-                <tr key={idx}>
-                  {reportType === 'financial' ? (
-                    <>
-                      <td style={{ padding: '0.5rem' }}>{r.period}</td>
-                      <td style={{ padding: '0.5rem' }}>{(r.deposits ?? 0).toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>{(r.loans ?? 0).toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>{(r.interest ?? 0).toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>{(r.expenses ?? 0).toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>{(r.net ?? 0).toLocaleString()}</td>
-                    </>
-                  ) : (
-                    <>
-                      <td style={{ padding: '0.5rem' }}>{r.id}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.name}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.joined}</td>
-                      <td style={{ padding: '0.5rem' }}>{r.shares ?? 0}</td>
-                      <td style={{ padding: '0.5rem' }}>{(r.contribution ?? 0).toLocaleString()}</td>
-                    </>
-                  )}
+
+          {/* Table preview (desktop/tablet) */}
+          <div className="reports-table-container">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {preview.headers.map((h) => (
+                    <th key={h} style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '1px solid #ddd' }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {preview.rows.map((r, idx) => (
+                  <tr key={idx}>
+                    {reportType === 'financial' ? (
+                      <>
+                        <td style={{ padding: '0.5rem' }}>{r.period}</td>
+                        <td style={{ padding: '0.5rem' }}>{(r.deposits ?? 0).toLocaleString()}</td>
+                        <td style={{ padding: '0.5rem' }}>{(r.loans ?? 0).toLocaleString()}</td>
+                        <td style={{ padding: '0.5rem' }}>{(r.interest ?? 0).toLocaleString()}</td>
+                        <td style={{ padding: '0.5rem' }}>{(r.expenses ?? 0).toLocaleString()}</td>
+                        <td style={{ padding: '0.5rem' }}>{(r.net ?? 0).toLocaleString()}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td style={{ padding: '0.5rem' }}>{r.id}</td>
+                        <td style={{ padding: '0.5rem' }}>{r.name}</td>
+                        <td style={{ padding: '0.5rem' }}>{r.joined}</td>
+                        <td style={{ padding: '0.5rem' }}>{r.shares ?? 0}</td>
+                        <td style={{ padding: '0.5rem' }}>{(r.contribution ?? 0).toLocaleString()}</td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile stacked preview — shown on small screens */}
+          <div className="reports-mobile-list" aria-hidden="false">
+            {preview.rows.map((r, idx) => (
+              <div key={idx} className="report-card">
+                {reportType === 'financial' ? (
+                  <>
+                    <div className="report-row-top">
+                      <div className="report-period">{r.period}</div>
+                      <div className="report-net">{(r.net ?? 0).toLocaleString()}</div>
+                    </div>
+                    <div className="report-row-meta">
+                      <div>Deposits: <strong>{(r.deposits ?? 0).toLocaleString()}</strong></div>
+                      <div>Loans: <strong>{(r.loans ?? 0).toLocaleString()}</strong></div>
+                      <div>Interest: <strong>{(r.interest ?? 0).toLocaleString()}</strong></div>
+                      <div>Expenses: <strong>{(r.expenses ?? 0).toLocaleString()}</strong></div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="report-row-top">
+                      <div className="report-member">{r.name} <span className="text-muted">#{r.id}</span></div>
+                      <div className="report-contribution">{(r.contribution ?? 0).toLocaleString()}</div>
+                    </div>
+                    <div className="report-row-meta">
+                      <div>Joined: <strong>{r.joined}</strong></div>
+                      <div>Shares: <strong>{r.shares ?? 0}</strong></div>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="card" style={{ marginTop: '1rem', padding: '2rem', textAlign: 'center' }}>
