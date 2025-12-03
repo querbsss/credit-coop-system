@@ -45,7 +45,7 @@ export const PERMISSIONS = {
 
   // Manager permissions - access to most features except IT functions
   manager: {
-    allowedRoutes: ['/dashboard', '/members', '/loans', '/reports', '/loan-approval', '/membership-applications'],
+  allowedRoutes: ['/dashboard', '/members', '/reports', '/loan-approval', '/membership-applications'],
     menuItems: [
       {
         path: '/dashboard',
@@ -66,12 +66,6 @@ export const PERMISSIONS = {
         description: 'Membership Applications'
       },
       
-      {
-        path: '/loans',
-        icon: '🏦',
-        label: 'Loans',
-        description: 'Loan Management'
-      },
       {
         path: '/loan-approval',
         icon: '✅',

@@ -66,6 +66,13 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Logo SVG sizing inside circular container */
+.logo-icon .logo-svg {
+  width: 58%;
+  height: auto;
+  display: block;
+}
+
 .logo-text h1 {
   color: var(--white);
   font-size: 1.5rem;

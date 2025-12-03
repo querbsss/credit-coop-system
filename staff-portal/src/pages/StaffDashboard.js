@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
 import './Dashboard.css';
+import logoUser from './assets/user-svgrepo-com.svg';
 
 const StaffDashboard = ({ setAuth }) => {
     const [userInfo, setUserInfo] = useState(null);
@@ -147,7 +148,7 @@ const StaffDashboard = ({ setAuth }) => {
         <div className="dashboard-container">
             <div className="dashboard-header">
                 <div className="header-left">
-                    <div className="logo-circle">⚛️</div>
+                    <div className="logo-circle"><img src={logoUser} alt="CreditCoop logo" /></div>
                     <div>
                         <h1>CreditCoop</h1>
                         <div className="subline">STAFF PORTAL</div>

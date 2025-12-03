@@ -9,7 +9,8 @@ import { ReactComponent as UserIcon } from '../pages/assets/user-svgrepo-com.svg
 import { ReactComponent as ApplicationIcon } from '../pages/assets/clipboard-text-svgrepo-com.svg';
 import { ReactComponent as BankIcon } from '../pages/assets/bank-svgrepo-com.svg';
 import { ReactComponent as MoneyBagIcon } from '../pages/assets/money-bag-svgrepo-com.svg';
-import { ReactComponent as LoanIcon } from '../pages/assets/loan-round-svgrepo-com.svg';
+// loan page removed — LoanIcon import kept commented for history if needed
+// import { ReactComponent as LoanIcon } from '../pages/assets/loan-round-svgrepo-com.svg';
 import { ReactComponent as CheckIcon } from '../pages/assets/check-circle-svgrepo-com.svg';
 import { ReactComponent as ReportsIcon } from '../pages/assets/reports-svgrepo-com.svg';
 
@@ -28,7 +29,6 @@ const Sidebar = () => {
     '/savings-setup': BankIcon,
     '/loan-amounts': MoneyBagIcon,
   '/reports': ReportsIcon,
-    '/loans': LoanIcon,
     '/loan-approval': CheckIcon,
     '/loan-applications': ApplicationIcon,
     '/loan-review': LoanIcon,

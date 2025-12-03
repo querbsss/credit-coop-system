@@ -7,7 +7,6 @@ import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
 import RoleBasedDashboard from './pages/RoleBasedDashboard';
 import Members from './pages/Members';
-import Loans from './pages/Loans';
 import LoanApplications from './pages/LoanApplications';
 import LoansVerified from './pages/LoansVerified';
 import LoanReview from './pages/LoanReview';
@@ -112,26 +111,7 @@ function App() {
               } 
             />
             {/* Accounts page removed */}
-            <Route 
-              path="/loans" 
-              element={
-                isAuthenticated ? (
-                  <div className="staff-portal">
-                    <Header setAuth={setAuth} />
-                    <div className="portal-content">
-                      <Sidebar />
-                      <main className="main-content">
-                        <ProtectedRoute requiredRoute="/loans">
-                          <Loans setAuth={setAuth} />
-                        </ProtectedRoute>
-                      </main>
-                    </div>
-                  </div>
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              } 
-            />
+            {/* Loans page removed */}
             {/* Transactions page removed */}
             <Route 
               path="/create-invoice" 
