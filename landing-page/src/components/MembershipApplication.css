@@ -83,16 +83,7 @@
 }
 
 /* Decorative accent on the left to increase separation and brand recognition */
-.application-form::before {
-  content: '';
-  position: absolute;
-  left: 0.5rem;
-  top: 0.75rem;
-  bottom: 0.75rem;
-  width: 6px;
-  border-radius: 4px;
-  background: var(--primary-purple-dark, #3730a3);
-}
+/* removed decorative purple accent bar per request */
 
 .application-form h3 {
   color: var(--primary-purple);
@@ -292,7 +283,7 @@
   content: '';
   width: 4px;
   height: 20px;
-  background: var(--gradient-primary);
+  background: var(--gray-200);
   border-radius: 2px;
 }
 
@@ -301,7 +292,7 @@
   padding: 1.5rem;
   border-radius: var(--border-radius);
   margin-top: 1rem;
-  border-left: 4px solid var(--primary-purple-light);
+  border-left: 4px solid var(--gray-200);
 }
 
 .conditional-section h5 {
