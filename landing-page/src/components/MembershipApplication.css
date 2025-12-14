@@ -72,14 +72,26 @@
 }
 
 .application-form {
-  /* make the form container visibly distinct from the page background
-     (use a very light surface color, subtle border, and stronger shadow) */
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  /* stronger surface so it clearly contrasts with the white page background */
+  background: #f3f4f6; /* light gray surface */
   padding: 2.5rem;
   border-radius: calc(var(--border-radius) + 4px);
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   height: fit-content;
+  position: relative;
+}
+
+/* Decorative accent on the left to increase separation and brand recognition */
+.application-form::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  width: 6px;
+  border-radius: 4px;
+  background: var(--primary-purple-dark, #3730a3);
 }
 
 .application-form h3 {
