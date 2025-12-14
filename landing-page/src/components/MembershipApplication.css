@@ -3,6 +3,13 @@
   background: var(--gray-50);
 }
 
+/* Improve contrast for membership application area by overriding local color tokens */
+.membership-application {
+  --primary-purple: #4f46e5; /* indigo-600 - stronger heading color */
+  --primary-purple-light: rgba(79,70,229,0.12); /* subtle light accent */
+  --primary-purple-dark: #3730a3; /* indigo-700 for strong accents */
+}
+
 .membership-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
