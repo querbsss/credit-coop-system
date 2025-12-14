@@ -3,13 +3,6 @@
   background: var(--gray-50);
 }
 
-/* Improve contrast for membership application area by overriding local color tokens */
-.membership-application {
-  --primary-purple: #4f46e5; /* indigo-600 - stronger heading color */
-  --primary-purple-light: rgba(79,70,229,0.12); /* subtle light accent */
-  --primary-purple-dark: #3730a3; /* indigo-700 for strong accents */
-}
-
 .membership-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -79,10 +72,13 @@
 }
 
 .application-form {
-  background: var(--white);
+  /* make the form container visibly distinct from the page background
+     (use a very light surface color, subtle border, and stronger shadow) */
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   padding: 2.5rem;
-  border-radius: var(--border-radius);
-  box-shadow: var(--card-shadow);
+  border-radius: calc(var(--border-radius) + 4px);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.06);
   height: fit-content;
 }
 
