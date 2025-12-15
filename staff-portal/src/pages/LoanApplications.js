@@ -132,6 +132,23 @@ const LoanApplications = () => {
         });
     };
 
+    // Generate a new application ID of the form LA-<YEAR>-<NNN>
+    const generateApplicationId = (existingApps) => {
+        const year = new Date().getFullYear();
+        const prefix = `LA-${year}-`;
+        // find max numeric suffix for this year
+        let max = 0;
+        existingApps.forEach(a => {
+            if (typeof a.id === 'string' && a.id.startsWith(prefix)) {
+                const parts = a.id.split('-');
+                const num = parseInt(parts[2], 10);
+                if (!Number.isNaN(num) && num > max) max = num;
+            }
+        });
+        const next = String(max + 1).padStart(3, '0');
+        return `${prefix}${next}`;
+    };
+
     const handleStatusChange = async (applicationId, newStatus) => {
         try {
             // API call would go here
@@ -189,7 +206,32 @@ const LoanApplications = () => {
                     <button className="btn btn-secondary">
                         📊 Generate Report
                     </button>
-                    <button className="btn btn-primary">
+                    <button className="btn btn-primary" onClick={async () => {
+                        // simple prompt flow for creating a new application in this mock
+                        const applicantName = window.prompt('Applicant name for new application:', 'New Applicant');
+                        if (!applicantName) return;
+                        const newId = generateApplicationId(applications);
+                        const newApp = {
+                            id: newId,
+                            applicantName,
+                            membershipNumber: 'TBD',
+                            loanType: 'Personal Loan',
+                            amount: 0,
+                            interestRate: 0,
+                            term: 0,
+                            status: 'pending',
+                            priority: 'medium',
+                            applicationDate: new Date().toISOString(),
+                            purpose: '',
+                            creditScore: 0,
+                            monthlyIncome: 0,
+                            employment: '',
+                            collateral: '',
+                            documents: []
+                        };
+                        setApplications(prev => [newApp, ...prev]);
+                        alert(`Created application ${newId} for ${applicantName}`);
+                    }}>
                         ➕ New Application
                     </button>
                 </div>
